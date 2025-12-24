@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHWARMAGO | FINAL OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SHWARMAGO | MOBILE OS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -11,17 +11,18 @@
     <style>
         :root {
             --bg-dark: #0f172a;
-            --bg-glass: rgba(30, 41, 59, 0.6);
+            --bg-glass: rgba(30, 41, 59, 0.7);
             --bg-card: rgba(51, 65, 85, 0.5);
-            --primary: #f97316; /* Tangerine Orange */
+            --primary: #f97316;
             --primary-glow: rgba(249, 115, 22, 0.3);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border: 1px solid rgba(255, 255, 255, 0.08);
+            --success: #22c55e;
             --radius: 16px;
         }
 
-        * { box-sizing: border-box; outline: none; user-select: none; }
+        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         
         body {
             font-family: 'Poppins', sans-serif;
@@ -34,21 +35,27 @@
             overflow: hidden;
         }
 
-        /* --- SIDEBAR --- */
+        /* --- SIDEBAR (Desktop) / BOTTOM NAV (Mobile) --- */
         .sidebar {
             width: 80px;
             background: var(--bg-glass);
             backdrop-filter: blur(12px);
             border-right: var(--border);
             display: flex; flex-direction: column; align-items: center;
-            padding: 30px 0; z-index: 20;
+            padding: 30px 0; z-index: 50;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .sidebar:hover { width: 240px; align-items: flex-start; padding-left: 20px; }
         
         .logo { font-size: 24px; margin-bottom: 50px; color: var(--primary); display: flex; align-items: center; gap: 15px; white-space: nowrap; padding-left: 10px; }
         .logo span { opacity: 0; font-weight: 700; transition: 0.2s; color: white; letter-spacing: 1px; }
-        .sidebar:hover .logo span { opacity: 1; }
+        
+        /* Desktop Hover Effect */
+        @media (min-width: 769px) {
+            .sidebar:hover { width: 240px; align-items: flex-start; padding-left: 20px; }
+            .sidebar:hover .logo span { opacity: 1; }
+            .sidebar:hover .nav-item { width: 200px; }
+            .sidebar:hover .nav-item span { opacity: 1; }
+        }
 
         .nav-item {
             width: 45px; height: 45px;
@@ -59,9 +66,6 @@
         }
         .nav-item i { font-size: 18px; min-width: 45px; text-align: center; }
         .nav-item span { opacity: 0; font-weight: 500; font-size: 14px; transition: 0.2s; }
-        
-        .sidebar:hover .nav-item { width: 200px; }
-        .sidebar:hover .nav-item span { opacity: 1; }
         .nav-item:hover, .nav-item.active { background: var(--primary); color: white; box-shadow: 0 0 15px var(--primary-glow); }
 
         /* --- MAIN AREA --- */
@@ -83,19 +87,18 @@
         }
         .search-bar input { background: none; border: none; color: white; width: 100%; font-family: inherit; font-size: 14px; }
 
-        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
         .tab {
             padding: 8px 20px; background: rgba(255,255,255,0.05); border-radius: 30px; border: var(--border);
-            cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: 0.2s;
+            cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: 0.2s; white-space: nowrap;
         }
-        .tab:hover { background: rgba(255,255,255,0.1); }
         .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         .pos-layout { display: flex; gap: 20px; height: 100%; overflow: hidden; padding-bottom: 20px; }
         
-        /* TEXT-ONLY MENU GRID */
+        /* MENU GRID */
         .menu-grid {
-            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 15px; overflow-y: auto; padding-right: 10px; align-content: start;
         }
         
@@ -103,70 +106,113 @@
             background: var(--bg-card); border: var(--border); border-radius: 12px;
             padding: 20px; cursor: pointer; position: relative;
             transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between;
-            height: 120px;
+            height: 110px;
         }
-        .item-card:hover { transform: translateY(-3px); border-color: var(--primary); background: rgba(51, 65, 85, 0.8); }
-        .item-card:active { transform: scale(0.98); }
+        .item-card:active { transform: scale(0.96); background: rgba(249, 115, 22, 0.2); border-color: var(--primary); }
         
-        .item-cat-icon { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .item-name { font-weight: 600; font-size: 16px; color: white; line-height: 1.3; }
-        .item-price { color: var(--primary); font-weight: 700; font-size: 20px; margin-top: auto; }
+        .item-cat-icon { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .item-name { font-weight: 600; font-size: 15px; color: white; line-height: 1.2; }
+        .item-price { color: var(--primary); font-weight: 700; font-size: 18px; margin-top: auto; }
         
-        .out-stock { opacity: 0.4; pointer-events: none; }
+        .out-stock { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
         .out-badge { position: absolute; top: 10px; right: 10px; background: #ef4444; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
 
         /* BILLING PANEL */
         .billing-panel {
-            width: 380px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px);
+            width: 380px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
             border-radius: 20px; border: var(--border); display: flex; flex-direction: column;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.5); z-index: 10;
         }
 
-        .bill-top { padding: 20px; border-bottom: var(--border); }
+        .bill-top { padding: 15px; border-bottom: var(--border); }
         .order-toggle { background: rgba(255,255,255,0.05); padding: 4px; border-radius: 10px; display: flex; margin-bottom: 10px; }
-        .toggle-btn { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
-        .toggle-btn.active { background: var(--bg-card); color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .toggle-btn { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text-muted); }
+        .toggle-btn.active { background: var(--bg-card); color: white; font-weight: 600; }
 
         .cart-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
-        .cart-info h4 { margin: 0; font-size: 14px; font-weight: 500; }
-        .cart-info small { color: var(--text-muted); font-size: 12px; }
+        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
         
         .qty-control { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { width: 24px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-size: 14px; transition: 0.2s; }
-        .qty-btn:hover { background: var(--primary); }
+        .qty-btn { width: 28px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
 
-        .bill-summary { padding: 20px; background: rgba(0,0,0,0.2); border-radius: 0 0 20px 20px; border-top: var(--border); }
-        .summary-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
-        .total-label { font-size: 14px; color: var(--text-muted); }
-        .total-amount { font-size: 32px; font-weight: 700; color: white; line-height: 1; }
+        .bill-summary { padding: 20px; background: rgba(0,0,0,0.3); border-radius: 0 0 20px 20px; border-top: var(--border); }
+        .summary-row { display: flex; justify-content: space-between; align-items: flex-end; }
+        .total-amount { font-size: 28px; font-weight: 700; color: white; }
         
         .checkout-btn {
             width: 100%; padding: 16px; background: var(--primary);
             color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
-            cursor: pointer; margin-top: 20px; box-shadow: 0 5px 20px var(--primary-glow);
-            transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px;
+            cursor: pointer; margin-top: 15px; box-shadow: 0 5px 20px var(--primary-glow);
+            display: flex; justify-content: center; align-items: center; gap: 10px;
         }
-        .checkout-btn:hover { transform: translateY(-2px); background: #fb923c; }
 
-        /* MODALS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; display: none; justify-content: center; align-items: center; }
-        .modal-card { background: #1e293b; width: 400px; border-radius: 20px; padding: 30px; border: var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; }
-        
-        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
-        .pay-option { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .pay-option:hover { border-color: var(--primary); background: rgba(249, 115, 22, 0.1); }
-        .pay-option i { font-size: 24px; margin-bottom: 10px; display: block; color: var(--text-main); }
-
-        /* STAFF & MGMT */
+        /* --- MENU MANAGER INPUTS --- */
+        .add-item-form {
+            background: var(--bg-card); padding: 15px; border-radius: 12px; border: var(--border); margin-bottom: 20px;
+            display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px;
+        }
+        .form-input {
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 8px; font-family: inherit;
+        }
         .mgmt-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-card); margin-bottom: 10px; border-radius: 10px; border: var(--border); }
-        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 5px; }
+        .btn-icon:hover { color: white; }
+        .btn-delete { color: #ef4444; }
+
+        /* --- MODALS --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .modal-card { background: #1e293b; width: 90%; max-width: 400px; border-radius: 20px; padding: 30px; border: var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; }
+        
+        /* Success Animation */
+        .success-checkmark { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(34, 197, 94, 0.2); color: var(--success); font-size: 40px; border: 2px solid var(--success); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            
+            /* Sidebar becomes Bottom Nav */
+            .sidebar { 
+                width: 100%; height: 65px; flex-direction: row; justify-content: space-around; 
+                position: fixed; bottom: 0; padding: 0; border-right: none; border-top: var(--border); 
+                background: #0f172a; 
+            }
+            .logo { display: none; }
+            .nav-item { width: auto; height: 100%; margin: 0; background: none !important; box-shadow: none !important; flex-direction: column; justify-content: center; }
+            .nav-item i { font-size: 22px; margin-bottom: 2px; }
+            .nav-item span { font-size: 10px; opacity: 1; }
+            .nav-item.active { color: var(--primary); }
+            
+            /* Main Content Adjustments */
+            .main { margin-bottom: 65px; } /* Space for nav */
+            .view { padding: 15px; }
+            
+            /* POS Layout Stacking */
+            .pos-layout { flex-direction: column; }
+            .menu-grid { overflow-y: scroll; min-height: 200px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+            
+            /* Billing Panel Mobile */
+            .billing-panel { 
+                width: 100%; flex: none; height: auto; max-height: 40%; 
+                border-radius: 15px; margin-top: 10px;
+            }
+            .cart-list { min-height: 100px; }
+            
+            /* Adjust Forms for Mobile */
+            .add-item-form { grid-template-columns: 1fr 1fr; }
+            .add-item-form input:first-child { grid-column: span 2; }
+            .add-item-form button { grid-column: span 2; margin-top: 10px; }
+            
+            .search-bar { width: 100%; }
+        }
+
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-left: 10px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(18px); }
-
+        
         .hidden { display: none; }
     </style>
 </head>
@@ -179,16 +225,13 @@
         </div>
         
         <div class="nav-item active" onclick="switchView('pos', this)">
-            <i class="fas fa-calculator"></i> <span>Billing</span>
+            <i class="fas fa-cash-register"></i> <span>Billing</span>
         </div>
         <div class="nav-item" onclick="switchView('menu', this)">
-            <i class="fas fa-boxes"></i> <span>Stock Status</span>
+            <i class="fas fa-edit"></i> <span>Manage</span>
         </div>
         <div class="nav-item" onclick="switchView('dashboard', this)">
-            <i class="fas fa-chart-pie"></i> <span>Analytics</span>
-        </div>
-        <div class="nav-item" onclick="switchView('staff', this)">
-            <i class="fas fa-user-friends"></i> <span>Team</span>
+            <i class="fas fa-chart-pie"></i> <span>Stats</span>
         </div>
     </div>
 
@@ -196,26 +239,21 @@
 
         <div id="view-pos" class="view active">
             <div class="pos-header">
-                <div>
-                    <h2 style="margin:0;">Billing Terminal</h2>
-                    <small style="color:var(--text-muted);">Process orders quickly</small>
-                </div>
                 <div class="search-bar">
                     <i class="fas fa-search" style="color:#666;"></i>
-                    <input type="text" placeholder="Search item..." onkeyup="filterMenu(this.value)">
+                    <input type="text" placeholder="Search menu..." onkeyup="filterMenu(this.value)">
                 </div>
             </div>
 
             <div class="category-tabs">
                 <div class="tab active" onclick="filterCategory('All')">All</div>
-                <div class="tab" onclick="filterCategory('Rolls')">Shawarma</div>
+                <div class="tab" onclick="filterCategory('Rolls')">Rolls</div>
                 <div class="tab" onclick="filterCategory('Sides')">Sides</div>
                 <div class="tab" onclick="filterCategory('Drinks')">Drinks</div>
             </div>
 
             <div class="pos-layout">
-                <div class="menu-grid" id="posGrid">
-                    </div>
+                <div class="menu-grid" id="posGrid"></div>
 
                 <div class="billing-panel">
                     <div class="bill-top">
@@ -223,28 +261,23 @@
                             <div class="toggle-btn active" id="btnDine" onclick="setOrderType('Dine-In')">Dine-In</div>
                             <div class="toggle-btn" id="btnTake" onclick="setOrderType('Takeaway')">Takeaway</div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 style="margin:0; font-size:16px;">Order #<span id="orderId">1001</span></h3>
-                            <span style="color:var(--text-muted); font-size:12px;" id="clockTime">12:00 PM</span>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
+                            <span>Order #<span id="orderId">1001</span></span>
+                            <span onclick="clearCart()" style="color:#ef4444; cursor:pointer;">Clear</span>
                         </div>
                     </div>
 
                     <div class="cart-list" id="cartContainer">
-                        <div style="text-align:center; margin-top:60px; color:var(--text-muted);">
-                            <i class="fas fa-receipt" style="font-size:24px; margin-bottom:10px; opacity:0.3;"></i><br>
-                            Select items to add
-                        </div>
+                        <div style="text-align:center; padding-top:20px; color:var(--text-muted); font-size:12px;">Cart Empty</div>
                     </div>
 
                     <div class="bill-summary">
                         <div class="summary-row">
-                            <div class="total-label">Total Amount</div>
+                            <div style="font-size:14px; color:var(--text-muted);">Total</div>
                             <div class="total-amount">₹<span id="valTotal">0</span></div>
                         </div>
-                        
                         <button class="checkout-btn" onclick="openPayModal()">
-                            <span>Collect Payment</span>
-                            <i class="fas fa-chevron-right"></i>
+                            <span>Charge Bill</span> <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
@@ -252,63 +285,69 @@
         </div>
 
         <div id="view-menu" class="view">
-            <h2>Inventory Status</h2>
-            <p style="color:var(--text-muted); margin-bottom:20px;">Toggle switches to mark items Out of Stock</p>
-            <div id="mgmtGrid" style="overflow-y:auto; padding-bottom:50px;">
+            <h2>Manage Menu</h2>
+            
+            <div class="add-item-form">
+                <input type="text" id="newItemName" class="form-input" placeholder="Item Name (e.g. Falafel)">
+                <input type="number" id="newItemPrice" class="form-input" placeholder="Price">
+                <select id="newItemCat" class="form-input" style="background:#1e293b;">
+                    <option value="Rolls">Rolls</option>
+                    <option value="Sides">Sides</option>
+                    <option value="Drinks">Drinks</option>
+                </select>
+                <button onclick="addNewItem()" style="background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">ADD</button>
+            </div>
+
+            <div id="mgmtGrid" style="overflow-y:auto; padding-bottom:100px;">
                 </div>
         </div>
 
         <div id="view-dashboard" class="view">
-             <h2>Sales Analytics</h2>
-             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
+             <h2>Stats</h2>
+             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px;">
                  <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:var(--border);">
-                     <div style="color:var(--text-muted); font-size:12px; text-transform:uppercase;">Revenue</div>
-                     <div style="font-size:36px; font-weight:bold; color:var(--primary);">₹<span id="dashSales">0</span></div>
+                     <div style="color:var(--text-muted); font-size:12px;">REVENUE</div>
+                     <div style="font-size:24px; font-weight:bold; color:var(--primary);">₹<span id="dashSales">0</span></div>
                  </div>
                  <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:var(--border);">
-                     <div style="color:var(--text-muted); font-size:12px; text-transform:uppercase;">Orders</div>
-                     <div style="font-size:36px; font-weight:bold; color:white;"><span id="dashOrders">0</span></div>
+                     <div style="color:var(--text-muted); font-size:12px;">ORDERS</div>
+                     <div style="font-size:24px; font-weight:bold; color:white;"><span id="dashOrders">0</span></div>
                  </div>
              </div>
-             <h3 style="margin-top:30px; margin-bottom:10px;">Recent Transactions</h3>
-             <div id="dashHistory" style="overflow-y:auto; flex:1; background:rgba(0,0,0,0.2); border-radius:12px; padding:10px;"></div>
+             <h3 style="margin-top:30px;">History</h3>
+             <div id="dashHistory" style="overflow-y:auto; flex:1; padding-bottom:80px;"></div>
         </div>
-
-         <div id="view-staff" class="view">
-            <h2>Team Management</h2>
-            <div class="search-bar" style="width:100%; margin:20px 0;">
-                <input type="text" id="newStaffName" placeholder="Staff Name...">
-                <button onclick="addStaff()" style="background:var(--primary); border:none; color:white; padding:5px 20px; border-radius:20px; cursor:pointer; font-weight:600;">Add</button>
-            </div>
-            <div id="staffList"></div>
-         </div>
-
     </div>
 
     <div id="payModal" class="modal-overlay">
         <div class="modal-card">
             <h2 style="margin:0;">Payment</h2>
-            <div style="font-size:40px; font-weight:700; color:var(--primary); margin:10px 0;">₹<span id="payAmount">0</span></div>
-            <p style="color:var(--text-muted);">Choose Method</p>
-
-            <div class="payment-methods" id="payOptions">
-                <div class="pay-option" onclick="processPayment('CASH')">
-                    <i class="fas fa-coins" style="color:#22c55e;"></i>
-                    <span>Cash</span>
+            <div style="font-size:36px; font-weight:700; color:var(--primary); margin:10px 0;">₹<span id="payAmount">0</span></div>
+            
+            <div id="payOptions" class="payment-methods" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:20px 0;">
+                <div onclick="processPayment('CASH')" style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; cursor:pointer;">
+                    <i class="fas fa-coins" style="color:#22c55e; font-size:24px;"></i><br>Cash
                 </div>
-                <div class="pay-option" onclick="showQR()">
-                    <i class="fas fa-qrcode" style="color:#38bdf8;"></i>
-                    <span>UPI QR</span>
+                <div onclick="showQR()" style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; cursor:pointer;">
+                    <i class="fas fa-qrcode" style="color:#38bdf8; font-size:24px;"></i><br>UPI
                 </div>
             </div>
 
             <div id="qrArea" class="hidden">
-                <div id="qrcode" style="display:flex; justify-content:center; padding:15px; background:white; border-radius:10px; width:fit-content; margin:0 auto;"></div>
-                <p style="margin-top:15px; font-size:12px; color:var(--text-muted);">8003270534@PTSBI</p>
-                <button class="checkout-btn" onclick="processPayment('UPI')">Confirm Payment</button>
+                <div id="qrcode" style="background:white; padding:10px; border-radius:10px; width:fit-content; margin:0 auto;"></div>
+                <button class="checkout-btn" onclick="processPayment('UPI')">Done</button>
             </div>
 
-            <button onclick="closeModal()" style="background:transparent; border:none; color:var(--text-muted); margin-top:20px; cursor:pointer;">Cancel</button>
+            <button onclick="closeModal('payModal')" style="background:none; border:none; color:#94a3b8; margin-top:10px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="success-checkmark"><i class="fas fa-check"></i></div>
+            <h2 style="color:var(--success);">Payment Received!</h2>
+            <p style="color:var(--text-muted);">Order has been recorded.</p>
+            <button class="checkout-btn" onclick="closeModal('successModal')">Next Order</button>
         </div>
     </div>
 
@@ -319,32 +358,34 @@
     let orderCount = 1001;
     let cart = [];
     let salesHistory = [];
-    let staff = ["Manager", "Chef", "Rahul"];
 
-    // --- MENU DATA (NO IMAGES) ---
-    let menu = [
-        { id: 1, name: "Classic Chicken Roll", price: 90, cat: "Rolls", stock: true },
-        { id: 2, name: "Spicy Mexican Roll", price: 120, cat: "Rolls", stock: true },
-        { id: 3, name: "BBQ Smokey Roll", price: 140, cat: "Rolls", stock: true },
-        { id: 4, name: "Special Paneer Roll", price: 110, cat: "Rolls", stock: true },
+    // --- MENU DATA (LocalStorage Support) ---
+    let defaultMenu = [
+        { id: 1, name: "Classic Chicken", price: 90, cat: "Rolls", stock: true },
+        { id: 2, name: "Spicy Mexican", price: 120, cat: "Rolls", stock: true },
+        { id: 3, name: "BBQ Smokey", price: 140, cat: "Rolls", stock: true },
+        { id: 4, name: "Paneer Special", price: 110, cat: "Rolls", stock: true },
         { id: 5, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
-        { id: 6, name: "Chicken Nuggets", price: 100, cat: "Sides", stock: true },
-        { id: 7, name: "Cheese Dip", price: 20, cat: "Sides", stock: true },
-        { id: 8, name: "Cola 250ml", price: 40, cat: "Drinks", stock: true },
-        { id: 9, name: "Mojito Lime", price: 90, cat: "Drinks", stock: true }
+        { id: 6, name: "Cola 250ml", price: 40, cat: "Drinks", stock: true },
+        { id: 7, name: "Water", price: 20, cat: "Drinks", stock: true }
     ];
+
+    let menu = JSON.parse(localStorage.getItem('shwarmago_menu')) || defaultMenu;
 
     // --- INIT ---
     function init() {
         renderMenu();
         renderMgmtGrid();
-        renderStaff();
-        setInterval(() => {
-            document.getElementById('clockTime').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }, 1000);
+        updateDashboard();
     }
 
-    // --- NAV ---
+    function saveMenu() {
+        localStorage.setItem('shwarmago_menu', JSON.stringify(menu));
+        renderMenu();
+        renderMgmtGrid();
+    }
+
+    // --- NAVIGATION ---
     function switchView(id, el) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-'+id).classList.add('active');
@@ -352,11 +393,10 @@
         if(el) el.classList.add('active');
     }
 
-    // --- POS ---
+    // --- POS SYSTEM ---
     function renderMenu(filter = '') {
         const grid = document.getElementById('posGrid');
         grid.innerHTML = '';
-        
         menu.forEach(item => {
             if(item.name.toLowerCase().includes(filter.toLowerCase())) {
                 let outStockClass = item.stock ? '' : 'out-stock';
@@ -379,20 +419,14 @@
     function filterCategory(cat) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         event.target.classList.add('active');
-        
         const grid = document.getElementById('posGrid');
         grid.innerHTML = '';
         menu.forEach(item => {
             if(cat === 'All' || item.cat === cat) {
                 let outStockClass = item.stock ? '' : 'out-stock';
-                let badge = item.stock ? '' : '<div class="out-badge">SOLD OUT</div>';
                 grid.innerHTML += `
                     <div class="item-card ${outStockClass}" onclick="addToCart(${item.id})">
-                        ${badge}
-                        <div>
-                            <div class="item-cat-icon">${item.cat}</div>
-                            <div class="item-name">${item.name}</div>
-                        </div>
+                        <div><div class="item-cat-icon">${item.cat}</div><div class="item-name">${item.name}</div></div>
                         <div class="item-price">₹${item.price}</div>
                     </div>
                 `;
@@ -403,11 +437,9 @@
     function addToCart(id) {
         let item = menu.find(i => i.id === id);
         if(!item.stock) return;
-        
         let existing = cart.find(x => x.id === id);
         if(existing) existing.qty++;
         else cart.push({...item, qty: 1});
-        
         renderCart();
     }
 
@@ -415,30 +447,27 @@
         const con = document.getElementById('cartContainer');
         con.innerHTML = '';
         let total = 0;
-
         if(cart.length === 0) {
-            con.innerHTML = `<div style="text-align:center; margin-top:60px; color:var(--text-muted);"><i class="fas fa-receipt" style="font-size:24px; margin-bottom:10px; opacity:0.3;"></i><br>Select items</div>`;
+            con.innerHTML = `<div style="text-align:center; padding-top:20px; color:var(--text-muted); font-size:12px;">Cart Empty</div>`;
             document.getElementById('valTotal').innerText = "0";
             return;
         }
-
         cart.forEach((item, idx) => {
             total += item.price * item.qty;
             con.innerHTML += `
                 <div class="cart-item">
-                    <div class="cart-info">
-                        <h4>${item.name}</h4>
-                        <small>₹${item.price}</small>
+                    <div>
+                        <div style="font-weight:600; font-size:14px;">${item.name}</div>
+                        <div style="font-size:12px; color:var(--text-muted);">₹${item.price}</div>
                     </div>
                     <div class="qty-control">
                         <div class="qty-btn" onclick="modQty(${idx}, -1)">-</div>
-                        <span>${item.qty}</span>
+                        <span style="font-size:14px; font-weight:600; width:20px; text-align:center;">${item.qty}</span>
                         <div class="qty-btn" onclick="modQty(${idx}, 1)">+</div>
                     </div>
                 </div>
             `;
         });
-
         document.getElementById('valTotal').innerText = total;
     }
 
@@ -447,19 +476,76 @@
         if(cart[idx].qty <= 0) cart.splice(idx, 1);
         renderCart();
     }
-
+    
+    function clearCart() { cart = []; renderCart(); }
     function setOrderType(type) {
         orderType = type;
         document.getElementById('btnDine').classList.toggle('active', type === 'Dine-In');
         document.getElementById('btnTake').classList.toggle('active', type === 'Takeaway');
     }
 
-    // --- PAYMENT ---
+    // --- MENU MANAGEMENT ---
+    function renderMgmtGrid() {
+        const grid = document.getElementById('mgmtGrid');
+        grid.innerHTML = '';
+        menu.forEach((item, idx) => {
+            let checked = item.stock ? 'checked' : '';
+            grid.innerHTML += `
+                <div class="mgmt-row">
+                    <div style="flex:1">
+                        <div style="font-weight:600;">${item.name}</div>
+                        <div style="font-size:12px; color:var(--text-muted); cursor:pointer;" onclick="editPrice(${idx})">Price: <span style="color:var(--primary);">₹${item.price}</span> <i class="fas fa-pencil-alt" style="font-size:10px;"></i></div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${checked} onchange="toggleStock(${idx})">
+                            <span class="slider"></span>
+                        </label>
+                        <button class="btn-icon btn-delete" onclick="deleteItem(${idx})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function addNewItem() {
+        let name = document.getElementById('newItemName').value;
+        let price = document.getElementById('newItemPrice').value;
+        let cat = document.getElementById('newItemCat').value;
+        if(name && price) {
+            menu.push({ id: Date.now(), name: name, price: parseInt(price), cat: cat, stock: true });
+            saveMenu();
+            document.getElementById('newItemName').value = '';
+            document.getElementById('newItemPrice').value = '';
+        }
+    }
+
+    function deleteItem(idx) {
+        if(confirm("Delete " + menu[idx].name + "?")) {
+            menu.splice(idx, 1);
+            saveMenu();
+        }
+    }
+
+    function editPrice(idx) {
+        let newPrice = prompt("Enter new price for " + menu[idx].name, menu[idx].price);
+        if(newPrice !== null) {
+            menu[idx].price = parseInt(newPrice);
+            saveMenu();
+        }
+    }
+
+    function toggleStock(idx) {
+        menu[idx].stock = !menu[idx].stock;
+        saveMenu();
+    }
+
+    // --- PAYMENTS ---
     function openPayModal() {
         if(cart.length === 0) return;
         document.getElementById('payAmount').innerText = document.getElementById('valTotal').innerText;
         document.getElementById('payModal').style.display = 'flex';
-        document.getElementById('payOptions').classList.remove('hidden');
+        document.getElementById('payOptions').style.display = 'grid';
         document.getElementById('qrArea').classList.add('hidden');
     }
 
@@ -468,7 +554,7 @@
         let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`;
         document.getElementById('qrcode').innerHTML = "";
         new QRCode(document.getElementById("qrcode"), { text: link, width: 150, height: 150 });
-        document.getElementById('payOptions').classList.add('hidden');
+        document.getElementById('payOptions').style.display = 'none';
         document.getElementById('qrArea').classList.remove('hidden');
     }
 
@@ -476,39 +562,20 @@
         let total = parseInt(document.getElementById('valTotal').innerText);
         salesHistory.push({ id: orderCount, total: total, method: method, time: new Date().toLocaleTimeString() });
         updateDashboard();
-
+        
+        // Close Pay Modal, Open Success Modal
+        closeModal('payModal');
+        document.getElementById('successModal').style.display = 'flex';
+        
         cart = [];
         renderCart();
         orderCount++;
         document.getElementById('orderId').innerText = orderCount;
-        closeModal();
     }
 
-    function closeModal() { document.getElementById('payModal').style.display = 'none'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // --- STOCK & DASHBOARD ---
-    function renderMgmtGrid() {
-        const grid = document.getElementById('mgmtGrid');
-        grid.innerHTML = '';
-        menu.forEach((item, idx) => {
-            let checked = item.stock ? 'checked' : '';
-            grid.innerHTML += `
-                <div class="mgmt-row">
-                    <div style="font-weight:600;">${item.name} <span style="color:var(--primary);">₹${item.price}</span></div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" ${checked} onchange="toggleStock(${idx})">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            `;
-        });
-    }
-
-    function toggleStock(idx) {
-        menu[idx].stock = !menu[idx].stock;
-        renderMenu(); 
-    }
-
+    // --- DASHBOARD ---
     function updateDashboard() {
         let totalSales = salesHistory.reduce((a, b) => a + b.total, 0);
         document.getElementById('dashSales').innerText = totalSales;
@@ -517,25 +584,14 @@
         const hist = document.getElementById('dashHistory');
         hist.innerHTML = '';
         salesHistory.slice().reverse().forEach(s => {
-            hist.innerHTML += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+            hist.innerHTML += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; font-size:13px;">
                 <div><span style="color:var(--text-muted);">#${s.id}</span> ${s.time}</div>
                 <div style="font-weight:bold;">₹${s.total} <span style="font-size:10px; background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">${s.method}</span></div>
             </div>`;
         });
     }
 
-    // --- STAFF ---
-    function renderStaff() {
-        const div = document.getElementById('staffList');
-        div.innerHTML = staff.map(s => `<div class="mgmt-row">${s}</div>`).join('');
-    }
-    function addStaff() {
-        let name = document.getElementById('newStaffName').value;
-        if(name) { staff.push(name); renderStaff(); document.getElementById('newStaffName').value=''; }
-    }
-
     init();
-
 </script>
 </body>
 </html>
