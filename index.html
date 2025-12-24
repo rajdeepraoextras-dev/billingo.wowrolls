@@ -49,7 +49,7 @@
         }
         .view.active { display: flex; }
 
-        /* --- BOTTOM NAVIGATION (Mobile First) --- */
+        /* --- BOTTOM NAVIGATION --- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
             background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
@@ -76,16 +76,38 @@
             font-size: 14px; font-family: inherit;
         }
 
+        /* FIXED CATEGORY BUTTONS */
         .category-scroll {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
-            margin-bottom: 15px; scrollbar-width: none;
+            display: flex; 
+            gap: 12px; 
+            overflow-x: auto; 
+            padding: 5px 2px;
+            margin-bottom: 20px; 
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch;
         }
-        .cat-chip {
-            padding: 8px 16px; background: rgba(255,255,255,0.05); border: var(--border);
-            border-radius: 20px; font-size: 12px; white-space: nowrap; color: var(--text-muted);
-        }
-        .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .category-scroll::-webkit-scrollbar { display: none; }
 
+        .cat-chip {
+            flex: 0 0 auto; /* PREVENTS SHRINKING */
+            padding: 10px 20px; 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px; 
+            font-size: 13px; 
+            font-weight: 500;
+            white-space: nowrap; 
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+        }
+        .cat-chip.active { 
+            background: var(--primary); 
+            color: white; 
+            border-color: var(--primary); 
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+
+        /* MENU GRID */
         .menu-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
         }
@@ -171,7 +193,9 @@
             background: rgba(34, 197, 94, 0.2); color: var(--success);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             font-size: 30px; border: 2px solid var(--success);
+            animation: popCheck 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        @keyframes popCheck { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
         /* --- UTILS --- */
         .hidden { display: none !important; }
@@ -271,6 +295,7 @@
 
             <div id="qrBox" class="hidden">
                 <div id="qrcode" style="background:white; padding:10px; border-radius:10px; width:fit-content; margin:0 auto 15px;"></div>
+                <div style="margin-bottom:15px; font-size:12px; color:var(--text-muted);">8003270534@PTSBI</div>
                 <button class="btn-primary" onclick="processPay('UPI')">Done</button>
             </div>
 
@@ -310,9 +335,9 @@
     
     // Default Menu
     let defaultMenu = [
-        { id: 1, name: "Chicken Shawarma", price: 90, cat: "Rolls", stock: true },
-        { id: 2, name: "Spicy Mexican", price: 120, cat: "Rolls", stock: true },
-        { id: 3, name: "Special Plate", price: 160, cat: "Rolls", stock: true },
+        { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
+        { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
+        { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
         { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
         { id: 5, name: "Chicken Nuggets", price: 100, cat: "Sides", stock: true },
         { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true },
