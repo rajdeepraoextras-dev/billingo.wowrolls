@@ -1,410 +1,614 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SHWARMAGO POS – Enterprise</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHWARMAGO | ULTIMATE OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-glass: rgba(30, 41, 59, 0.7);
+            --primary: #f97316; /* Tangerine Orange */
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --accent: #38bdf8; /* Sky Blue */
+            --success: #22c55e;
+            --danger: #ef4444;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: 1px solid rgba(255, 255, 255, 0.1);
+            --radius: 16px;
+        }
 
-<style>
-:root{
- --primary:#ff6b00;
- --dark:#222;
- --light:#f4f6f8;
- --white:#fff;
- --border:#e0e0e0;
- --shadow:0 4px 12px rgba(0,0,0,.08);
-}
+        * { box-sizing: border-box; outline: none; user-select: none; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at top left, #331604, transparent 50%), radial-gradient(at bottom right, #0f2638, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
 
-*{box-sizing:border-box;font-family:Calibri,Segoe UI,sans-serif}
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 90px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border-right: var(--border);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 0; z-index: 20;
+            transition: width 0.3s;
+        }
+        .sidebar:hover { width: 220px; align-items: flex-start; padding-left: 20px; }
+        
+        .logo { font-size: 30px; margin-bottom: 50px; color: var(--primary); filter: drop-shadow(0 0 10px var(--primary-glow)); cursor: pointer; display: flex; align-items: center; gap: 15px; white-space: nowrap; }
+        .logo span { font-size: 18px; font-weight: bold; opacity: 0; transition: 0.2s; color: white; }
+        .sidebar:hover .logo span { opacity: 1; }
 
-body{
- margin:0;
- height:100vh;
- display:flex;
- background:var(--light);
- color:#333;
-}
+        .nav-item {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex; align-items: center;
+            color: var(--text-muted);
+            cursor: pointer; transition: 0.3s;
+            position: relative; overflow: hidden;
+            white-space: nowrap;
+        }
+        .nav-item i { font-size: 20px; min-width: 50px; text-align: center; }
+        .nav-item span { opacity: 0; font-weight: 500; font-size: 14px; transition: 0.2s; }
+        
+        .sidebar:hover .nav-item { width: 180px; }
+        .sidebar:hover .nav-item span { opacity: 1; }
 
-/* ===== SIDEBAR ===== */
-.sidebar{
- width:240px;
- background:#fff;
- border-right:1px solid var(--border);
- padding:20px;
- display:flex;
- flex-direction:column;
-}
-.brand{
- font-size:22px;
- font-weight:700;
- color:var(--primary);
- margin-bottom:30px;
-}
-.nav{
- padding:12px 14px;
- border-radius:8px;
- cursor:pointer;
- margin-bottom:8px;
- font-weight:600;
- color:#666;
-}
-.nav.active,.nav:hover{
- background:var(--primary);
- color:#fff;
-}
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; box-shadow: 0 0 20px var(--primary-glow); }
 
-/* ===== MAIN ===== */
-.main{flex:1;display:flex;flex-direction:column}
+        /* --- MAIN AREA --- */
+        .main { flex: 1; position: relative; overflow: hidden; perspective: 1000px; }
+        
+        .view {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 30px; opacity: 0; transform: translateY(20px) scale(0.98); pointer-events: none; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+        .view.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
 
-/* TOP BAR */
-.topbar{
- background:#fff;
- padding:12px 20px;
- display:flex;
- justify-content:space-between;
- border-bottom:1px solid var(--border);
- font-weight:600;
-}
+        /* --- POS VIEW --- */
+        .pos-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        .search-bar {
+            background: var(--bg-card); border: var(--border); padding: 12px 20px; border-radius: 50px;
+            color: white; width: 300px; display: flex; align-items: center; gap: 10px;
+        }
+        .search-bar input { background: none; border: none; color: white; width: 100%; font-family: inherit; }
 
-/* VIEW */
-.view{display:none;flex:1;padding:20px;overflow:auto}
-.view.active{display:block}
+        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab {
+            padding: 8px 16px; background: var(--bg-card); border-radius: 20px; border: var(--border);
+            cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: 0.2s;
+        }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-/* ===== POS ===== */
-.pos-layout{display:flex;gap:20px;height:100%}
+        .pos-layout { display: flex; gap: 30px; height: 100%; overflow: hidden; }
+        
+        /* MENU GRID */
+        .menu-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px; overflow-y: auto; padding-right: 10px; padding-bottom: 100px;
+        }
+        
+        .food-card {
+            background: var(--bg-card); border: var(--border); border-radius: 20px;
+            padding: 20px; text-align: center; cursor: pointer; position: relative;
+            transition: 0.3s; overflow: hidden;
+        }
+        .food-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .food-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); transition: 0.3s; }
+        .food-card:hover img { transform: scale(1.1) rotate(5deg); }
+        
+        .food-title { font-weight: 700; font-size: 15px; margin-bottom: 5px; }
+        .food-price { color: var(--primary); font-weight: 600; font-size: 18px; }
+        .out-stock { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
+        .out-badge { position: absolute; top: 10px; right: 10px; background: var(--danger); font-size: 10px; padding: 2px 6px; border-radius: 4px; }
 
-/* MENU */
-.menu-section{flex:1}
-.cat-bar{display:flex;gap:10px;margin-bottom:15px}
-.cat-btn{
- padding:8px 14px;
- border-radius:20px;
- border:1px solid var(--border);
- cursor:pointer;
- background:#fff;
- font-weight:600;
-}
-.cat-btn.active{
- background:var(--primary);
- color:#fff;
- border-color:var(--primary);
-}
+        /* BILLING PANEL */
+        .billing-panel {
+            width: 400px; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(20px);
+            border-radius: 24px; border: var(--border); display: flex; flex-direction: column;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.3);
+        }
 
-.menu-grid{
- display:grid;
- grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
- gap:15px;
-}
-.card{
- background:#fff;
- padding:15px;
- border-radius:10px;
- border:1px solid var(--border);
- cursor:pointer;
- transition:.2s;
-}
-.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-.price{color:var(--primary);font-weight:700;font-size:18px}
+        .bill-top { padding: 25px; border-bottom: var(--border); }
+        .order-toggle { background: var(--bg-dark); padding: 5px; border-radius: 12px; display: flex; margin-bottom: 15px; }
+        .toggle-btn { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .toggle-btn.active { background: var(--bg-card); color: white; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-/* BILL */
-.bill{
- width:360px;
- background:#fff;
- border-radius:10px;
- border:1px solid var(--border);
- display:flex;
- flex-direction:column;
-}
-.bill-head{
- padding:15px;
- border-bottom:1px solid var(--border);
-}
-.bill-body{flex:1;overflow:auto;padding:15px}
-.bill-row{
- display:flex;
- justify-content:space-between;
- margin-bottom:10px;
- border-bottom:1px dashed #eee;
- padding-bottom:8px;
-}
-.qty button{
- border:none;
- padding:4px 8px;
- cursor:pointer;
-}
-.bill-foot{
- padding:15px;
- border-top:1px solid var(--border);
-}
-.total-line{
- display:flex;
- justify-content:space-between;
- margin-bottom:8px;
- font-weight:600;
-}
-.btn{
- width:100%;
- padding:14px;
- background:var(--primary);
- border:none;
- color:#fff;
- font-size:16px;
- border-radius:8px;
- cursor:pointer;
-}
+        .cart-list { flex: 1; overflow-y: auto; padding: 20px; }
+        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; animation: slideIn 0.3s; }
+        .cart-info h4 { margin: 0; font-size: 14px; }
+        .cart-info small { color: var(--text-muted); font-size: 12px; }
+        .qty-control { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); padding: 5px 10px; border-radius: 8px; }
+        .qty-btn { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); }
+        .qty-btn:hover { color: white; }
 
-/* ===== DASHBOARD ===== */
-.kpis{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:20px;
-}
-.kpi{
- background:#fff;
- padding:20px;
- border-radius:10px;
- box-shadow:var(--shadow);
-}
-.kpi h3{margin:0;font-size:14px;color:#888}
-.kpi p{font-size:28px;font-weight:700;margin:8px 0 0}
+        .bill-summary { padding: 25px; background: var(--bg-card); border-radius: 0 0 24px 24px; border-top: var(--border); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: var(--text-muted); }
+        .summary-row.total { color: white; font-size: 20px; font-weight: 700; margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); }
+        
+        .checkout-btn {
+            width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), #ea580c);
+            color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 700;
+            cursor: pointer; margin-top: 20px; box-shadow: 0 10px 20px var(--primary-glow);
+            transition: 0.3s; display: flex; justify-content: space-between; align-items: center;
+        }
+        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px var(--primary-glow); }
 
-/* ===== TABLE ===== */
-table{
- width:100%;
- border-collapse:collapse;
- background:#fff;
- margin-top:20px;
- box-shadow:var(--shadow);
-}
-th,td{
- padding:12px;
- border-bottom:1px solid #eee;
- text-align:left;
-}
-th{background:#fafafa}
+        /* KITCHEN DISPLAY */
+        .kds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .kds-ticket { background: var(--bg-card); border: var(--border); padding: 20px; border-radius: 12px; border-top: 4px solid var(--accent); }
+        .kds-time { font-size: 12px; color: var(--text-muted); float: right; }
+        .kds-items { margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px; }
+        .kds-item { display: flex; gap: 10px; margin-bottom: 5px; font-size: 14px; }
+        .btn-done { width: 100%; margin-top: 15px; padding: 10px; background: var(--bg-dark); color: var(--success); border: 1px solid var(--success); border-radius: 8px; cursor: pointer; }
+        .btn-done:hover { background: var(--success); color: white; }
 
-/* ===== MODAL ===== */
-.modal{
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.5);
- display:none;
- align-items:center;
- justify-content:center;
-}
-.modal-box{
- background:#fff;
- padding:30px;
- border-radius:10px;
- width:350px;
- text-align:center;
-}
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .modal-card { background: var(--bg-card); width: 450px; border-radius: 24px; padding: 30px; border: var(--border); box-shadow: 0 25px 50px rgba(0,0,0,0.5); text-align: center; position: relative; }
+        
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .pay-option { background: var(--bg-dark); padding: 20px; border-radius: 16px; cursor: pointer; border: 1px solid transparent; transition: 0.3s; }
+        .pay-option:hover { border-color: var(--primary); background: rgba(249, 115, 22, 0.1); }
+        .pay-option i { font-size: 24px; margin-bottom: 10px; display: block; }
 
-/* ===== PRINT ===== */
-@media print{
- body *{visibility:hidden}
- .print-area,.print-area *{visibility:visible}
- .print-area{position:absolute;left:0;top:0;width:100%}
-}
-</style>
+        /* ANIMATIONS */
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Utility */
+        .hidden { display: none; }
+        .badge { background: var(--primary); padding: 2px 8px; border-radius: 10px; font-size: 10px; color: white; vertical-align: middle; }
+    </style>
 </head>
-
 <body>
 
-<div class="sidebar">
- <div class="brand">🌯 SHWARMAGO</div>
- <div class="nav active" onclick="showView('pos',this)">Billing POS</div>
- <div class="nav" onclick="showView('dash',this)">Dashboard</div>
-</div>
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-fire"></i>
+            <span>SHWARMAGO</span>
+        </div>
+        
+        <div class="nav-item active" onclick="switchView('pos', this)">
+            <i class="fas fa-cash-register"></i> <span>Billing</span>
+        </div>
+        <div class="nav-item" onclick="switchView('kds', this)">
+            <i class="fas fa-utensils"></i> <span>Kitchen (KDS)</span>
+        </div>
+        <div class="nav-item" onclick="switchView('menu', this)">
+            <i class="fas fa-hamburger"></i> <span>Menu & Stock</span>
+        </div>
+        <div class="nav-item" onclick="switchView('dashboard', this)">
+            <i class="fas fa-chart-line"></i> <span>Analytics</span>
+        </div>
+        <div class="nav-item" onclick="switchView('staff', this)">
+            <i class="fas fa-users"></i> <span>Team</span>
+        </div>
+    </div>
 
-<div class="main">
+    <div class="main">
 
-<div class="topbar">
- <div>📍 Hata Outlet</div>
- <div>🕒 <span id="clock"></span></div>
-</div>
+        <div id="view-pos" class="view active">
+            <div class="pos-header">
+                <div>
+                    <h2 style="margin:0;">Hey, <span id="staffNameDisplay" style="color:var(--primary);">Manager</span> 👋</h2>
+                    <small style="color:var(--text-muted);">Ready to serve some delicious rolls?</small>
+                </div>
+                <div class="search-bar">
+                    <i class="fas fa-search" style="color:#666;"></i>
+                    <input type="text" placeholder="Search menu..." onkeyup="filterMenu(this.value)">
+                </div>
+            </div>
 
-<!-- ================= POS ================= -->
-<div id="pos" class="view active">
- <div class="pos-layout">
+            <div class="category-tabs">
+                <div class="tab active" onclick="filterCategory('All')">All Items</div>
+                <div class="tab" onclick="filterCategory('Rolls')">🌯 Shawarma Rolls</div>
+                <div class="tab" onclick="filterCategory('Sides')">🍟 Sides & Starters</div>
+                <div class="tab" onclick="filterCategory('Drinks')">🥤 Refreshments</div>
+            </div>
 
-  <div class="menu-section">
-   <div class="cat-bar" id="catBar"></div>
-   <div class="menu-grid" id="menuGrid"></div>
-  </div>
+            <div class="pos-layout">
+                <div class="menu-grid" id="posGrid">
+                    </div>
 
-  <div class="bill">
-   <div class="bill-head">
-    <b>Order #<span id="orderId"></span></b><br>
-    <small id="bizDate"></small>
-   </div>
+                <div class="billing-panel">
+                    <div class="bill-top">
+                        <div class="order-toggle">
+                            <div class="toggle-btn active" id="btnDine" onclick="setOrderType('Dine-In')">Dine-In</div>
+                            <div class="toggle-btn" id="btnTake" onclick="setOrderType('Takeaway')">Takeaway</div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="margin:0;">Current Order</h3>
+                            <span style="color:var(--text-muted); font-size:12px;">#<span id="orderId">1001</span></span>
+                        </div>
+                    </div>
 
-   <div class="bill-body" id="cartBox"></div>
+                    <div class="cart-list" id="cartContainer">
+                        <div style="text-align:center; margin-top:50px; color:var(--text-muted);">
+                            <i class="fas fa-shopping-basket" style="font-size:30px; margin-bottom:10px; opacity:0.3;"></i><br>
+                            Cart is empty
+                        </div>
+                    </div>
 
-   <div class="bill-foot">
-    <div class="total-line"><span>Subtotal</span><span>₹<span id="sub"></span></span></div>
-    <div class="total-line"><span>Tax (5%)</span><span>₹<span id="tax"></span></span></div>
-    <div class="total-line"><span><b>Total</b></span><span><b>₹<span id="total"></span></b></span></div>
-    <button class="btn" onclick="pay()">Checkout</button>
-   </div>
-  </div>
+                    <div class="bill-summary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span>₹<span id="valSubtotal">0</span></span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax (5% GST) <input type="checkbox" id="taxToggle" checked onchange="renderCart()"></span>
+                            <span>₹<span id="valTax">0</span></span>
+                        </div>
+                         <div class="summary-row">
+                            <span>Discount <small onclick="toggleDiscount()" style="color:var(--primary); cursor:pointer;">(Toggle 10%)</small></span>
+                            <span style="color:var(--success);">-₹<span id="valDiscount">0</span></span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total Amount</span>
+                            <span style="color:var(--primary);">₹<span id="valTotal">0</span></span>
+                        </div>
+                        
+                        <button class="checkout-btn" onclick="openPayModal()">
+                            <span>Charge</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
- </div>
-</div>
+        <div id="view-kds" class="view">
+            <h2 style="margin-bottom:20px; color:var(--accent);">👨‍🍳 Live Kitchen Orders</h2>
+            <div class="kds-grid" id="kdsContainer">
+                <div style="color:var(--text-muted);">No active orders</div>
+            </div>
+        </div>
 
-<!-- ================= DASHBOARD ================= -->
-<div id="dash" class="view">
- <div class="kpis">
-  <div class="kpi"><h3>Revenue</h3><p>₹<span id="rev"></span></p></div>
-  <div class="kpi"><h3>Orders</h3><p id="ord"></p></div>
-  <div class="kpi"><h3>Avg Order</h3><p>₹<span id="avg"></span></p></div>
- </div>
+        <div id="view-menu" class="view">
+            <h2>📦 Menu & Inventory</h2>
+            <p style="color:var(--text-muted);">Click items to toggle "Out of Stock"</p>
+            <div class="menu-grid" id="mgmtGrid"></div>
+        </div>
 
- <table>
-  <thead>
-   <tr><th>ID</th><th>Time</th><th>Amount</th><th>Mode</th></tr>
-  </thead>
-  <tbody id="salesTbl"></tbody>
- </table>
-</div>
+        <div id="view-dashboard" class="view">
+             <h2>📊 Analytics Center</h2>
+             <div class="kds-grid" style="margin-top:20px;">
+                 <div class="kds-ticket" style="border-top-color:var(--success);">
+                     <h3 style="margin:0;">Total Sales</h3>
+                     <div style="font-size:30px; font-weight:bold; margin-top:10px;">₹<span id="dashSales">0</span></div>
+                 </div>
+                 <div class="kds-ticket" style="border-top-color:var(--primary);">
+                     <h3 style="margin:0;">Orders</h3>
+                     <div style="font-size:30px; font-weight:bold; margin-top:10px;"><span id="dashOrders">0</span></div>
+                 </div>
+             </div>
+             <h3 style="margin-top:30px;">Recent History</h3>
+             <div id="dashHistory" style="overflow-y:auto; padding-bottom:50px;"></div>
+        </div>
 
-</div>
+         <div id="view-staff" class="view">
+            <h2>👥 Team Management</h2>
+            <div class="search-bar" style="width:100%; margin-bottom:20px;">
+                <input type="text" id="newStaffName" placeholder="Enter Staff Name...">
+                <button onclick="addStaff()" style="background:var(--primary); border:none; color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">Add</button>
+            </div>
+            <div id="staffList"></div>
+         </div>
 
-<!-- ================= PAYMENT MODAL ================= -->
-<div class="modal" id="payModal">
- <div class="modal-box print-area">
-  <h2>Pay ₹<span id="payAmt"></span></h2>
-  <button class="btn" style="background:#4caf50" onclick="finish('CASH')">Cash</button>
-  <button class="btn" onclick="showQR()">UPI</button>
-  <div id="qr"></div>
-  <button onclick="closePay()">Cancel</button>
- </div>
-</div>
+    </div>
+
+    <div id="payModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 style="margin:0;">Checkout</h2>
+            <div style="font-size:36px; font-weight:700; color:var(--primary); margin:10px 0;">₹<span id="payAmount">0</span></div>
+            <p style="color:var(--text-muted);">Select Payment Method</p>
+
+            <div class="payment-methods" id="payOptions">
+                <div class="pay-option" onclick="processPayment('CASH')">
+                    <i class="fas fa-money-bill-wave" style="color:var(--success);"></i>
+                    <span>Cash</span>
+                </div>
+                <div class="pay-option" onclick="showQR()">
+                    <i class="fas fa-qrcode" style="color:var(--accent);"></i>
+                    <span>UPI Scan</span>
+                </div>
+            </div>
+
+            <div id="qrArea" class="hidden">
+                <div id="qrcode" style="display:flex; justify-content:center; padding:10px; background:white; border-radius:10px; width:fit-content; margin:0 auto;"></div>
+                <p style="margin-top:15px; font-size:12px;">Scanning pays: 8003270534@PTSBI</p>
+                <button class="checkout-btn" style="padding:12px;" onclick="processPayment('UPI')">Payment Received</button>
+            </div>
+
+            <button onclick="closeModal()" style="background:transparent; border:none; color:var(--text-muted); margin-top:20px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
 
 <script>
-/* ===== CLOCK ===== */
-setInterval(()=>clock.innerText=new Date().toLocaleTimeString(),1000);
+    // --- CONFIG & STATE ---
+    const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
+    let orderType = 'Dine-In';
+    let discountActive = false;
+    let orderCount = 1001;
+    let cart = [];
+    let activeOrders = []; // For KDS
+    let salesHistory = [];
 
-/* ===== DATA ===== */
-const TAX=5;
-let menu=[
- {name:"Small Shawarma",price:49,cat:"Shawarma"},
- {name:"Medium Shawarma",price:69,cat:"Shawarma"},
- {name:"Large Shawarma",price:99,cat:"Shawarma"},
- {name:"Cola",price:40,cat:"Drinks"}
-];
+    // --- DEFAULT DATA ---
+    let menu = [
+        { id: 1, name: "Classic Chicken", price: 90, cat: "Rolls", img: "https://cdn-icons-png.flaticon.com/512/6518/6518482.png", stock: true },
+        { id: 2, name: "Spicy Mexican", price: 120, cat: "Rolls", img: "https://cdn-icons-png.flaticon.com/512/5787/5787016.png", stock: true },
+        { id: 3, name: "BBQ Smokey", price: 140, cat: "Rolls", img: "https://cdn-icons-png.flaticon.com/512/11548/11548816.png", stock: true },
+        { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", img: "https://cdn-icons-png.flaticon.com/512/1046/1046786.png", stock: true },
+        { id: 5, name: "Chicken Nuggets", price: 100, cat: "Sides", img: "https://cdn-icons-png.flaticon.com/512/5666/5666795.png", stock: true },
+        { id: 6, name: "Cola 250ml", price: 40, cat: "Drinks", img: "https://cdn-icons-png.flaticon.com/512/2738/2738730.png", stock: true },
+        { id: 7, name: "Mojito", price: 90, cat: "Drinks", img: "https://cdn-icons-png.flaticon.com/512/2442/2442019.png", stock: true }
+    ];
 
-let sales=JSON.parse(localStorage.getItem("sales")||"[]");
-let cart=[];
-let orderNo=sales.length+1001;
-let bizDate=new Date().toDateString();
+    let staff = ["Manager", "Chef", "Server 1"];
 
-/* ===== INIT ===== */
-orderId.innerText=orderNo;
-bizDate.innerText=bizDate;
+    // --- INITIALIZATION ---
+    function init() {
+        renderMenu();
+        renderMgmtGrid();
+        renderStaff();
+    }
 
-/* ===== MENU ===== */
-function loadMenu(cat){
- menuGrid.innerHTML="";
- menu.filter(m=>!cat||m.cat===cat).forEach(m=>{
-  menuGrid.innerHTML+=`
-  <div class="card" onclick='add("${m.name}",${m.price})'>
-   <b>${m.name}</b>
-   <div class="price">₹${m.price}</div>
-  </div>`;
- });
-}
+    // --- NAVIGATION ---
+    function switchView(id, el) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-'+id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(el) el.classList.add('active');
+    }
 
-function loadCats(){
- let cats=[...new Set(menu.map(m=>m.cat))];
- catBar.innerHTML="";
- cats.forEach((c,i)=>{
-  catBar.innerHTML+=`<div class="cat-btn ${i==0?"active":""}" onclick="selCat('${c}',this)">${c}</div>`;
- });
- loadMenu(cats[0]);
-}
+    // --- POS FUNCTIONS ---
+    function renderMenu(filter = '') {
+        const grid = document.getElementById('posGrid');
+        grid.innerHTML = '';
+        
+        menu.forEach(item => {
+            if(item.name.toLowerCase().includes(filter.toLowerCase())) {
+                let outStockClass = item.stock ? '' : 'out-stock';
+                let badge = item.stock ? '' : '<div class="out-badge">SOLD OUT</div>';
+                
+                grid.innerHTML += `
+                    <div class="food-card ${outStockClass}" onclick="addToCart(${item.id})">
+                        ${badge}
+                        <img src="${item.img}" alt="icon">
+                        <div class="food-title">${item.name}</div>
+                        <div class="food-price">₹${item.price}</div>
+                    </div>
+                `;
+            }
+        });
+    }
 
-function selCat(c,el){
- document.querySelectorAll(".cat-btn").forEach(x=>x.classList.remove("active"));
- el.classList.add("active");
- loadMenu(c);
-}
+    function filterCategory(cat) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        const grid = document.getElementById('posGrid');
+        grid.innerHTML = '';
+        menu.forEach(item => {
+            if(cat === 'All' || item.cat === cat) {
+                let outStockClass = item.stock ? '' : 'out-stock';
+                grid.innerHTML += `
+                     <div class="food-card ${outStockClass}" onclick="addToCart(${item.id})">
+                        <img src="${item.img}" alt="icon">
+                        <div class="food-title">${item.name}</div>
+                        <div class="food-price">₹${item.price}</div>
+                    </div>
+                `;
+            }
+        });
+    }
 
-/* ===== CART ===== */
-function add(n,p){
- let f=cart.find(i=>i.name==n);
- f?f.qty++:cart.push({name:n,price:p,qty:1});
- renderCart();
-}
+    function addToCart(id) {
+        let item = menu.find(i => i.id === id);
+        if(!item.stock) return;
+        
+        let existing = cart.find(x => x.id === id);
+        if(existing) existing.qty++;
+        else cart.push({...item, qty: 1});
+        
+        renderCart();
+    }
 
-function renderCart(){
- cartBox.innerHTML="";
- let sub=0;
- cart.forEach((i,idx)=>{
-  sub+=i.price*i.qty;
-  cartBox.innerHTML+=`
-   <div class="bill-row">
-    ${i.qty}x ${i.name}
-    <span>₹${i.price*i.qty}</span>
-   </div>`;
- });
- let tax=sub*TAX/100;
- sub.innerText=sub;
- tax.innerText=tax.toFixed(2);
- total.innerText=(sub+tax).toFixed(2);
-}
+    function renderCart() {
+        const con = document.getElementById('cartContainer');
+        con.innerHTML = '';
+        let subtotal = 0;
 
-/* ===== PAYMENT ===== */
-function pay(){
- if(!cart.length)return alert("Cart empty");
- payAmt.innerText=total.innerText;
- payModal.style.display="flex";
-}
+        if(cart.length === 0) {
+            con.innerHTML = `<div style="text-align:center; margin-top:50px; color:var(--text-muted);"><i class="fas fa-shopping-basket" style="font-size:30px; margin-bottom:10px; opacity:0.3;"></i><br>Cart is empty</div>`;
+        }
 
-function showQR(){
- qr.innerHTML="";
- new QRCode(qr,{
-  text:`upi://pay?pa=8003270534@PTSBI&am=${payAmt.innerText}`,
-  width:150,height:150
- });
-}
+        cart.forEach((item, idx) => {
+            subtotal += item.price * item.qty;
+            con.innerHTML += `
+                <div class="cart-item">
+                    <div class="cart-info">
+                        <h4>${item.name}</h4>
+                        <small>₹${item.price} x ${item.qty}</small>
+                    </div>
+                    <div class="qty-control">
+                        <div class="qty-btn" onclick="modQty(${idx}, -1)">-</div>
+                        <span>${item.qty}</span>
+                        <div class="qty-btn" onclick="modQty(${idx}, 1)">+</div>
+                    </div>
+                </div>
+            `;
+        });
 
-function finish(mode){
- sales.unshift({id:orderNo,time:new Date().toLocaleTimeString(),amt:payAmt.innerText,mode});
- localStorage.setItem("sales",JSON.stringify(sales));
- cart=[];orderNo++;orderId.innerText=orderNo;
- closePay();renderCart();updateDash();
- alert("Order Completed");
-}
+        // Calculations
+        let tax = document.getElementById('taxToggle').checked ? Math.round(subtotal * 0.05) : 0;
+        let discount = discountActive ? Math.round(subtotal * 0.10) : 0;
+        let total = subtotal + tax - discount;
 
-function closePay(){payModal.style.display="none";qr.innerHTML=""}
+        document.getElementById('valSubtotal').innerText = subtotal;
+        document.getElementById('valTax').innerText = tax;
+        document.getElementById('valDiscount').innerText = discount;
+        document.getElementById('valTotal').innerText = total;
+    }
 
-/* ===== DASH ===== */
-function updateDash(){
- let r=sales.reduce((a,b)=>a+Number(b.amt),0);
- rev.innerText=r;
- ord.innerText=sales.length;
- avg.innerText=sales.length?(r/sales.length).toFixed(0):0;
- salesTbl.innerHTML="";
- sales.slice(0,10).forEach(s=>{
-  salesTbl.innerHTML+=`<tr><td>#${s.id}</td><td>${s.time}</td><td>₹${s.amt}</td><td>${s.mode}</td></tr>`;
- });
-}
+    function modQty(idx, change) {
+        cart[idx].qty += change;
+        if(cart[idx].qty <= 0) cart.splice(idx, 1);
+        renderCart();
+    }
 
-/* ===== NAV ===== */
-function showView(v,el){
- document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
- document.getElementById(v).classList.add("active");
- document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));
- el.classList.add("active");
-}
+    function setOrderType(type) {
+        orderType = type;
+        document.getElementById('btnDine').classList.toggle('active', type === 'Dine-In');
+        document.getElementById('btnTake').classList.toggle('active', type === 'Takeaway');
+    }
 
-/* ===== START ===== */
-loadCats();
-updateDash();
+    function toggleDiscount() {
+        discountActive = !discountActive;
+        renderCart();
+    }
+
+    // --- CHECKOUT ---
+    function openPayModal() {
+        if(cart.length === 0) return;
+        document.getElementById('payAmount').innerText = document.getElementById('valTotal').innerText;
+        document.getElementById('payModal').style.display = 'flex';
+        document.getElementById('payOptions').classList.remove('hidden');
+        document.getElementById('qrArea').classList.add('hidden');
+    }
+
+    function showQR() {
+        let amt = document.getElementById('payAmount').innerText;
+        let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`;
+        
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: link, width: 150, height: 150 });
+        
+        document.getElementById('payOptions').classList.add('hidden');
+        document.getElementById('qrArea').classList.remove('hidden');
+    }
+
+    function processPayment(method) {
+        let total = parseInt(document.getElementById('valTotal').innerText);
+        let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Add to KDS
+        let kdsOrder = { id: orderCount, type: orderType, items: [...cart], time: time };
+        activeOrders.push(kdsOrder);
+        renderKDS();
+
+        // Add to Analytics
+        salesHistory.push({ id: orderCount, total: total, method: method });
+        updateDashboard();
+
+        // Reset
+        cart = [];
+        renderCart();
+        orderCount++;
+        document.getElementById('orderId').innerText = orderCount;
+        closeModal();
+        
+        // Feedback
+        alert('Order Sent to Kitchen! 👨‍🍳');
+    }
+
+    function closeModal() { document.getElementById('payModal').style.display = 'none'; }
+
+    // --- KDS SYSTEM ---
+    function renderKDS() {
+        const con = document.getElementById('kdsContainer');
+        con.innerHTML = activeOrders.length ? '' : '<div style="color:var(--text-muted);">No active orders</div>';
+        
+        activeOrders.forEach((order, idx) => {
+            let itemsHtml = order.items.map(i => `<div class="kds-item"><span class="badge">${i.qty}</span> <span>${i.name}</span></div>`).join('');
+            
+            con.innerHTML += `
+                <div class="kds-ticket">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0;">#${order.id}</h3>
+                        <div class="kds-time">${order.time}</div>
+                    </div>
+                    <div style="color:var(--primary); font-size:12px; font-weight:bold; margin-bottom:5px;">${order.type}</div>
+                    <div class="kds-items">
+                        ${itemsHtml}
+                    </div>
+                    <button class="btn-done" onclick="completeOrder(${idx})">Mark Done</button>
+                </div>
+            `;
+        });
+    }
+
+    function completeOrder(idx) {
+        activeOrders.splice(idx, 1);
+        renderKDS();
+    }
+
+    // --- MENU MGMT ---
+    function renderMgmtGrid() {
+        const grid = document.getElementById('mgmtGrid');
+        grid.innerHTML = '';
+        menu.forEach((item, idx) => {
+            let opacity = item.stock ? '1' : '0.5';
+            grid.innerHTML += `
+                <div class="food-card" style="opacity:${opacity}" onclick="toggleStock(${idx})">
+                    <img src="${item.img}">
+                    <div class="food-title">${item.name}</div>
+                    <div style="font-size:12px; color:var(--text-muted);">${item.stock ? 'In Stock' : 'Out of Stock'}</div>
+                </div>
+            `;
+        });
+    }
+
+    function toggleStock(idx) {
+        menu[idx].stock = !menu[idx].stock;
+        renderMgmtGrid();
+        renderMenu(); // Update POS view
+    }
+
+    // --- DASHBOARD ---
+    function updateDashboard() {
+        let totalSales = salesHistory.reduce((a, b) => a + b.total, 0);
+        document.getElementById('dashSales').innerText = totalSales;
+        document.getElementById('dashOrders').innerText = salesHistory.length;
+
+        const hist = document.getElementById('dashHistory');
+        hist.innerHTML = '';
+        salesHistory.slice().reverse().forEach(s => {
+            hist.innerHTML += `<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
+                <span>#${s.id} (${s.method})</span> <span style="color:var(--success);">₹${s.total}</span>
+            </div>`;
+        });
+    }
+
+    // --- STAFF ---
+    function renderStaff() {
+        const div = document.getElementById('staffList');
+        div.innerHTML = staff.map(s => `<div style="padding:10px; background:var(--bg-card); margin-bottom:5px; border-radius:8px;">${s}</div>`).join('');
+    }
+    function addStaff() {
+        let name = document.getElementById('newStaffName').value;
+        if(name) { staff.push(name); renderStaff(); document.getElementById('newStaffName').value=''; }
+    }
+
+    // Init
+    init();
+
 </script>
 </body>
 </html>
-
