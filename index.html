@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shawarma Stall Management</title>
+    <style>
+        :root {
+            --primary: #D97706; /* Shawarma Gold */
+            --dark: #1F2937;
+            --light: #F3F4F6;
+            --success: #10B981;
+        }
+        body { font-family: system-ui, sans-serif; margin: 0; background: var(--light); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Layout */
+        .container { display: flex; width: 100%; gap: 20px; padding: 20px; }
+        .menu-section { flex: 2; display: flex; flex-direction: column; gap: 20px; }
+        .billing-section { flex: 1; background: white; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        /* Menu Grid */
+        .category-title { font-size: 1.2rem; font-weight: bold; color: var(--dark); margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .card { 
+            background: white; padding: 15px; border-radius: 8px; cursor: pointer; 
+            transition: transform 0.1s; border: 1px solid #e5e7eb; text-align: center;
+        }
+        .card:active { transform: scale(0.95); }
+        .card h3 { margin: 5px 0; font-size: 1rem; }
+        .card .price { color: var(--primary); font-weight: bold; }
+
+        /* Billing Table */
+        .bill-table { width: 100%; border-collapse: collapse; margin-top: 10px; flex-grow: 1; }
+        .bill-table th { text-align: left; border-bottom: 2px solid #eee; padding: 8px; }
+        .bill-table td { padding: 8px; border-bottom: 1px solid #eee; }
+        .total-box { margin-top: auto; padding-top: 15px; border-top: 2px solid #eee; }
+        .total-row { display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; }
+        
+        /* Buttons */
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
+        .btn-print { background: var(--dark); color: white; }
+        .btn-checkout { background: var(--success); color: white; }
+
+        /* Sales Management Table (Bottom Overlay or Section) */
+        .sales-log { 
+            position: fixed; bottom: 0; left: 0; right: 0; background: white; 
+            height: 250px; border-top: 4px solid var(--primary); padding: 20px;
+            transform: translateY(210px); transition: transform 0.3s;
+            overflow-y: auto; box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+        }
+        .sales-log:hover { transform: translateY(0); } /* Slide up on hover */
+        .log-header { display: flex; justify-content: space-between; margin-bottom: 10px; cursor: pointer;}
+        
+        table.sales-table { width: 100%; border-collapse: collapse; }
+        table.sales-table th, table.sales-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        table.sales-table th { background-color: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="menu-section">
+        <div>
+            <div class="category-title">Shawarma Rolls</div>
+            <div class="grid">
+                <div class="card" onclick="addItem('Chicken Shawarma', 90)">
+                    <h3>Chicken Roll</h3>
+                    <div class="price">₹90</div>
+                </div>
+                <div class="card" onclick="addItem('Special Shawarma', 120)">
+                    <h3>Special Roll</h3>
+                    <div class="price">₹120</div>
+                </div>
+                <div class="card" onclick="addItem('Paneer Shawarma', 100)">
+                    <h3>Paneer Roll</h3>
+                    <div class="price">₹100</div>
+                </div>
+                <div class="card" onclick="addItem('Open Shawarma', 150)">
+                    <h3>Open Plate</h3>
+                    <div class="price">₹150</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="category-title">Sides & Drinks</div>
+            <div class="grid">
+                <div class="card" onclick="addItem('Extra Khuboos', 20)">
+                    <h3>Khuboos</h3>
+                    <div class="price">₹20</div>
+                </div>
+                <div class="card" onclick="addItem('Extra Mayo', 15)">
+                    <h3>Dip/Mayo</h3>
+                    <div class="price">₹15</div>
+                </div>
+                <div class="card" onclick="addItem('Coke 250ml', 40)">
+                    <h3>Coke</h3>
+                    <div class="price">₹40</div>
+                </div>
+                <div class="card" onclick="addItem('Water', 20)">
+                    <h3>Water</h3>
+                    <div class="price">₹20</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="billing-section">
+        <h2 style="margin-top:0;">New Order #<span id="orderId">1001</span></h2>
+        <div style="overflow-y: auto; flex-grow: 1;">
+            <table class="bill-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div class="total-box">
+            <div class="total-row">
+                <span>Total</span>
+                <span>₹<span id="totalAmount">0</span></span>
+            </div>
+            <button class="btn btn-checkout" onclick="checkout()">✅ COMPLETED & PRINT</button>
+        </div>
+    </div>
+</div>
+
+<div class="sales-log">
+    <div class="log-header">
+        <h3>📊 Daily Sales Management (Hover to expand)</h3>
+        <h3>Total Revenue: ₹<span id="dailyTotal">0</span></h3>
+    </div>
+    <table class="sales-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Time</th>
+                <th>Items</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="salesBody">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    let cart = [];
+    let orderCount = 1001;
+    let dailyRevenue = 0;
+
+    function addItem(name, price) {
+        const existing = cart.find(item => item.name === name);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({ name, price, qty: 1 });
+        }
+        renderCart();
+    }
+
+    function removeItem(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function renderCart() {
+        const tbody = document.getElementById('cartBody');
+        tbody.innerHTML = '';
+        let total = 0;
+
+        cart.forEach((item, index) => {
+            const lineTotal = item.price * item.qty;
+            total += lineTotal;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>₹${lineTotal}</td>
+                    <td onclick="removeItem(${index})" style="color:red; cursor:pointer;">✖</td>
+                </tr>
+            `;
+        });
+        document.getElementById('totalAmount').innerText = total;
+    }
+
+    function checkout() {
+        if (cart.length === 0) return alert("Cart is empty!");
+
+        const total = parseInt(document.getElementById('totalAmount').innerText);
+        const time = new Date().toLocaleTimeString();
+        const itemsSummary = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+
+        // Add to Sales Log Table
+        const salesBody = document.getElementById('salesBody');
+        const row = `
+            <tr>
+                <td>#${orderCount}</td>
+                <td>${time}</td>
+                <td>${itemsSummary}</td>
+                <td>₹${total}</td>
+                <td style="color:green; font-weight:bold;">Paid</td>
+            </tr>
+        `;
+        salesBody.insertAdjacentHTML('afterbegin', row);
+
+        // Update Daily Stats
+        dailyRevenue += total;
+        document.getElementById('dailyTotal').innerText = dailyRevenue;
+
+        // Reset
+        alert(`Order #${orderCount} Completed! Bill Printed.`);
+        cart = [];
+        renderCart();
+        orderCount++;
+        document.getElementById('orderId').innerText = orderCount;
+    }
+</script>
+
+</body>
+</html>
