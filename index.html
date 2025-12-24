@@ -3,412 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SHWARMAGO | MOBILE OS</title>
+    <title>SHWARMAGO | MOBILE POS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --bg-glass: rgba(30, 41, 59, 0.7);
-            --bg-card: rgba(51, 65, 85, 0.5);
+            --bg-app: #0f172a;
+            --bg-card: #1e293b;
             --primary: #f97316;
-            --primary-glow: rgba(249, 115, 22, 0.3);
+            --success: #22c55e;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border: 1px solid rgba(255, 255, 255, 0.08);
-            --success: #22c55e;
-            --radius: 16px;
+            --border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
         
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(at top left, #2a1002, transparent 50%), radial-gradient(at bottom right, #0f2638, transparent 50%);
+            background-color: var(--bg-app);
             color: var(--text-main);
             margin: 0;
-            height: 100vh;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic viewport height for mobile */
             display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- SIDEBAR (Desktop) / BOTTOM NAV (Mobile) --- */
-        .sidebar {
-            width: 80px;
-            background: var(--bg-glass);
-            backdrop-filter: blur(12px);
-            border-right: var(--border);
-            display: flex; flex-direction: column; align-items: center;
-            padding: 30px 0; z-index: 50;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .logo { font-size: 24px; margin-bottom: 50px; color: var(--primary); display: flex; align-items: center; gap: 15px; white-space: nowrap; padding-left: 10px; }
-        .logo span { opacity: 0; font-weight: 700; transition: 0.2s; color: white; letter-spacing: 1px; }
-        
-        /* Desktop Hover Effect */
-        @media (min-width: 769px) {
-            .sidebar:hover { width: 240px; align-items: flex-start; padding-left: 20px; }
-            .sidebar:hover .logo span { opacity: 1; }
-            .sidebar:hover .nav-item { width: 200px; }
-            .sidebar:hover .nav-item span { opacity: 1; }
+        /* --- LAYOUT STRUCTURE --- */
+        .main-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 70px; /* Space for Bottom Nav */
         }
 
-        .nav-item {
-            width: 45px; height: 45px;
-            border-radius: 12px; margin-bottom: 10px;
-            display: flex; align-items: center;
-            color: var(--text-muted); cursor: pointer; transition: 0.2s;
-            position: relative; overflow: hidden; white-space: nowrap;
-        }
-        .nav-item i { font-size: 18px; min-width: 45px; text-align: center; }
-        .nav-item span { opacity: 0; font-weight: 500; font-size: 14px; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; box-shadow: 0 0 15px var(--primary-glow); }
-
-        /* --- MAIN AREA --- */
-        .main { flex: 1; position: relative; overflow: hidden; }
-        
         .view {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            padding: 30px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: 0.3s;
-            display: flex; flex-direction: column;
+            overflow-y: auto; padding: 20px;
+            display: none; flex-direction: column;
+            padding-bottom: 100px; /* Extra space for scrolling past floating bars */
         }
-        .view.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+        .view.active { display: flex; }
 
-        /* --- POS LAYOUT --- */
-        .pos-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
-        
-        .search-bar {
-            background: var(--bg-card); border: var(--border); padding: 10px 20px; border-radius: 50px;
-            color: white; width: 300px; display: flex; align-items: center; gap: 10px;
+        /* --- BOTTOM NAVIGATION (Mobile First) --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 65px;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            border-top: var(--border);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 50;
         }
-        .search-bar input { background: none; border: none; color: white; width: 100%; font-family: inherit; font-size: 14px; }
-
-        .category-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .tab {
-            padding: 8px 20px; background: rgba(255,255,255,0.05); border-radius: 30px; border: var(--border);
-            cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: 0.2s; white-space: nowrap;
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-muted); font-size: 10px; gap: 4px;
+            width: 60px; height: 100%; cursor: pointer;
         }
-        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-btn i { font-size: 20px; }
+        .nav-btn.active { color: var(--primary); }
 
-        .pos-layout { display: flex; gap: 20px; height: 100%; overflow: hidden; padding-bottom: 20px; }
-        
-        /* MENU GRID */
+        /* --- POS VIEW --- */
+        .search-container {
+            position: sticky; top: 0; z-index: 10;
+            background: var(--bg-app); padding-bottom: 10px;
+        }
+        .search-input {
+            width: 100%; background: var(--bg-card); border: var(--border);
+            padding: 12px 15px; border-radius: 12px; color: white;
+            font-size: 14px; font-family: inherit;
+        }
+
+        .category-scroll {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
+            margin-bottom: 15px; scrollbar-width: none;
+        }
+        .cat-chip {
+            padding: 8px 16px; background: rgba(255,255,255,0.05); border: var(--border);
+            border-radius: 20px; font-size: 12px; white-space: nowrap; color: var(--text-muted);
+        }
+        .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
         .menu-grid {
-            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px; overflow-y: auto; padding-right: 10px; align-content: start;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
         }
-        
-        .item-card {
-            background: var(--bg-card); border: var(--border); border-radius: 12px;
-            padding: 20px; cursor: pointer; position: relative;
-            transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between;
-            height: 110px;
+        .menu-item {
+            background: var(--bg-card); border-radius: 12px; padding: 15px;
+            border: var(--border); display: flex; flex-direction: column; justify-content: space-between;
+            height: 120px; position: relative;
         }
-        .item-card:active { transform: scale(0.96); background: rgba(249, 115, 22, 0.2); border-color: var(--primary); }
+        .menu-item:active { transform: scale(0.98); border-color: var(--primary); }
+        .item-name { font-weight: 600; font-size: 14px; line-height: 1.2; margin-bottom: 5px; }
+        .item-price { color: var(--primary); font-weight: 700; font-size: 16px; margin-top: auto; }
         
-        .item-cat-icon { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .item-name { font-weight: 600; font-size: 15px; color: white; line-height: 1.2; }
-        .item-price { color: var(--primary); font-weight: 700; font-size: 18px; margin-top: auto; }
-        
-        .out-stock { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
-        .out-badge { position: absolute; top: 10px; right: 10px; background: #ef4444; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .out-stock { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+        .badge-out { position: absolute; top: 8px; right: 8px; background: #ef4444; font-size: 9px; padding: 2px 6px; border-radius: 4px; }
 
-        /* BILLING PANEL */
-        .billing-panel {
-            width: 380px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
-            border-radius: 20px; border: var(--border); display: flex; flex-direction: column;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.5); z-index: 10;
+        /* --- FLOATING CART BAR --- */
+        .cart-bar {
+            position: fixed; bottom: 75px; left: 5%; width: 90%;
+            background: var(--success); color: white;
+            border-radius: 12px; padding: 15px;
+            display: none; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 40;
+            animation: slideUp 0.3s;
         }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .bill-top { padding: 15px; border-bottom: var(--border); }
-        .order-toggle { background: rgba(255,255,255,0.05); padding: 4px; border-radius: 10px; display: flex; margin-bottom: 10px; }
-        .toggle-btn { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--text-muted); }
-        .toggle-btn.active { background: var(--bg-card); color: white; font-weight: 600; }
-
-        .cart-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
-        
-        .qty-control { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { width: 28px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
-
-        .bill-summary { padding: 20px; background: rgba(0,0,0,0.3); border-radius: 0 0 20px 20px; border-top: var(--border); }
-        .summary-row { display: flex; justify-content: space-between; align-items: flex-end; }
-        .total-amount { font-size: 28px; font-weight: 700; color: white; }
-        
-        .checkout-btn {
-            width: 100%; padding: 16px; background: var(--primary);
-            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
-            cursor: pointer; margin-top: 15px; box-shadow: 0 5px 20px var(--primary-glow);
-            display: flex; justify-content: center; align-items: center; gap: 10px;
+        /* --- CART BOTTOM SHEET (MODAL) --- */
+        .sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 60; display: none;
+            justify-content: center; align-items: flex-end;
         }
-
-        /* --- MENU MANAGER INPUTS --- */
-        .add-item-form {
-            background: var(--bg-card); padding: 15px; border-radius: 12px; border: var(--border); margin-bottom: 20px;
-            display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px;
+        .sheet-content {
+            background: #1e293b; width: 100%; max-height: 80vh;
+            border-radius: 20px 20px 0 0; padding: 20px;
+            display: flex; flex-direction: column;
+            animation: slideUpSheet 0.3s;
         }
-        .form-input {
-            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 8px; font-family: inherit;
+        @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .cart-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .mgmt-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--bg-card); margin-bottom: 10px; border-radius: 10px; border: var(--border); }
-        .btn-icon { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 5px; }
-        .btn-icon:hover { color: white; }
-        .btn-delete { color: #ef4444; }
+        .qty-control {
+            display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2);
+            padding: 5px; border-radius: 8px;
+        }
+        .qty-btn { width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-        /* --- MODALS --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; display: none; justify-content: center; align-items: center; }
-        .modal-card { background: #1e293b; width: 90%; max-width: 400px; border-radius: 20px; padding: 30px; border: var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; }
-        
-        /* Success Animation */
-        .success-checkmark { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(34, 197, 94, 0.2); color: var(--success); font-size: 40px; border: 2px solid var(--success); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            
-            /* Sidebar becomes Bottom Nav */
-            .sidebar { 
-                width: 100%; height: 65px; flex-direction: row; justify-content: space-around; 
-                position: fixed; bottom: 0; padding: 0; border-right: none; border-top: var(--border); 
-                background: #0f172a; 
-            }
-            .logo { display: none; }
-            .nav-item { width: auto; height: 100%; margin: 0; background: none !important; box-shadow: none !important; flex-direction: column; justify-content: center; }
-            .nav-item i { font-size: 22px; margin-bottom: 2px; }
-            .nav-item span { font-size: 10px; opacity: 1; }
-            .nav-item.active { color: var(--primary); }
-            
-            /* Main Content Adjustments */
-            .main { margin-bottom: 65px; } /* Space for nav */
-            .view { padding: 15px; }
-            
-            /* POS Layout Stacking */
-            .pos-layout { flex-direction: column; }
-            .menu-grid { overflow-y: scroll; min-height: 200px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-            
-            /* Billing Panel Mobile */
-            .billing-panel { 
-                width: 100%; flex: none; height: auto; max-height: 40%; 
-                border-radius: 15px; margin-top: 10px;
-            }
-            .cart-list { min-height: 100px; }
-            
-            /* Adjust Forms for Mobile */
-            .add-item-form { grid-template-columns: 1fr 1fr; }
-            .add-item-form input:first-child { grid-column: span 2; }
-            .add-item-form button { grid-column: span 2; margin-top: 10px; }
-            
-            .search-bar { width: 100%; }
+        .btn-primary {
+            width: 100%; background: var(--primary); color: white; padding: 16px;
+            border-radius: 12px; font-weight: 700; font-size: 16px; border: none;
+            margin-top: 15px;
         }
 
-        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-left: 10px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(18px); }
-        
-        .hidden { display: none; }
+        /* --- MANAGEMENT & FORMS --- */
+        .mgmt-row {
+            background: var(--bg-card); padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .input-group {
+            background: var(--bg-card); padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            display: grid; gap: 10px;
+        }
+        .input-dark {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 12px; border-radius: 8px; width: 100%;
+        }
+
+        /* --- SUCCESS MODAL --- */
+        .modal-center {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: none; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-box {
+            background: var(--bg-card); width: 100%; max-width: 350px;
+            padding: 30px; border-radius: 20px; text-align: center; border: var(--border);
+        }
+        .check-anim {
+            width: 60px; height: 60px; margin: 0 auto 15px;
+            background: rgba(34, 197, 94, 0.2); color: var(--success);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 30px; border: 2px solid var(--success);
+        }
+
+        /* --- UTILS --- */
+        .hidden { display: none !important; }
+        .text-sm { font-size: 12px; color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo">
-            <i class="fas fa-layer-group"></i>
-            <span>SHWARMAGO</span>
-        </div>
+    <div class="main-container">
         
-        <div class="nav-item active" onclick="switchView('pos', this)">
-            <i class="fas fa-cash-register"></i> <span>Billing</span>
-        </div>
-        <div class="nav-item" onclick="switchView('menu', this)">
-            <i class="fas fa-edit"></i> <span>Manage</span>
-        </div>
-        <div class="nav-item" onclick="switchView('dashboard', this)">
-            <i class="fas fa-chart-pie"></i> <span>Stats</span>
-        </div>
-    </div>
-
-    <div class="main">
-
         <div id="view-pos" class="view active">
-            <div class="pos-header">
-                <div class="search-bar">
-                    <i class="fas fa-search" style="color:#666;"></i>
-                    <input type="text" placeholder="Search menu..." onkeyup="filterMenu(this.value)">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search menu..." onkeyup="filterMenu(this.value)">
+            </div>
+            
+            <div class="category-scroll">
+                <div class="cat-chip active" onclick="filterCat('All', this)">All</div>
+                <div class="cat-chip" onclick="filterCat('Rolls', this)">Rolls</div>
+                <div class="cat-chip" onclick="filterCat('Sides', this)">Sides</div>
+                <div class="cat-chip" onclick="filterCat('Drinks', this)">Drinks</div>
+            </div>
+
+            <div class="menu-grid" id="menuGrid">
                 </div>
-            </div>
-
-            <div class="category-tabs">
-                <div class="tab active" onclick="filterCategory('All')">All</div>
-                <div class="tab" onclick="filterCategory('Rolls')">Rolls</div>
-                <div class="tab" onclick="filterCategory('Sides')">Sides</div>
-                <div class="tab" onclick="filterCategory('Drinks')">Drinks</div>
-            </div>
-
-            <div class="pos-layout">
-                <div class="menu-grid" id="posGrid"></div>
-
-                <div class="billing-panel">
-                    <div class="bill-top">
-                        <div class="order-toggle">
-                            <div class="toggle-btn active" id="btnDine" onclick="setOrderType('Dine-In')">Dine-In</div>
-                            <div class="toggle-btn" id="btnTake" onclick="setOrderType('Takeaway')">Takeaway</div>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
-                            <span>Order #<span id="orderId">1001</span></span>
-                            <span onclick="clearCart()" style="color:#ef4444; cursor:pointer;">Clear</span>
-                        </div>
-                    </div>
-
-                    <div class="cart-list" id="cartContainer">
-                        <div style="text-align:center; padding-top:20px; color:var(--text-muted); font-size:12px;">Cart Empty</div>
-                    </div>
-
-                    <div class="bill-summary">
-                        <div class="summary-row">
-                            <div style="font-size:14px; color:var(--text-muted);">Total</div>
-                            <div class="total-amount">₹<span id="valTotal">0</span></div>
-                        </div>
-                        <button class="checkout-btn" onclick="openPayModal()">
-                            <span>Charge Bill</span> <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div id="view-menu" class="view">
             <h2>Manage Menu</h2>
-            
-            <div class="add-item-form">
-                <input type="text" id="newItemName" class="form-input" placeholder="Item Name (e.g. Falafel)">
-                <input type="number" id="newItemPrice" class="form-input" placeholder="Price">
-                <select id="newItemCat" class="form-input" style="background:#1e293b;">
-                    <option value="Rolls">Rolls</option>
-                    <option value="Sides">Sides</option>
-                    <option value="Drinks">Drinks</option>
-                </select>
-                <button onclick="addNewItem()" style="background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">ADD</button>
-            </div>
-
-            <div id="mgmtGrid" style="overflow-y:auto; padding-bottom:100px;">
+            <div class="input-group">
+                <input type="text" id="newItemName" class="input-dark" placeholder="Item Name">
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="newItemPrice" class="input-dark" placeholder="Price">
+                    <select id="newItemCat" class="input-dark">
+                        <option value="Rolls">Rolls</option>
+                        <option value="Sides">Sides</option>
+                        <option value="Drinks">Drinks</option>
+                    </select>
                 </div>
+                <button class="btn-primary" onclick="addNewItem()" style="background:var(--success);">+ Add Item</button>
+            </div>
+            <div id="mgmtList" style="padding-bottom:50px;"></div>
         </div>
 
-        <div id="view-dashboard" class="view">
-             <h2>Stats</h2>
-             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px;">
-                 <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:var(--border);">
-                     <div style="color:var(--text-muted); font-size:12px;">REVENUE</div>
-                     <div style="font-size:24px; font-weight:bold; color:var(--primary);">₹<span id="dashSales">0</span></div>
-                 </div>
-                 <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:var(--border);">
-                     <div style="color:var(--text-muted); font-size:12px;">ORDERS</div>
-                     <div style="font-size:24px; font-weight:bold; color:white;"><span id="dashOrders">0</span></div>
-                 </div>
-             </div>
-             <h3 style="margin-top:30px;">History</h3>
-             <div id="dashHistory" style="overflow-y:auto; flex:1; padding-bottom:80px;"></div>
+        <div id="view-dash" class="view">
+            <h2>Today's Stats</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
+                <div style="background:var(--bg-card); padding:20px; border-radius:15px;">
+                    <div class="text-sm">REVENUE</div>
+                    <div style="font-size:24px; font-weight:bold; color:var(--primary);">₹<span id="dashRev">0</span></div>
+                </div>
+                <div style="background:var(--bg-card); padding:20px; border-radius:15px;">
+                    <div class="text-sm">ORDERS</div>
+                    <div style="font-size:24px; font-weight:bold;"><span id="dashOrd">0</span></div>
+                </div>
+            </div>
+            <h3>History</h3>
+            <div id="dashHistory"></div>
+        </div>
+
+    </div>
+
+    <div id="cartBar" class="cart-bar" onclick="openCart()">
+        <div style="display:flex; flex-direction:column;">
+            <span style="font-size:12px; opacity:0.9;"><span id="cartCount">0</span> Items</span>
+            <span style="font-weight:bold; font-size:16px;">₹<span id="cartTotalBar">0</span></span>
+        </div>
+        <div style="font-weight:600; font-size:14px;">View Cart <i class="fas fa-chevron-up"></i></div>
+    </div>
+
+    <div id="cartSheet" class="sheet-overlay" onclick="if(event.target === this) closeCart()">
+        <div class="sheet-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Current Order</h2>
+                <div onclick="closeCart()" style="padding:10px; color:var(--text-muted);">Close</div>
+            </div>
+            
+            <div id="cartList" style="flex:1; overflow-y:auto; margin-bottom:20px;"></div>
+
+            <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold; margin-bottom:15px;">
+                <span>Total Amount</span>
+                <span style="color:var(--primary);">₹<span id="cartTotalSheet">0</span></span>
+            </div>
+
+            <button class="btn-primary" onclick="openPayment()">Proceed to Pay</button>
         </div>
     </div>
 
-    <div id="payModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2 style="margin:0;">Payment</h2>
-            <div style="font-size:36px; font-weight:700; color:var(--primary); margin:10px 0;">₹<span id="payAmount">0</span></div>
+    <div id="payModal" class="modal-center">
+        <div class="modal-box">
+            <h2>Select Payment</h2>
+            <div style="font-size:32px; font-weight:bold; color:var(--primary); margin:15px 0;">₹<span id="payAmount">0</span></div>
             
-            <div id="payOptions" class="payment-methods" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:20px 0;">
-                <div onclick="processPayment('CASH')" style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; cursor:pointer;">
-                    <i class="fas fa-coins" style="color:#22c55e; font-size:24px;"></i><br>Cash
-                </div>
-                <div onclick="showQR()" style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; cursor:pointer;">
-                    <i class="fas fa-qrcode" style="color:#38bdf8; font-size:24px;"></i><br>UPI
-                </div>
+            <div id="payBtns" style="display:grid; gap:10px;">
+                <button class="btn-primary" style="background:#334155;" onclick="processPay('CASH')">💵 Cash Payment</button>
+                <button class="btn-primary" style="background:#334155;" onclick="showQR()">📱 UPI QR Code</button>
             </div>
 
-            <div id="qrArea" class="hidden">
-                <div id="qrcode" style="background:white; padding:10px; border-radius:10px; width:fit-content; margin:0 auto;"></div>
-                <button class="checkout-btn" onclick="processPayment('UPI')">Done</button>
+            <div id="qrBox" class="hidden">
+                <div id="qrcode" style="background:white; padding:10px; border-radius:10px; width:fit-content; margin:0 auto 15px;"></div>
+                <button class="btn-primary" onclick="processPay('UPI')">Done</button>
             </div>
 
-            <button onclick="closeModal('payModal')" style="background:none; border:none; color:#94a3b8; margin-top:10px; cursor:pointer;">Cancel</button>
+            <button onclick="closeModal('payModal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; padding:10px;">Cancel</button>
         </div>
     </div>
 
-    <div id="successModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="success-checkmark"><i class="fas fa-check"></i></div>
-            <h2 style="color:var(--success);">Payment Received!</h2>
-            <p style="color:var(--text-muted);">Order has been recorded.</p>
-            <button class="checkout-btn" onclick="closeModal('successModal')">Next Order</button>
+    <div id="successModal" class="modal-center">
+        <div class="modal-box">
+            <div class="check-anim"><i class="fas fa-check"></i></div>
+            <h2 style="color:var(--success);">Payment Done!</h2>
+            <p class="text-sm">Order recorded successfully.</p>
+            <button class="btn-primary" onclick="closeModal('successModal')">Next Order</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-btn active" onclick="nav('pos', this)">
+            <i class="fas fa-home"></i>
+            <span>Billing</span>
+        </div>
+        <div class="nav-btn" onclick="nav('menu', this)">
+            <i class="fas fa-edit"></i>
+            <span>Menu</span>
+        </div>
+        <div class="nav-btn" onclick="nav('dash', this)">
+            <i class="fas fa-chart-bar"></i>
+            <span>Stats</span>
         </div>
     </div>
 
 <script>
     // --- STATE ---
     const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
-    let orderType = 'Dine-In';
-    let orderCount = 1001;
     let cart = [];
-    let salesHistory = [];
-
-    // --- MENU DATA (LocalStorage Support) ---
+    let sales = [];
+    
+    // Default Menu
     let defaultMenu = [
-        { id: 1, name: "Classic Chicken", price: 90, cat: "Rolls", stock: true },
+        { id: 1, name: "Chicken Shawarma", price: 90, cat: "Rolls", stock: true },
         { id: 2, name: "Spicy Mexican", price: 120, cat: "Rolls", stock: true },
-        { id: 3, name: "BBQ Smokey", price: 140, cat: "Rolls", stock: true },
-        { id: 4, name: "Paneer Special", price: 110, cat: "Rolls", stock: true },
-        { id: 5, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
-        { id: 6, name: "Cola 250ml", price: 40, cat: "Drinks", stock: true },
+        { id: 3, name: "Special Plate", price: 160, cat: "Rolls", stock: true },
+        { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
+        { id: 5, name: "Chicken Nuggets", price: 100, cat: "Sides", stock: true },
+        { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true },
         { id: 7, name: "Water", price: 20, cat: "Drinks", stock: true }
     ];
 
-    let menu = JSON.parse(localStorage.getItem('shwarmago_menu')) || defaultMenu;
+    let menu = JSON.parse(localStorage.getItem('mob_menu')) || defaultMenu;
 
     // --- INIT ---
     function init() {
         renderMenu();
-        renderMgmtGrid();
-        updateDashboard();
+        renderMgmt();
+        updateDash();
     }
 
     function saveMenu() {
-        localStorage.setItem('shwarmago_menu', JSON.stringify(menu));
+        localStorage.setItem('mob_menu', JSON.stringify(menu));
         renderMenu();
-        renderMgmtGrid();
+        renderMgmt();
     }
 
     // --- NAVIGATION ---
-    function switchView(id, el) {
+    function nav(view, el) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('view-'+id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(el) el.classList.add('active');
+        document.getElementById('view-'+view).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
     }
 
-    // --- POS SYSTEM ---
-    function renderMenu(filter = '') {
-        const grid = document.getElementById('posGrid');
+    // --- POS ---
+    function renderMenu(filter = '', catFilter = 'All') {
+        const grid = document.getElementById('menuGrid');
         grid.innerHTML = '';
         menu.forEach(item => {
-            if(item.name.toLowerCase().includes(filter.toLowerCase())) {
-                let outStockClass = item.stock ? '' : 'out-stock';
-                let badge = item.stock ? '' : '<div class="out-badge">SOLD OUT</div>';
-                
+            if((catFilter === 'All' || item.cat === catFilter) && item.name.toLowerCase().includes(filter.toLowerCase())) {
+                let outClass = item.stock ? '' : 'out-stock';
+                let badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
                 grid.innerHTML += `
-                    <div class="item-card ${outStockClass}" onclick="addToCart(${item.id})">
+                    <div class="menu-item ${outClass}" onclick="addCart(${item.id})">
                         ${badge}
-                        <div>
-                            <div class="item-cat-icon">${item.cat}</div>
-                            <div class="item-name">${item.name}</div>
-                        </div>
+                        <div class="item-name">${item.name}</div>
                         <div class="item-price">₹${item.price}</div>
                     </div>
                 `;
@@ -416,92 +361,111 @@
         });
     }
 
-    function filterCategory(cat) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
-        const grid = document.getElementById('posGrid');
-        grid.innerHTML = '';
-        menu.forEach(item => {
-            if(cat === 'All' || item.cat === cat) {
-                let outStockClass = item.stock ? '' : 'out-stock';
-                grid.innerHTML += `
-                    <div class="item-card ${outStockClass}" onclick="addToCart(${item.id})">
-                        <div><div class="item-cat-icon">${item.cat}</div><div class="item-name">${item.name}</div></div>
-                        <div class="item-price">₹${item.price}</div>
-                    </div>
-                `;
-            }
-        });
+    function filterMenu(val) { renderMenu(val); }
+    function filterCat(cat, el) {
+        document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        renderMenu('', cat);
     }
 
-    function addToCart(id) {
+    // --- CART LOGIC ---
+    function addCart(id) {
         let item = menu.find(i => i.id === id);
         if(!item.stock) return;
-        let existing = cart.find(x => x.id === id);
-        if(existing) existing.qty++;
-        else cart.push({...item, qty: 1});
-        renderCart();
+        let exist = cart.find(c => c.id === id);
+        if(exist) exist.qty++; else cart.push({...item, qty:1});
+        updateCartUI();
     }
 
-    function renderCart() {
-        const con = document.getElementById('cartContainer');
-        con.innerHTML = '';
-        let total = 0;
-        if(cart.length === 0) {
-            con.innerHTML = `<div style="text-align:center; padding-top:20px; color:var(--text-muted); font-size:12px;">Cart Empty</div>`;
-            document.getElementById('valTotal').innerText = "0";
-            return;
-        }
+    function updateCartUI() {
+        let total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
+        let count = cart.reduce((a, b) => a + b.qty, 0);
+        
+        // Update Bar
+        document.getElementById('cartTotalBar').innerText = total;
+        document.getElementById('cartCount').innerText = count;
+        document.getElementById('cartBar').style.display = cart.length ? 'flex' : 'none';
+
+        // Update Sheet
+        const list = document.getElementById('cartList');
+        list.innerHTML = '';
         cart.forEach((item, idx) => {
-            total += item.price * item.qty;
-            con.innerHTML += `
-                <div class="cart-item">
+            list.innerHTML += `
+                <div class="cart-row">
                     <div>
-                        <div style="font-weight:600; font-size:14px;">${item.name}</div>
-                        <div style="font-size:12px; color:var(--text-muted);">₹${item.price}</div>
+                        <div style="font-weight:600;">${item.name}</div>
+                        <div class="text-sm">₹${item.price}</div>
                     </div>
                     <div class="qty-control">
                         <div class="qty-btn" onclick="modQty(${idx}, -1)">-</div>
-                        <span style="font-size:14px; font-weight:600; width:20px; text-align:center;">${item.qty}</span>
+                        <span>${item.qty}</span>
                         <div class="qty-btn" onclick="modQty(${idx}, 1)">+</div>
                     </div>
                 </div>
             `;
         });
-        document.getElementById('valTotal').innerText = total;
+        document.getElementById('cartTotalSheet').innerText = total;
     }
 
-    function modQty(idx, change) {
-        cart[idx].qty += change;
+    function modQty(idx, n) {
+        cart[idx].qty += n;
         if(cart[idx].qty <= 0) cart.splice(idx, 1);
-        renderCart();
-    }
-    
-    function clearCart() { cart = []; renderCart(); }
-    function setOrderType(type) {
-        orderType = type;
-        document.getElementById('btnDine').classList.toggle('active', type === 'Dine-In');
-        document.getElementById('btnTake').classList.toggle('active', type === 'Takeaway');
+        updateCartUI();
+        if(cart.length === 0) closeCart();
     }
 
-    // --- MENU MANAGEMENT ---
-    function renderMgmtGrid() {
-        const grid = document.getElementById('mgmtGrid');
-        grid.innerHTML = '';
+    function openCart() { document.getElementById('cartSheet').style.display = 'flex'; }
+    function closeCart() { document.getElementById('cartSheet').style.display = 'none'; }
+
+    // --- PAYMENTS ---
+    function openPayment() {
+        closeCart();
+        let total = document.getElementById('cartTotalSheet').innerText;
+        document.getElementById('payAmount').innerText = total;
+        document.getElementById('payModal').style.display = 'flex';
+        document.getElementById('payBtns').style.display = 'grid';
+        document.getElementById('qrBox').classList.add('hidden');
+    }
+
+    function showQR() {
+        let amt = document.getElementById('payAmount').innerText;
+        let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`;
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: link, width: 150, height: 150 });
+        document.getElementById('payBtns').style.display = 'none';
+        document.getElementById('qrBox').classList.remove('hidden');
+    }
+
+    function processPay(method) {
+        let total = parseInt(document.getElementById('payAmount').innerText);
+        sales.push({id: Date.now(), total, method, time: new Date().toLocaleTimeString()});
+        
+        closeModal('payModal');
+        document.getElementById('successModal').style.display = 'flex';
+        
+        cart = [];
+        updateCartUI();
+        updateDash();
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // --- MENU MANAGER ---
+    function renderMgmt() {
+        const list = document.getElementById('mgmtList');
+        list.innerHTML = '';
         menu.forEach((item, idx) => {
-            let checked = item.stock ? 'checked' : '';
-            grid.innerHTML += `
+            let stockColor = item.stock ? '#22c55e' : '#ef4444';
+            list.innerHTML += `
                 <div class="mgmt-row">
-                    <div style="flex:1">
+                    <div>
                         <div style="font-weight:600;">${item.name}</div>
-                        <div style="font-size:12px; color:var(--text-muted); cursor:pointer;" onclick="editPrice(${idx})">Price: <span style="color:var(--primary);">₹${item.price}</span> <i class="fas fa-pencil-alt" style="font-size:10px;"></i></div>
+                        <div class="text-sm">₹${item.price} | ${item.cat}</div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <label class="toggle-switch">
-                            <input type="checkbox" ${checked} onchange="toggleStock(${idx})">
-                            <span class="slider"></span>
-                        </label>
-                        <button class="btn-icon btn-delete" onclick="deleteItem(${idx})"><i class="fas fa-trash"></i></button>
+                    <div style="display:flex; gap:10px;">
+                        <i class="fas fa-power-off" onclick="toggleStock(${idx})" style="color:${stockColor}; padding:10px;"></i>
+                        <i class="fas fa-trash" onclick="delItem(${idx})" style="color:#ef4444; padding:10px;"></i>
+                        <i class="fas fa-pen" onclick="editPrice(${idx})" style="color:#38bdf8; padding:10px;"></i>
                     </div>
                 </div>
             `;
@@ -513,82 +477,32 @@
         let price = document.getElementById('newItemPrice').value;
         let cat = document.getElementById('newItemCat').value;
         if(name && price) {
-            menu.push({ id: Date.now(), name: name, price: parseInt(price), cat: cat, stock: true });
+            menu.push({id: Date.now(), name, price: parseInt(price), cat, stock:true});
             saveMenu();
             document.getElementById('newItemName').value = '';
             document.getElementById('newItemPrice').value = '';
         }
     }
-
-    function deleteItem(idx) {
-        if(confirm("Delete " + menu[idx].name + "?")) {
-            menu.splice(idx, 1);
-            saveMenu();
-        }
+    function delItem(idx) { if(confirm("Delete?")) { menu.splice(idx, 1); saveMenu(); } }
+    function toggleStock(idx) { menu[idx].stock = !menu[idx].stock; saveMenu(); }
+    function editPrice(idx) { 
+        let p = prompt("New Price:", menu[idx].price);
+        if(p) { menu[idx].price = parseInt(p); saveMenu(); }
     }
-
-    function editPrice(idx) {
-        let newPrice = prompt("Enter new price for " + menu[idx].name, menu[idx].price);
-        if(newPrice !== null) {
-            menu[idx].price = parseInt(newPrice);
-            saveMenu();
-        }
-    }
-
-    function toggleStock(idx) {
-        menu[idx].stock = !menu[idx].stock;
-        saveMenu();
-    }
-
-    // --- PAYMENTS ---
-    function openPayModal() {
-        if(cart.length === 0) return;
-        document.getElementById('payAmount').innerText = document.getElementById('valTotal').innerText;
-        document.getElementById('payModal').style.display = 'flex';
-        document.getElementById('payOptions').style.display = 'grid';
-        document.getElementById('qrArea').classList.add('hidden');
-    }
-
-    function showQR() {
-        let amt = document.getElementById('payAmount').innerText;
-        let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`;
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: link, width: 150, height: 150 });
-        document.getElementById('payOptions').style.display = 'none';
-        document.getElementById('qrArea').classList.remove('hidden');
-    }
-
-    function processPayment(method) {
-        let total = parseInt(document.getElementById('valTotal').innerText);
-        salesHistory.push({ id: orderCount, total: total, method: method, time: new Date().toLocaleTimeString() });
-        updateDashboard();
-        
-        // Close Pay Modal, Open Success Modal
-        closeModal('payModal');
-        document.getElementById('successModal').style.display = 'flex';
-        
-        cart = [];
-        renderCart();
-        orderCount++;
-        document.getElementById('orderId').innerText = orderCount;
-    }
-
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     // --- DASHBOARD ---
-    function updateDashboard() {
-        let totalSales = salesHistory.reduce((a, b) => a + b.total, 0);
-        document.getElementById('dashSales').innerText = totalSales;
-        document.getElementById('dashOrders').innerText = salesHistory.length;
-
+    function updateDash() {
+        let rev = sales.reduce((a,b)=>a+b.total, 0);
+        document.getElementById('dashRev').innerText = rev;
+        document.getElementById('dashOrd').innerText = sales.length;
+        
         const hist = document.getElementById('dashHistory');
-        hist.innerHTML = '';
-        salesHistory.slice().reverse().forEach(s => {
-            hist.innerHTML += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; font-size:13px;">
-                <div><span style="color:var(--text-muted);">#${s.id}</span> ${s.time}</div>
-                <div style="font-weight:bold;">₹${s.total} <span style="font-size:10px; background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px;">${s.method}</span></div>
-            </div>`;
-        });
+        hist.innerHTML = sales.slice().reverse().map(s => `
+            <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
+                <span class="text-sm">${s.time}</span>
+                <span style="font-weight:bold;">₹${s.total} (${s.method})</span>
+            </div>
+        `).join('');
     }
 
     init();
