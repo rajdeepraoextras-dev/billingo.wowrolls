@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SHWARMAGO POS (Cloud)</title>
+    <title>SHWARMAGO POS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root { --bg-app: #0f172a; --bg-card: #1e293b; --primary: #f97316; --success: #22c55e; --text-main: #f8fafc; --text-muted: #94a3b8; --border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -21,11 +20,12 @@
         .brand-name { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-top: var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; gap: 4px; width: 60px; height: 100%; cursor: pointer; }
+        .nav-btn i { font-size: 20px; }
         .nav-btn.active { color: var(--primary); }
         .search-container { position: sticky; top: 0; z-index: 10; background: var(--bg-app); padding-bottom: 10px; }
-        .search-input { width: 100%; background: var(--bg-card); border: var(--border); padding: 12px 15px; border-radius: 12px; color: white; font-size: 14px; }
+        .search-input { width: 100%; background: var(--bg-card); border: var(--border); padding: 12px 15px; border-radius: 12px; color: white; font-size: 14px; font-family: inherit; }
         .category-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 5px 2px; margin-bottom: 20px; scrollbar-width: none; }
-        .cat-chip { flex: 0 0 auto; padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; font-size: 13px; font-weight: 500; color: #cbd5e1; }
+        .cat-chip { flex: 0 0 auto; padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; font-size: 13px; font-weight: 500; white-space: nowrap; color: #cbd5e1; }
         .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .menu-item { background: var(--bg-card); border-radius: 12px; padding: 15px; border: var(--border); display: flex; flex-direction: column; justify-content: space-between; height: 120px; position: relative; }
@@ -33,7 +33,8 @@
         .item-price { color: var(--primary); font-weight: 700; font-size: 16px; margin-top: auto; }
         .out-stock { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
         .badge-out { position: absolute; top: 8px; right: 8px; background: #ef4444; font-size: 9px; padding: 2px 6px; border-radius: 4px; }
-        .cart-bar { position: fixed; bottom: 75px; left: 5%; width: 90%; background: var(--success); color: white; border-radius: 12px; padding: 15px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 40; }
+        .cart-bar { position: fixed; bottom: 75px; left: 5%; width: 90%; background: var(--success); color: white; border-radius: 12px; padding: 15px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 40; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 60; display: none; justify-content: center; align-items: flex-end; }
         .sheet-content { background: #1e293b; width: 100%; max-height: 80vh; border-radius: 20px 20px 0 0; padding: 20px; display: flex; flex-direction: column; }
         .cart-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -47,7 +48,6 @@
         .input-dark { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 8px; width: 100%; }
         .hidden { display: none !important; }
         .text-sm { font-size: 12px; color: var(--text-muted); }
-        .loading-text { text-align: center; padding: 20px; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -67,7 +67,6 @@
                 <div class="cat-chip" onclick="filterCat('Sides', this)">Sides</div>
                 <div class="cat-chip" onclick="filterCat('Drinks', this)">Drinks</div>
             </div>
-            <div id="menuLoading" class="loading-text">Connecting to Cloud...</div>
             <div class="menu-grid" id="menuGrid"></div>
         </div>
 
@@ -83,13 +82,13 @@
                         <option value="Drinks">Drinks</option>
                     </select>
                 </div>
-                <button class="btn-primary" onclick="addNewItem()" style="background:var(--success);">+ Add Item to DB</button>
+                <button class="btn-primary" onclick="addNewItem()" style="background:var(--success);">+ Add Item</button>
             </div>
             <div id="mgmtList" style="padding-bottom:50px;"></div>
         </div>
 
         <div id="view-dash" class="view">
-            <h2>Today's Stats</h2>
+            <h2>Today's Stats (Offline)</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
                 <div style="background:var(--bg-card); padding:20px; border-radius:15px;">
                     <div class="text-sm">REVENUE</div>
@@ -102,6 +101,8 @@
             </div>
             <h3>Recent Orders</h3>
             <div id="dashHistory"></div>
+            <br>
+            <button class="btn-primary" onclick="clearData()" style="background:#ef4444; font-size:12px; padding:10px;">Reset All Data</button>
         </div>
     </div>
 
@@ -150,95 +151,29 @@
     </div>
 
 <script>
-    // --- CONFIGURATION ---
     const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
+    let cart = [];
     
-    // --- SUPABASE CREDENTIALS (SAFE MODE) ---
-    // Using the PUBLIC key. 
-    // MAKE SURE YOU RAN THE 'ALTER TABLE ... DISABLE ROW LEVEL SECURITY' SQL.
-    const SUPABASE_URL = 'https://tyhrahuionsvzyuzdtkr.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_1VBBZHGNJxdtw9fWQNI1FQ__gycCpd1'; 
+    // --- LOAD DATA (Offline Mode) ---
+    let defaultMenu = [
+        { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
+        { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
+        { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
+        { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
+        { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
+    ];
+    let menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu;
+    let sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
+
+    function saveData() {
+        localStorage.setItem('shwarma_menu', JSON.stringify(menu));
+        localStorage.setItem('shwarma_sales', JSON.stringify(sales));
+        renderMenu(); renderMgmt(); updateDash();
+    }
+
+    function init() { renderMenu(); renderMgmt(); updateDash(); }
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let cart = [], menu = [];
-
-    // --- APP INIT ---
-    async function init() { 
-        await fetchMenu();
-        await fetchSales();
-        supabase.channel('public:billingo_menu_items')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'billingo_menu_items' }, () => fetchMenu())
-            .subscribe();
-    }
-
-    // --- SUPABASE ACTIONS ---
-    async function fetchMenu() {
-        document.getElementById('menuLoading').style.display = 'block';
-        let { data, error } = await supabase.from('billingo_menu_items').select('*').order('name');
-        
-        if (error) { 
-            console.error('Supabase Error:', error); 
-            document.getElementById('menuLoading').innerText = "Database connection failed. Did you run the SQL to disable security?";
-            return; 
-        }
-        
-        menu = data || [];
-        document.getElementById('menuLoading').style.display = 'none';
-        renderMenu();
-        renderMgmt();
-    }
-
-    async function addNewItem() {
-        let n = document.getElementById('newItemName').value;
-        let p = document.getElementById('newItemPrice').value;
-        let c = document.getElementById('newItemCat').value;
-        
-        if(n && p){ 
-            const { error } = await supabase.from('billingo_menu_items').insert([{ name: n, price: parseInt(p), category: c, stock: true }]);
-            if(!error) {
-                document.getElementById('newItemName').value=''; 
-                document.getElementById('newItemPrice').value=''; 
-                alert("Item Added!");
-                fetchMenu();
-            } else {
-                alert("Error: " + error.message + ". Check if you ran the Disable Security SQL.");
-            }
-        }
-    }
-
-    async function delItem(id) { 
-        if(confirm("Delete this item permanently?")) { 
-            await supabase.from('billingo_menu_items').delete().eq('id', id);
-            fetchMenu();
-        }
-    }
-
-    async function toggleStock(id, currentStatus) { 
-        await supabase.from('billingo_menu_items').update({ stock: !currentStatus }).eq('id', id);
-        fetchMenu();
-    }
-
-    async function editPrice(id) { 
-        let p = prompt("Enter new price:"); 
-        if(p) { 
-            await supabase.from('billingo_menu_items').update({ price: parseInt(p) }).eq('id', id);
-            fetchMenu();
-        }
-    }
-
-    async function fetchSales() {
-        const today = new Date().toISOString().split('T')[0];
-        let { data, error } = await supabase.from('billingo_orders').select('*').gte('created_at', today).order('created_at', { ascending: false });
-        if(data) updateDash(data);
-    }
-
-    async function recordSale(total, method) {
-        await supabase.from('billingo_orders').insert([{ total: total, method: method }]);
-        fetchSales();
-    }
-
-    // --- NAVIGATION & UI ---
+    // --- NAVIGATION ---
     function nav(view, el) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-'+view).classList.add('active');
@@ -246,12 +181,13 @@
         el.classList.add('active');
     }
 
+    // --- MENU RENDER ---
     function renderMenu(filter='', catFilter='All') {
         const grid = document.getElementById('menuGrid'); grid.innerHTML = '';
-        if(!menu.length) { grid.innerHTML = '<div style="color:var(--text-muted); grid-column:span 2; text-align:center;">No items found. Add some in Menu tab!</div>'; return; }
+        if(menu.length === 0) { grid.innerHTML = "<div style='grid-column:span 2; text-align:center; padding:20px; color:#64748b;'>No items in menu. Go to Menu tab to add some!</div>"; return; }
         
         menu.forEach(item => {
-            if((catFilter==='All' || item.category===catFilter) && item.name.toLowerCase().includes(filter.toLowerCase())) {
+            if((catFilter==='All' || item.cat===catFilter) && item.name.toLowerCase().includes(filter.toLowerCase())) {
                 let outClass = item.stock ? '' : 'out-stock';
                 let badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
                 grid.innerHTML += `<div class="menu-item ${outClass}" onclick="addCart(${item.id})">${badge}<div class="item-name">${item.name}</div><div class="item-price">₹${item.price}</div></div>`;
@@ -261,14 +197,7 @@
     function filterMenu(val) { renderMenu(val); }
     function filterCat(cat, el) { document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); renderMenu('', cat); }
 
-    function renderMgmt() {
-        const list = document.getElementById('mgmtList'); list.innerHTML = '';
-        menu.forEach(item => {
-            let color = item.stock ? '#22c55e' : '#ef4444';
-            list.innerHTML += `<div class="mgmt-row"><div><div style="font-weight:600;">${item.name}</div><div class="text-sm">₹${item.price} | ${item.category}</div></div><div style="display:flex; gap:15px;"><i class="fas fa-power-off" onclick="toggleStock(${item.id}, ${item.stock})" style="color:${color}"></i><i class="fas fa-trash" onclick="delItem(${item.id})" style="color:#ef4444"></i><i class="fas fa-pen" onclick="editPrice(${item.id})" style="color:#38bdf8"></i></div></div>`;
-        });
-    }
-
+    // --- CART ---
     function addCart(id) {
         let item = menu.find(i=>i.id===id); if(!item.stock) return;
         let exist = cart.find(c=>c.id===id); if(exist) exist.qty++; else cart.push({...item, qty:1});
@@ -288,25 +217,45 @@
     function modQty(idx, n) { cart[idx].qty += n; if(cart[idx].qty <= 0) cart.splice(idx, 1); updateCartUI(); if(cart.length===0) closeCart(); }
     function openCart() { document.getElementById('cartSheet').style.display = 'flex'; }
     function closeCart() { document.getElementById('cartSheet').style.display = 'none'; }
+
+    // --- PAYMENT ---
     function openPayment() { closeCart(); document.getElementById('payAmount').innerText = document.getElementById('cartTotalSheet').innerText; document.getElementById('payModal').style.display = 'flex'; document.getElementById('payBtns').style.display='grid'; document.getElementById('qrBox').classList.add('hidden'); }
     function showQR() { let amt = document.getElementById('payAmount').innerText; let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`; document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: link, width: 150, height: 150 }); document.getElementById('payBtns').style.display='none'; document.getElementById('qrBox').classList.remove('hidden'); }
     function processPay(method) {
-        let total = parseInt(document.getElementById('payAmount').innerText);
-        recordSale(total, method);
+        sales.push({id: Date.now(), total: parseInt(document.getElementById('payAmount').innerText), method, time: new Date().toLocaleTimeString()});
+        saveData();
         closeModal('payModal'); cart = []; updateCartUI();
-        alert("Order Successful!");
+        alert("Order Saved!");
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function updateDash(data) {
-        if(!data) return;
-        let totalRev = data.reduce((a,b)=>a+b.total, 0);
-        document.getElementById('dashRev').innerText = totalRev;
-        document.getElementById('dashOrd').innerText = data.length;
-        document.getElementById('dashHistory').innerHTML = data.slice(0, 10).map(s => {
-            let time = new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            return `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;"><span class="text-sm">${time}</span><span style="font-weight:bold;">₹${s.total} (${s.method})</span></div>`
-        }).join('');
+
+    // --- MANAGEMENT ---
+    function renderMgmt() {
+        const list = document.getElementById('mgmtList'); list.innerHTML = '';
+        menu.forEach((item, idx) => {
+            let color = item.stock ? '#22c55e' : '#ef4444';
+            list.innerHTML += `<div class="mgmt-row"><div><div style="font-weight:600;">${item.name}</div><div class="text-sm">₹${item.price} | ${item.cat}</div></div><div style="display:flex; gap:15px;"><i class="fas fa-power-off" onclick="toggleStock(${idx})" style="color:${color}"></i><i class="fas fa-trash" onclick="delItem(${idx})" style="color:#ef4444"></i><i class="fas fa-pen" onclick="editPrice(${idx})" style="color:#38bdf8"></i></div></div>`;
+        });
     }
+    function addNewItem() { 
+        let n=document.getElementById('newItemName').value, p=document.getElementById('newItemPrice').value, c=document.getElementById('newItemCat').value; 
+        if(n&&p){ 
+            menu.push({id:Date.now(), name:n, price:parseInt(p), cat:c, stock:true}); 
+            saveData(); 
+            document.getElementById('newItemName').value=''; document.getElementById('newItemPrice').value=''; 
+        }
+    }
+    function delItem(idx) { if(confirm("Delete?")) { menu.splice(idx, 1); saveData(); }}
+    function toggleStock(idx) { menu[idx].stock = !menu[idx].stock; saveData(); }
+    function editPrice(idx) { let p = prompt("New Price:", menu[idx].price); if(p) { menu[idx].price = parseInt(p); saveData(); }}
+
+    // --- DASHBOARD ---
+    function updateDash() {
+        document.getElementById('dashRev').innerText = sales.reduce((a,b)=>a+b.total, 0);
+        document.getElementById('dashOrd').innerText = sales.length;
+        document.getElementById('dashHistory').innerHTML = sales.slice().reverse().map(s => `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;"><span class="text-sm">${s.time}</span><span style="font-weight:bold;">₹${s.total} (${s.method})</span></div>`).join('');
+    }
+    function clearData() { if(confirm("Reset all sales and menu data? Cannot be undone.")) { localStorage.clear(); location.reload(); } }
 
     init();
 </script>
