@@ -21,12 +21,11 @@
         .brand-name { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: 1px; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-top: var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 10px; gap: 4px; width: 60px; height: 100%; cursor: pointer; }
-        .nav-btn i { font-size: 20px; }
         .nav-btn.active { color: var(--primary); }
         .search-container { position: sticky; top: 0; z-index: 10; background: var(--bg-app); padding-bottom: 10px; }
-        .search-input { width: 100%; background: var(--bg-card); border: var(--border); padding: 12px 15px; border-radius: 12px; color: white; font-size: 14px; font-family: inherit; }
+        .search-input { width: 100%; background: var(--bg-card); border: var(--border); padding: 12px 15px; border-radius: 12px; color: white; font-size: 14px; }
         .category-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 5px 2px; margin-bottom: 20px; scrollbar-width: none; }
-        .cat-chip { flex: 0 0 auto; padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; font-size: 13px; font-weight: 500; white-space: nowrap; color: #cbd5e1; }
+        .cat-chip { flex: 0 0 auto; padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px; font-size: 13px; font-weight: 500; color: #cbd5e1; }
         .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .menu-item { background: var(--bg-card); border-radius: 12px; padding: 15px; border: var(--border); display: flex; flex-direction: column; justify-content: space-between; height: 120px; position: relative; }
@@ -34,8 +33,7 @@
         .item-price { color: var(--primary); font-weight: 700; font-size: 16px; margin-top: auto; }
         .out-stock { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
         .badge-out { position: absolute; top: 8px; right: 8px; background: #ef4444; font-size: 9px; padding: 2px 6px; border-radius: 4px; }
-        .cart-bar { position: fixed; bottom: 75px; left: 5%; width: 90%; background: var(--success); color: white; border-radius: 12px; padding: 15px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 40; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .cart-bar { position: fixed; bottom: 75px; left: 5%; width: 90%; background: var(--success); color: white; border-radius: 12px; padding: 15px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 40; }
         .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 60; display: none; justify-content: center; align-items: flex-end; }
         .sheet-content { background: #1e293b; width: 100%; max-height: 80vh; border-radius: 20px 20px 0 0; padding: 20px; display: flex; flex-direction: column; }
         .cart-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -155,26 +153,23 @@
     // --- CONFIGURATION ---
     const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
     
-    // --- SUPABASE CREDENTIALS ---
+    // --- SUPABASE CREDENTIALS (SAFE MODE) ---
+    // Using the PUBLIC key. 
+    // MAKE SURE YOU RAN THE 'ALTER TABLE ... DISABLE ROW LEVEL SECURITY' SQL.
     const SUPABASE_URL = 'https://tyhrahuionsvzyuzdtkr.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_1VBBZHGNJxdtw9fWQNI1FQ__gycCpd1'; // Make sure this is your 'anon' public key
+    const SUPABASE_KEY = 'sb_publishable_1VBBZHGNJxdtw9fWQNI1FQ__gycCpd1'; 
     
-    // Initialize Supabase
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Global State
-    let cart = [];
-    let menu = [];
+    let cart = [], menu = [];
 
     // --- APP INIT ---
     async function init() { 
         await fetchMenu();
         await fetchSales();
-        // Subscribe to real-time changes
         supabase.channel('public:billingo_menu_items')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'billingo_menu_items' }, payload => {
-                fetchMenu();
-            }).subscribe();
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'billingo_menu_items' }, () => fetchMenu())
+            .subscribe();
     }
 
     // --- SUPABASE ACTIONS ---
@@ -184,7 +179,7 @@
         
         if (error) { 
             console.error('Supabase Error:', error); 
-            document.getElementById('menuLoading').innerText = "Connection Error. Check Console.";
+            document.getElementById('menuLoading').innerText = "Database connection failed. Did you run the SQL to disable security?";
             return; 
         }
         
@@ -207,7 +202,7 @@
                 alert("Item Added!");
                 fetchMenu();
             } else {
-                alert("Error adding item: " + error.message);
+                alert("Error: " + error.message + ". Check if you ran the Disable Security SQL.");
             }
         }
     }
@@ -233,23 +228,17 @@
     }
 
     async function fetchSales() {
-        // Fetch orders from today
         const today = new Date().toISOString().split('T')[0];
-        let { data, error } = await supabase
-            .from('billingo_orders')
-            .select('*')
-            .gte('created_at', today)
-            .order('created_at', { ascending: false });
-            
+        let { data, error } = await supabase.from('billingo_orders').select('*').gte('created_at', today).order('created_at', { ascending: false });
         if(data) updateDash(data);
     }
 
     async function recordSale(total, method) {
         await supabase.from('billingo_orders').insert([{ total: total, method: method }]);
-        fetchSales(); // Refresh stats
+        fetchSales();
     }
 
-    // --- NAVIGATION ---
+    // --- NAVIGATION & UI ---
     function nav(view, el) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-'+view).classList.add('active');
@@ -257,7 +246,6 @@
         el.classList.add('active');
     }
 
-    // --- RENDERERS ---
     function renderMenu(filter='', catFilter='All') {
         const grid = document.getElementById('menuGrid'); grid.innerHTML = '';
         if(!menu.length) { grid.innerHTML = '<div style="color:var(--text-muted); grid-column:span 2; text-align:center;">No items found. Add some in Menu tab!</div>'; return; }
@@ -281,7 +269,6 @@
         });
     }
 
-    // --- CART LOGIC ---
     function addCart(id) {
         let item = menu.find(i=>i.id===id); if(!item.stock) return;
         let exist = cart.find(c=>c.id===id); if(exist) exist.qty++; else cart.push({...item, qty:1});
@@ -301,20 +288,15 @@
     function modQty(idx, n) { cart[idx].qty += n; if(cart[idx].qty <= 0) cart.splice(idx, 1); updateCartUI(); if(cart.length===0) closeCart(); }
     function openCart() { document.getElementById('cartSheet').style.display = 'flex'; }
     function closeCart() { document.getElementById('cartSheet').style.display = 'none'; }
-
-    // --- PAYMENT ---
     function openPayment() { closeCart(); document.getElementById('payAmount').innerText = document.getElementById('cartTotalSheet').innerText; document.getElementById('payModal').style.display = 'flex'; document.getElementById('payBtns').style.display='grid'; document.getElementById('qrBox').classList.add('hidden'); }
     function showQR() { let amt = document.getElementById('payAmount').innerText; let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`; document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: link, width: 150, height: 150 }); document.getElementById('payBtns').style.display='none'; document.getElementById('qrBox').classList.remove('hidden'); }
-    
     function processPay(method) {
         let total = parseInt(document.getElementById('payAmount').innerText);
-        recordSale(total, method); // Send to Supabase
+        recordSale(total, method);
         closeModal('payModal'); cart = []; updateCartUI();
         alert("Order Successful!");
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    // --- DASHBOARD ---
     function updateDash(data) {
         if(!data) return;
         let totalRev = data.reduce((a,b)=>a+b.total, 0);
