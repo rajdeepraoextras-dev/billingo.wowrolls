@@ -1086,13 +1086,49 @@
 /* ================= SUPABASE INIT ================= */
 const SUPABASE_URL = "https://tyhrahuionsvzyuzdtkr.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_1VBBZHGNJxdtw9fWQNI1FQ__gycCpd1";
-const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+/* ================= DOM REFERENCES ================= */
+const menuGrid = document.getElementById('menuGrid');
+const cartBar = document.getElementById('cartBar');
+const cartList = document.getElementById('cartList');
+const cartSheet = document.getElementById('cartSheet');
+
+const cartTotalBar = document.getElementById('cartTotalBar');
+const cartTotalSheet = document.getElementById('cartTotalSheet');
+const cartCount = document.getElementById('cartCount');
+
+const statusBadge = document.getElementById('statusBadge');
+const onlineToggle = document.getElementById('onlineToggle');
+
+const payModal = document.getElementById('payModal');
+const payAmount = document.getElementById('payAmount');
+const payBtns = document.getElementById('payBtns');
+const qrBox = document.getElementById('qrBox');
+const qrcode = document.getElementById('qrcode');
+
+const mgmtList = document.getElementById('mgmtList');
+
+const newItemName = document.getElementById('newItemName');
+const newItemPrice = document.getElementById('newItemPrice');
+const newItemCat = document.getElementById('newItemCat');
+
+const dashRev = document.getElementById('dashRev');
+const dashOrd = document.getElementById('dashOrd');
+const dashAov = document.getElementById('dashAov');
+const dashAllRev = document.getElementById('dashAllRev');
 
 /* ================= GLOBAL STATE ================= */
 const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
+
 let cart = [];
 let menu = [];
 let sales = [];
+
 let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
 
 /* ================= DEFAULT MENU ================= */
@@ -1104,14 +1140,21 @@ const defaultMenu = [
   { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
 ];
 
-/* ================= LOADERS ================= */
+/* ================= LOAD DATA ================= */
 async function loadMenu() {
-  const { data, error } = await supabase.from('billingo_menu_items').select('*').order('id');
+  const { data, error } = await supabase
+    .from('billingo_menu_items')
+    .select('*')
+    .order('id');
+
   menu = error || !data.length ? defaultMenu : data;
 }
 
 async function loadSales() {
-  const { data } = await supabase.from('billingo_sales').select('*');
+  const { data } = await supabase
+    .from('billingo_sales')
+    .select('*');
+
   sales = data || [];
 }
 
@@ -1123,7 +1166,7 @@ function setOnlineStatus(v) {
   statusBadge.classList.toggle('online', isOnline);
   onlineToggle.checked = isOnline;
 }
-function toggleOnlineStatus(v){ setOnlineStatus(v); }
+function toggleOnlineStatus(v) { setOnlineStatus(v); }
 
 /* ================= NAV ================= */
 function nav(view, el) {
@@ -1134,91 +1177,107 @@ function nav(view, el) {
 }
 
 /* ================= MENU ================= */
-function renderMenu(filter='', cat='All') {
+function renderMenu(filter = '', cat = 'All') {
   menuGrid.innerHTML = '';
   menu.forEach(item => {
-    if ((cat==='All'||item.cat===cat) && item.name.toLowerCase().includes(filter.toLowerCase())) {
+    if ((cat === 'All' || item.cat === cat) &&
+        item.name.toLowerCase().includes(filter.toLowerCase())) {
       menuGrid.innerHTML += `
-      <div class="menu-item ${item.stock?'':'out-stock'}" onclick="addCart(${item.id})">
-        ${item.stock?'':'<div class="badge-out">SOLD OUT</div>'}
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">${item.price}</div>
-      </div>`;
+        <div class="menu-item ${item.stock ? '' : 'out-stock'}" onclick="addCart(${item.id})">
+          ${item.stock ? '' : '<div class="badge-out">SOLD OUT</div>'}
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">${item.price}</div>
+        </div>`;
     }
   });
 }
-function filterMenu(v){ renderMenu(v); }
-function filterCat(c,el){
-  document.querySelectorAll('.cat-chip').forEach(x=>x.classList.remove('active'));
+function filterMenu(v) { renderMenu(v); }
+function filterCat(c, el) {
+  document.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('active'));
   el.classList.add('active');
-  renderMenu('',c);
+  renderMenu('', c);
 }
 
 /* ================= CART ================= */
-function addCart(id){
-  const item = menu.find(i=>i.id===id);
-  if(!item||!item.stock) return;
-  const e = cart.find(c=>c.id===id);
-  e?e.qty++:cart.push({...item,qty:1});
+function addCart(id) {
+  const item = menu.find(i => i.id === id);
+  if (!item || !item.stock) return;
+
+  const e = cart.find(c => c.id === id);
+  e ? e.qty++ : cart.push({ ...item, qty: 1 });
   updateCartUI();
 }
-function modQty(i,n){
-  cart[i].qty+=n;
-  if(cart[i].qty<=0) cart.splice(i,1);
+
+function modQty(i, n) {
+  cart[i].qty += n;
+  if (cart[i].qty <= 0) cart.splice(i, 1);
   updateCartUI();
 }
-function updateCartUI(){
-  const t = cart.reduce((a,b)=>a+b.price*b.qty,0);
-  cartTotalBar.innerText=t;
-  cartCount.innerText=cart.reduce((a,b)=>a+b.qty,0);
-  cartBar.style.display=cart.length?'flex':'none';
-  cartList.innerHTML='';
-  cart.forEach((it,i)=>cartList.innerHTML+=`
-    <div class="cart-row">
-      <div><b>${it.name}</b><div class="text-sm">₹${it.price}</div></div>
-      <div class="qty-control">
-        <div class="qty-btn" onclick="modQty(${i},-1)">−</div>
-        <span>${it.qty}</span>
-        <div class="qty-btn" onclick="modQty(${i},1)">+</div>
-      </div>
-    </div>`);
-  cartTotalSheet.innerText=t;
+
+function updateCartUI() {
+  const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+  cartTotalBar.innerText = total;
+  cartTotalSheet.innerText = total;
+  cartCount.innerText = cart.reduce((a, b) => a + b.qty, 0);
+  cartBar.style.display = cart.length ? 'flex' : 'none';
+
+  cartList.innerHTML = '';
+  cart.forEach((it, i) => {
+    cartList.innerHTML += `
+      <div class="cart-row">
+        <div>
+          <b>${it.name}</b>
+          <div class="text-sm">₹${it.price}</div>
+        </div>
+        <div class="qty-control">
+          <div class="qty-btn" onclick="modQty(${i},-1)">−</div>
+          <span>${it.qty}</span>
+          <div class="qty-btn" onclick="modQty(${i},1)">+</div>
+        </div>
+      </div>`;
+  });
 }
-function openCart(){ cartSheet.style.display='flex'; }
-function closeCart(){ cartSheet.style.display='none'; }
+
+function openCart() { cartSheet.style.display = 'flex'; }
+function closeCart() { cartSheet.style.display = 'none'; }
 
 /* ================= PAYMENT ================= */
-function openPayment(){
+function openPayment() {
   closeCart();
-  payAmount.innerText=cartTotalSheet.innerText;
-  payModal.style.display='flex';
-  payBtns.style.display='grid';
+  payAmount.innerText = cartTotalSheet.innerText;
+  payModal.style.display = 'flex';
+  payBtns.style.display = 'grid';
   qrBox.classList.add('hidden');
 }
-function showQR(){
-  qrcode.innerHTML='';
-  new QRCode(qrcode,{
-    text:`upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${payAmount.innerText}&cu=INR`,
-    width:180,height:180
+
+function showQR() {
+  qrcode.innerHTML = '';
+  new QRCode(qrcode, {
+    text: `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${payAmount.innerText}&cu=INR`,
+    width: 180,
+    height: 180
   });
-  payBtns.style.display='none';
+  payBtns.style.display = 'none';
   qrBox.classList.remove('hidden');
 }
-function closeModal(id){ document.getElementById(id).style.display='none'; }
 
-/* ================= SAVE ================= */
-async function processPay(method){
-  const now=new Date();
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+async function processPay(method) {
+  const now = new Date();
   await supabase.from('billingo_sales').insert([{
-    id:Date.now(),
-    total:+payAmount.innerText,
+    id: Date.now(),
+    total: +payAmount.innerText,
     method,
-    date:now.toLocaleDateString(),
-    time:now.toLocaleTimeString(),
-    ts:now.getTime(),
-    iso:now.toISOString()
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    ts: now.getTime(),
+    iso: now.toISOString()
   }]);
-  cart=[];
+
+  cart = [];
   updateCartUI();
   closeModal('payModal');
   await loadSales();
@@ -1227,69 +1286,91 @@ async function processPay(method){
 }
 
 /* ================= MENU MGMT ================= */
-function renderMgmt(){
-  mgmtList.innerHTML='';
-  menu.forEach((it,i)=>mgmtList.innerHTML+=`
-    <div class="mgmt-row">
-      <div><b>${it.name}</b><div class="text-sm">₹${it.price} • ${it.cat}</div></div>
-      <div style="display:flex;gap:8px">
-        <div class="icon-btn" onclick="toggleStock(${i})"><i class="fas fa-power-off"></i></div>
-        <div class="icon-btn" onclick="editPrice(${i})"><i class="fas fa-pen"></i></div>
-        <div class="icon-btn" onclick="delItem(${i})"><i class="fas fa-trash"></i></div>
-      </div>
-    </div>`);
+function renderMgmt() {
+  mgmtList.innerHTML = '';
+  menu.forEach((it, i) => {
+    mgmtList.innerHTML += `
+      <div class="mgmt-row">
+        <div>
+          <b>${it.name}</b>
+          <div class="text-sm">₹${it.price} • ${it.cat}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="icon-btn" onclick="toggleStock(${i})"><i class="fas fa-power-off"></i></div>
+          <div class="icon-btn" onclick="editPrice(${i})"><i class="fas fa-pen"></i></div>
+          <div class="icon-btn" onclick="delItem(${i})"><i class="fas fa-trash"></i></div>
+        </div>
+      </div>`;
+  });
 }
-async function addNewItem(){
-  if(!newItemName.value||!newItemPrice.value) return alert("Fill all fields");
+
+async function addNewItem() {
+  if (!newItemName.value || !newItemPrice.value) return alert("Fill all fields");
+
   await supabase.from('billingo_menu_items').insert([{
-    id:Date.now(),
-    name:newItemName.value,
-    price:+newItemPrice.value,
-    cat:newItemCat.value,
-    stock:true
+    id: Date.now(),
+    name: newItemName.value,
+    price: +newItemPrice.value,
+    cat: newItemCat.value,
+    stock: true
   }]);
-  newItemName.value=''; newItemPrice.value='';
-  await loadMenu(); renderMenu(); renderMgmt();
+
+  newItemName.value = '';
+  newItemPrice.value = '';
+  await loadMenu();
+  renderMenu();
+  renderMgmt();
 }
-async function toggleStock(i){
+
+async function toggleStock(i) {
   await supabase.from('billingo_menu_items')
-    .update({stock:!menu[i].stock}).eq('id',menu[i].id);
-  await loadMenu(); renderMenu(); renderMgmt();
+    .update({ stock: !menu[i].stock })
+    .eq('id', menu[i].id);
+
+  await loadMenu();
+  renderMenu();
+  renderMgmt();
 }
-async function editPrice(i){
-  const p=prompt("New price",menu[i].price);
-  if(!p) return;
+
+async function editPrice(i) {
+  const p = prompt("New price", menu[i].price);
+  if (!p) return;
+
   await supabase.from('billingo_menu_items')
-    .update({price:+p}).eq('id',menu[i].id);
-  await loadMenu(); renderMenu(); renderMgmt();
+    .update({ price: +p })
+    .eq('id', menu[i].id);
+
+  await loadMenu();
+  renderMenu();
+  renderMgmt();
 }
-async function delItem(i){
-  if(!confirm("Delete item?")) return;
-  await supabase.from('billingo_menu_items').delete().eq('id',menu[i].id);
-  await loadMenu(); renderMenu(); renderMgmt();
+
+async function delItem(i) {
+  if (!confirm("Delete item?")) return;
+
+  await supabase.from('billingo_menu_items')
+    .delete()
+    .eq('id', menu[i].id);
+
+  await loadMenu();
+  renderMenu();
+  renderMgmt();
 }
 
 /* ================= DASH ================= */
-function updateDash(){
-  const t=new Date().toLocaleDateString();
-  const today=sales.filter(s=>s.date===t);
-  dashRev.innerText=today.reduce((a,b)=>a+b.total,0);
-  dashOrd.innerText=today.length;
-  dashAov.innerText=today.length?Math.round(dashRev.innerText/today.length):0;
-  dashAllRev.innerText=sales.reduce((a,b)=>a+b.total,0);
-}
+function updateDash() {
+  const today = new Date().toLocaleDateString();
+  const todaySales = sales.filter(s => s.date === today);
 
-/* ================= RESET ================= */
-function clearData(){
-  if(confirm("Reset all data?")){
-    supabase.from('billingo_sales').delete().neq('id',0);
-    supabase.from('billingo_menu_items').delete().neq('id',0);
-    location.reload();
-  }
+  const rev = todaySales.reduce((a, b) => a + b.total, 0);
+  dashRev.innerText = rev;
+  dashOrd.innerText = todaySales.length;
+  dashAov.innerText = todaySales.length ? Math.round(rev / todaySales.length) : 0;
+  dashAllRev.innerText = sales.reduce((a, b) => a + b.total, 0);
 }
 
 /* ================= INIT ================= */
-(async function(){
+(async function init() {
   setOnlineStatus(isOnline);
   await loadMenu();
   await loadSales();
@@ -1298,6 +1379,7 @@ function clearData(){
   updateDash();
 })();
 </script>
+
 
 
 
