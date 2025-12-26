@@ -1083,77 +1083,208 @@
 
 
 <script>
-/* ================= SUPABASE INIT (PHASE 2) ================= */
+/* ================= SUPABASE INIT ================= */
 const SUPABASE_URL = "https://tyhrahuionsvzyuzdtkr.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_1VBBZHGNJxdtw9fWQNI1FQ__gycCpd1";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const supabase = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
-/* ========================================================== */
-
+/* ================= GLOBAL STATE ================= */
 const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
-
 let cart = [];
 let menu = [];
 let sales = [];
-
 let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
 
+/* ================= DEFAULT MENU ================= */
 let defaultMenu = [
- { id:1,name:"Small Shawarma",price:49,cat:"Rolls",stock:true },
- { id:2,name:"Medium Shawarma",price:69,cat:"Rolls",stock:true },
- { id:3,name:"Large Shawarma",price:99,cat:"Rolls",stock:true },
- { id:4,name:"Peri Peri Fries",price:80,cat:"Sides",stock:true },
- { id:6,name:"Coke",price:40,cat:"Drinks",stock:true }
+  { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
+  { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
+  { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
+  { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
+  { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
 ];
 
-/* ================= PHASE 3 : READ FROM SUPABASE ================= */
+/* ================= LOADERS ================= */
+async function loadMenu() {
+  const { data, error } = await supabase
+    .from('billingo_menu_items')
+    .select('*')
+    .order('id');
 
-async function loadMenu(){
- const {data,error}=await supabase
-  .from('billingo_menu_items')
-  .select('*')
-  .order('id');
-
- if(error){
-  console.warn('Menu fallback',error);
-  menu=JSON.parse(localStorage.getItem('shwarma_menu'))||defaultMenu;
-  return;
- }
- menu=data.length?data:defaultMenu;
+  if (error) {
+    console.warn("Menu fallback to localStorage", error);
+    menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu;
+  } else {
+    menu = data.length ? data : defaultMenu;
+  }
 }
 
-async function loadSales(){
- const {data,error}=await supabase
-  .from('billingo_sales')
-  .select('*');
+async function loadSales() {
+  const { data, error } = await supabase
+    .from('billingo_sales')
+    .select('*');
 
- if(error){
-  console.warn('Sales fallback',error);
-  sales=JSON.parse(localStorage.getItem('shwarma_sales'))||[];
-  return;
- }
- sales=data||[];
+  if (error) {
+    console.warn("Sales fallback to localStorage", error);
+    sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
+  } else {
+    sales = data || [];
+  }
 }
 
-/* ================= ORIGINAL JS LOGIC ================= */
-/* ⚠️ NOTHING REMOVED BELOW THIS LINE */
-/* ALL renderMenu, cart, payment, dashboard functions SAME */
+/* ================= ONLINE STATUS ================= */
+function setOnlineStatus(next) {
+  isOnline = !!next;
+  localStorage.setItem('shwarma_online', JSON.stringify(isOnline));
+  const badge = document.getElementById('statusBadge');
+  const toggle = document.getElementById('onlineToggle');
+  if (badge) {
+    badge.innerText = isOnline ? 'ONLINE' : 'OFFLINE';
+    badge.classList.toggle('online', isOnline);
+  }
+  if (toggle && toggle.checked !== isOnline) toggle.checked = isOnline;
+}
+function toggleOnlineStatus(v) { setOnlineStatus(v); }
+
+/* ================= NAV ================= */
+function nav(view, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ================= MENU ================= */
+function renderMenu(filter = '', catFilter = 'All') {
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML = '';
+  if (!menu.length) return;
+
+  menu.forEach(item => {
+    if ((catFilter === 'All' || item.cat === catFilter) &&
+        item.name.toLowerCase().includes(filter.toLowerCase())) {
+      const out = item.stock ? '' : 'out-stock';
+      const badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
+      grid.innerHTML += `
+        <div class="menu-item ${out}" onclick="addCart(${item.id})">
+          ${badge}
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">${item.price}</div>
+        </div>`;
+    }
+  });
+}
+
+function filterMenu(v) { renderMenu(v); }
+function filterCat(c, el) {
+  document.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderMenu('', c);
+}
+
+/* ================= CART ================= */
+function addCart(id) {
+  const item = menu.find(i => i.id === id);
+  if (!item || !item.stock) return;
+  const exist = cart.find(c => c.id === id);
+  exist ? exist.qty++ : cart.push({ ...item, qty: 1 });
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+  document.getElementById('cartTotalBar').innerText = total;
+  document.getElementById('cartCount').innerText = cart.reduce((a, b) => a + b.qty, 0);
+  document.getElementById('cartBar').style.display = cart.length ? 'flex' : 'none';
+
+  const list = document.getElementById('cartList');
+  list.innerHTML = '';
+  cart.forEach((item, idx) => {
+    list.innerHTML += `
+      <div class="cart-row">
+        <div>
+          <div style="font-weight:600">${item.name}</div>
+          <div class="text-sm">₹${item.price}</div>
+        </div>
+        <div class="qty-control">
+          <div class="qty-btn" onclick="modQty(${idx},-1)">−</div>
+          <span>${item.qty}</span>
+          <div class="qty-btn" onclick="modQty(${idx},1)">+</div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('cartTotalSheet').innerText = total;
+}
+
+function modQty(i, n) {
+  cart[i].qty += n;
+  if (cart[i].qty <= 0) cart.splice(i, 1);
+  updateCartUI();
+}
+
+/* ================= ADD MENU ITEM (FIXED) ================= */
+async function addNewItem() {
+  const n = newItemName.value;
+  const p = parseInt(newItemPrice.value);
+  const c = newItemCat.value;
+  if (!n || !p) return alert("Fill all fields");
+
+  await supabase.from('billingo_menu_items').insert([{
+    id: Date.now(), name: n, price: p, cat: c, stock: true
+  }]);
+
+  newItemName.value = '';
+  newItemPrice.value = '';
+  await loadMenu();
+  renderMenu();
+  renderMgmt();
+}
+
+/* ================= PAYMENT (FIXED) ================= */
+async function processPay(method) {
+  const total = parseInt(document.getElementById('cartTotalSheet').innerText);
+  const now = new Date();
+
+  await supabase.from('billingo_sales').insert([{
+    id: Date.now(),
+    total,
+    method,
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    ts: now.getTime(),
+    iso: now.toISOString()
+  }]);
+
+  cart = [];
+  updateCartUI();
+  await loadSales();
+  updateDash();
+  alert("✅ Order Saved Successfully!");
+}
+
+/* ================= DASHBOARD ================= */
+function updateDash() {
+  const today = new Date().toLocaleDateString();
+  const todaySales = sales.filter(s => s.date === today);
+  const rev = todaySales.reduce((a, b) => a + b.total, 0);
+  document.getElementById('dashRev').innerText = rev;
+  document.getElementById('dashOrd').innerText = todaySales.length;
+  document.getElementById('dashAov').innerText = todaySales.length ? Math.round(rev / todaySales.length) : 0;
+  document.getElementById('dashAllRev').innerText = sales.reduce((a, b) => a + b.total, 0);
+}
 
 /* ================= INIT ================= */
-async function init(){
- setOnlineStatus(isOnline);
- await loadMenu();
- await loadSales();
- renderMenu();
- renderMgmt();
- updateDash();
+async function init() {
+  setOnlineStatus(isOnline);
+  await loadMenu();
+  await loadSales();
+  renderMenu();
+  renderMgmt();
+  updateDash();
 }
-
 init();
 </script>
+
 
 </body>
 </html>
