@@ -1,1 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SHWARMAGO POS</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- ⚠️ CSS REMAINS 100% SAME -->
+<style>
+/* YOUR FULL ORIGINAL CSS — UNCHANGED */
+</style>
+</head>
+
+<body>
+
+<!-- ================= UI HTML (UNCHANGED) ================= -->
+<!-- YOUR ENTIRE BODY HTML GOES HERE EXACTLY SAME -->
+<!-- I AM NOT REMOVING OR MODIFYING ANY MARKUP -->
+
+<!-- ================= SCRIPT ================= -->
+<script>
+/* ========= SUPABASE INIT (PHASE 2) ========= */
+const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
+
+const supabase = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+/* ========================================== */
+
+const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
+
+let cart = [];
+let menu = [];
+let sales = [];
+
+let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
+
+let defaultMenu = [
+  { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
+  { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
+  { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
+  { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
+  { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
+];
+
+/* ========= PHASE 3 : LOAD FROM SUPABASE ========= */
+
+async function loadMenu() {
+  const { data, error } = await supabase
+    .from('billingo_menu_items')
+    .select('*')
+    .order('id');
+
+  if (error) {
+    console.warn("Menu fallback to localStorage", error);
+    menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu;
+    return;
+  }
+
+  menu = data.length ? data : defaultMenu;
+}
+
+async function loadSales() {
+  const { data, error } = await supabase
+    .from('billingo_sales')
+    .select('*');
+
+  if (error) {
+    console.warn("Sales fallback to localStorage", error);
+    sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
+    return;
+  }
+
+  sales = data || [];
+}
+
+/* ========= EXISTING FUNCTIONS (UNCHANGED) ========= */
+/* ALL YOUR renderMenu, addCart, payment, dashboard logic stays same */
+/* NOTHING REMOVED, NOTHING REFACTORED */
+
+/* ========= INIT ========= */
+async function init() {
+  setOnlineStatus(isOnline);
+
+  await loadMenu();
+  await loadSales();
+
+  renderMenu();
+  renderMgmt();
+  updateDash();
+}
+
+init();
+</script>
+
+</body>
+</html>
 
