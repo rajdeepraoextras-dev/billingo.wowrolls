@@ -12,29 +12,52 @@
 
     <style>
         :root { 
+            /* --- DARK THEME (DEFAULT) --- */
             --bg-body: #050505;
             --bg-gradient: radial-gradient(circle at 50% 0%, #1a1f35 0%, #050505 100%);
             
             --primary: #ff6b35; 
             --primary-gradient: linear-gradient(135deg, #ff6b35 0%, #ff8f6b 100%);
-            --primary-glow: rgba(255, 107, 53, 0.4);
-
-            --accent-blue: #3b82f6;
+            
             --accent-green: #10b981;
+            --accent-blue: #3b82f6;
             
             --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-header: rgba(20, 20, 25, 0.6);
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-blur: blur(20px);
             
             --text-main: #ffffff; 
             --text-muted: #94a3b8; 
+            --text-invert: #000000;
             
+            --input-bg: rgba(0,0,0,0.3);
+            --card-hover: rgba(255,255,255,0.06);
+            
+            --shadow-float: 0 20px 40px rgba(0,0,0,0.6);
             --radius-xl: 24px;
             --radius-lg: 16px;
             --radius-md: 12px;
-            
-            --shadow-float: 0 20px 40px rgba(0,0,0,0.6);
             --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* --- LIGHT THEME OVERRIDES --- */
+        body.light-mode {
+            --bg-body: #f3f4f6;
+            --bg-gradient: linear-gradient(180deg, #eef2ff 0%, #f3f4f6 100%);
+            
+            --glass-surface: #ffffff;
+            --glass-header: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.06);
+            
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --text-invert: #ffffff;
+            
+            --input-bg: #f9fafb;
+            --card-hover: #f9fafb;
+            
+            --shadow-float: 0 20px 40px rgba(0,0,0,0.1);
         }
 
         * { 
@@ -54,18 +77,18 @@
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.2); border-radius: 10px; }
         
         .main-container { 
             flex: 1; 
             position: relative; 
             overflow: hidden; 
-            padding-bottom: 90px; /* Space for floating nav */
+            padding-bottom: 90px; 
         }
         
         .view { 
@@ -89,28 +112,37 @@
         
         .view.active { display: flex; }
 
-        /* --- Brand Header --- */
+        /* --- Header --- */
         .brand-header { 
             display: flex; align-items: center; justify-content: space-between;
-            background: rgba(20, 20, 25, 0.6);
+            background: var(--glass-header);
             backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
             padding: 16px 24px;
             margin-bottom: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
         
         .brand-left { display: flex; align-items: center; gap: 16px; }
         .brand-icon { font-size: 32px; filter: drop-shadow(0 0 15px rgba(255, 107, 53, 0.3)); }
         .brand-name { 
             font-size: 24px; font-weight: 800; letter-spacing: 1px;
-            background: linear-gradient(to right, #fff, #ccc);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            color: var(--text-main);
         }
         
-        /* --- Toggles & Badges --- */
-        .status-toggle { display: flex; align-items: center; gap: 12px; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+
+        /* --- Theme Toggle Button --- */
+        .theme-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--glass-surface); border: 1px solid var(--glass-border);
+            color: var(--text-main); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s;
+        }
+        .theme-btn:active { transform: scale(0.9); }
+
+        /* --- Status & Toggles --- */
         .status-badge { 
             background: rgba(255, 71, 87, 0.15); color: #ff4757;
             padding: 6px 14px; border-radius: 20px;
@@ -121,47 +153,37 @@
         .status-badge.online { 
             background: rgba(16, 185, 129, 0.15); color: #10b981;
             border-color: rgba(16, 185, 129, 0.2);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
         }
 
         .toggle-switch { position: relative; width: 50px; height: 28px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .toggle-slider { 
             position: absolute; cursor: pointer; inset: 0;
-            background: #1e293b; border-radius: 30px; transition: 0.3s;
+            background: var(--input-bg); border-radius: 30px; transition: 0.3s;
             border: 1px solid var(--glass-border);
         }
         .toggle-slider:before { 
             content: ""; position: absolute; height: 20px; width: 20px;
-            left: 4px; bottom: 3px; background: #94a3b8;
+            left: 4px; bottom: 3px; background: var(--text-muted);
             border-radius: 50%; transition: 0.3s;
         }
         input:checked + .toggle-slider { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
         input:checked + .toggle-slider:before { transform: translateX(22px); background: #10b981; box-shadow: 0 0 10px #10b981; }
 
-        /* --- Search & Categories --- */
+        /* --- Search --- */
         .search-container { position: sticky; top: 0; z-index: 10; padding-bottom: 10px; }
-        .search-container::before {
-            content: ''; position: absolute; inset: -20px -20px 10px -20px;
-            background: linear-gradient(to bottom, var(--bg-body) 0%, rgba(5,5,5,0.95) 80%, transparent 100%);
-            z-index: -1; pointer-events: none;
-        }
-
+        
         .search-input { 
-            width: 100%; background: rgba(30, 41, 59, 0.5);
+            width: 100%; background: var(--glass-surface);
             border: 1px solid var(--glass-border);
             padding: 16px 20px 16px 50px; border-radius: var(--radius-lg);
-            color: white; font-size: 16px; transition: 0.3s;
-            backdrop-filter: blur(10px);
+            color: var(--text-main); font-size: 16px; transition: 0.3s;
+            backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         .search-input:focus { 
-            border-color: var(--primary); background: rgba(30, 41, 59, 0.8);
+            border-color: var(--primary); 
             box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.15);
         }
-        .search-icon-overlay {
-            position: absolute; left: 18px; top: 18px; color: var(--text-muted); pointer-events: none;
-        }
-        /* Using CSS pseudo-element for icon in original code, kept structure but styled via container class in CSS above */
         .search-container::after {
             content: '\f002'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
             position: absolute; left: 20px; top: 18px; color: var(--text-muted); font-size: 16px; pointer-events: none;
@@ -172,7 +194,7 @@
             padding: 15px 5px; scrollbar-width: none;
         }
         .cat-chip { 
-            padding: 10px 24px; background: rgba(255,255,255,0.05);
+            padding: 10px 24px; background: var(--glass-surface);
             border: 1px solid var(--glass-border); border-radius: 100px;
             font-size: 14px; font-weight: 500; color: var(--text-muted);
             transition: all 0.3s; cursor: pointer; white-space: nowrap;
@@ -193,58 +215,68 @@
             border-radius: var(--radius-xl);
             padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
             min-height: 160px; position: relative; overflow: hidden;
-            transition: all 0.3s var(--ease-bounce); cursor: pointer;
+            transition: all 0.2s var(--ease-bounce); cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
-        .menu-item:hover { 
-            transform: translateY(-5px) scale(1.02);
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .menu-item:active { transform: scale(0.96); }
+        
+        /* SELECTED STATE */
+        .menu-item.selected {
+            border: 2px solid var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
         }
-        .menu-item::after {
-            content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 60px;
-            background: radial-gradient(circle at top right, rgba(255,107,53,0.15), transparent 70%);
-            border-radius: 0 0 0 100%; pointer-events: none;
+        /* Make background white in light mode when selected for better contrast */
+        body.light-mode .menu-item.selected {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent-green);
         }
-        .item-name { font-weight: 600; font-size: 15px; line-height: 1.4; margin-bottom: 10px; z-index: 2; }
+
+        .item-name { font-weight: 600; font-size: 15px; line-height: 1.4; margin-bottom: 10px; z-index: 2; color: var(--text-main); }
         .item-price { 
             color: var(--primary); font-weight: 800; font-size: 20px; 
-            text-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
         }
         .out-stock { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+        
         .badge-out { 
             position: absolute; top: 10px; right: 10px; background: #ef4444; color: white;
             font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 700; z-index: 10;
         }
 
+        .badge-qty {
+            position: absolute; top: 10px; right: 10px; 
+            background: var(--accent-green); color: white;
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 14px;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
         /* --- Management List --- */
         .mgmt-row { 
-            background: rgba(30, 41, 59, 0.4); border: 1px solid var(--glass-border);
+            background: var(--glass-surface); border: 1px solid var(--glass-border);
             padding: 16px; border-radius: var(--radius-lg); margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            transition: 0.2s;
+            transition: 0.2s; color: var(--text-main);
         }
-        .mgmt-row:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(255,255,255,0.1); }
-        
         .icon-btn { 
             width: 40px; height: 40px; border-radius: 12px; display: flex; 
             align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; 
         }
-        .icon-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
         .icon-btn:active { transform: scale(0.9); }
 
-        /* --- Input Groups --- */
+        /* --- Inputs --- */
         .input-group { 
-            background: rgba(255,255,255,0.02); padding: 24px; border-radius: var(--radius-xl);
+            background: var(--glass-surface); padding: 24px; border-radius: var(--radius-xl);
             border: 1px solid var(--glass-border); margin-bottom: 24px; display: grid; gap: 16px;
         }
         .input-dark { 
-            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white;
+            background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text-main);
             padding: 14px 18px; border-radius: var(--radius-md); font-size: 14px; width: 100%; transition: 0.3s;
         }
-        .input-dark:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+        .input-dark:focus { border-color: var(--primary); }
 
-        /* --- Buttons --- */
         .btn-primary { 
             width: 100%; background: var(--primary-gradient); color: white;
             padding: 16px; border-radius: var(--radius-lg); font-weight: 700; font-size: 16px;
@@ -253,30 +285,28 @@
             text-transform: uppercase; letter-spacing: 0.5px;
             margin-top: 10px;
         }
-        .btn-primary:active { transform: scale(0.98); box-shadow: 0 4px 10px rgba(255, 107, 53, 0.2); }
+        .btn-primary:active { transform: scale(0.98); }
         
-        /* --- Dashboard Stats --- */
+        /* --- Dashboard --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .stat-card { 
-            background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            background: var(--glass-surface);
             padding: 20px; border-radius: var(--radius-xl); border: 1px solid var(--glass-border);
             position: relative; overflow: hidden;
         }
         .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
-        .stat-value { font-size: 28px; font-weight: 800; color: white; }
-        .stat-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+        .stat-value { font-size: 28px; font-weight: 800; color: var(--text-main); }
+        .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; opacity: 0.7; }
         
-        /* Color coded stats */
-        .stat-card:nth-child(1) .stat-value { color: var(--accent-green); text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-        .stat-card:nth-child(2) .stat-value { color: var(--accent-blue); text-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        .stat-card:nth-child(1) .stat-value { color: var(--accent-green); }
+        .stat-card:nth-child(2) .stat-value { color: var(--accent-blue); }
 
         .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .mini-card { background: rgba(255,255,255,0.03); border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--glass-border); }
+        .mini-card { background: var(--glass-surface); border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--glass-border); }
         .mini-title { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
         
-        /* --- Charts --- */
         .chart-wrap { 
-            background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); 
+            background: var(--glass-surface); border: 1px solid var(--glass-border); 
             border-radius: var(--radius-xl); padding: 20px; margin-bottom: 20px; 
         }
         .bar-chart { 
@@ -286,13 +316,11 @@
         .bar { 
             width: 100%; min-height: 6px; border-radius: 8px;
             background: linear-gradient(to top, var(--primary) 0%, #fb923c 100%);
-            box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
-            opacity: 0.8; transition: height 0.5s ease;
+            opacity: 0.8;
         }
-        .bar:hover { opacity: 1; filter: brightness(1.2); }
         .bar-label { font-size: 10px; text-align: center; color: var(--text-muted); margin-top: 8px; }
 
-        /* --- Floating Bottom Nav --- */
+        /* --- Floating UI --- */
         .bottom-nav { 
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px; height: 70px;
@@ -301,23 +329,17 @@
             display: flex; justify-content: space-evenly; align-items: center;
             z-index: 50; box-shadow: var(--shadow-float);
         }
-        .nav-btn { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: rgba(255,255,255,0.4); gap: 4px; transition: 0.3s;
-            position: relative; width: 60px;
-        }
-        .nav-btn i { font-size: 22px; transition: 0.3s; }
-        .nav-btn span { font-size: 10px; font-weight: 600; opacity: 0; transform: translateY(10px); transition: 0.3s; }
-        
-        .nav-btn.active { color: var(--primary); }
-        .nav-btn.active i { transform: translateY(-8px); filter: drop-shadow(0 4px 8px rgba(255,107,53,0.5)); }
-        .nav-btn.active span { opacity: 1; transform: translateY(-4px); }
-        .nav-btn.active::after {
-            content: ''; position: absolute; bottom: -12px; width: 4px; height: 4px;
-            background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary);
+        body.light-mode .bottom-nav { 
+            background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* --- Cart Bar --- */
+        .nav-btn { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-muted); gap: 4px; transition: 0.3s;
+            position: relative; width: 60px;
+        }
+        .nav-btn.active { color: var(--primary); }
+        
         .cart-bar { 
             position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
             width: 90%; max-width: 500px;
@@ -326,39 +348,37 @@
             display: none; justify-content: space-between; align-items: center;
             box-shadow: 0 15px 40px rgba(16, 185, 129, 0.35); z-index: 40;
             cursor: pointer; animation: slideUp 0.4s var(--ease-bounce) forwards;
-            border: 1px solid rgba(255,255,255,0.2);
         }
         @keyframes slideUp { to { transform: translateX(-50%) translateY(0); opacity: 1; } }
         
-        /* --- Sheet Overlay --- */
         .sheet-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
             z-index: 60; display: none; justify-content: center; align-items: flex-end;
             animation: fadeIn 0.3s ease;
         }
         .sheet-content { 
-            background: #111827; width: 100%; max-width: 600px;
+            background: var(--bg-body); width: 100%; max-width: 600px;
             max-height: 85vh; border-radius: 30px 30px 0 0; padding: 30px;
             display: flex; flex-direction: column;
-            box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 -20px 60px rgba(0,0,0,0.3);
             animation: slideUpSheet 0.4s var(--ease-bounce);
             border-top: 1px solid var(--glass-border);
         }
         @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; color: var(--text-main); }
         .close-btn { 
-            width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            width: 36px; height: 36px; border-radius: 50%; background: var(--glass-border);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main);
         }
         
         .cart-row { 
             display: flex; justify-content: space-between; align-items: center; padding: 15px;
-            background: rgba(255,255,255,0.03); border-radius: 16px; margin-bottom: 12px;
-            border: 1px solid transparent;
+            background: var(--glass-surface); border-radius: 16px; margin-bottom: 12px;
+            border: 1px solid var(--glass-border); color: var(--text-main);
         }
         .qty-control { 
-            background: #0f172a; padding: 5px; border-radius: 12px; 
+            background: var(--input-bg); padding: 5px; border-radius: 12px; 
             display: flex; align-items: center; gap: 10px; border: 1px solid var(--glass-border);
         }
         .qty-btn { 
@@ -367,39 +387,38 @@
             font-weight: 700; cursor: pointer;
         }
 
-        /* --- Modal --- */
         .modal-center { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
             z-index: 100; display: none; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-box { 
-            background: #111827; width: 100%; max-width: 400px; padding: 40px 30px;
+            background: var(--bg-body); width: 100%; max-width: 400px; padding: 40px 30px;
             border-radius: 30px; text-align: center; border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             animation: scaleIn 0.3s var(--ease-bounce);
         }
         @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Helpers */
-        h2 { margin: 0 0 20px; font-weight: 700; font-size: 22px; color: white; }
+        /* --- UTILS --- */
+        h2 { margin: 0 0 20px; font-weight: 700; font-size: 22px; color: var(--text-main); }
         h3 { margin: 30px 0 15px; font-weight: 600; font-size: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
         .hidden { display: none !important; }
         .text-sm { font-size: 12px; color: var(--text-muted); }
         .form-row { display: flex; gap: 10px; }
         
-        /* Dash Filter */
-        .dash-filters { background: rgba(30,41,59,0.3); border: 1px solid var(--glass-border); padding: 15px; border-radius: var(--radius-lg); margin-bottom: 20px; }
+        /* Filters */
+        .dash-filters { background: var(--glass-surface); border: 1px solid var(--glass-border); padding: 15px; border-radius: var(--radius-lg); margin-bottom: 20px; }
         .dash-filter-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 10px; }
         .dash-btn { margin-top: 0; padding: 0 20px; font-size: 13px; border-radius: var(--radius-md); box-shadow: none; }
         
-        /* Item Report */
-        .item-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--glass-border); }
+        /* Item Report Fix */
+        .item-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--glass-border); color: var(--text-main); }
         .item-row:last-child { border-bottom: none; }
-        .item-meta { font-size: 12px; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+        .item-meta { font-size: 12px; opacity: 0.8; margin-top: 4px; display: block; text-align: right; color: var(--text-muted); }
 
     </style>
 </head>
-<body>
+<body class="">
 
     <div class="main-container">
         <div id="view-pos" class="view active">
@@ -408,12 +427,17 @@
                     <span class="brand-icon">🌯</span>
                     <span class="brand-name">WOW ROLLS</span>
                 </div>
-                <div class="status-toggle">
-                    <span id="statusBadge" class="status-badge">OFFLINE</span>
-                    <label class="toggle-switch" aria-label="Online status toggle">
-                        <input id="onlineToggle" type="checkbox" onchange="toggleOnlineStatus(this.checked)">
-                        <span class="toggle-slider"></span>
-                    </label>
+                <div class="header-actions">
+                    <div class="theme-btn" onclick="toggleTheme()">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </div>
+                    <div class="status-toggle">
+                        <span id="statusBadge" class="status-badge">OFFLINE</span>
+                        <label class="toggle-switch" aria-label="Online status toggle">
+                            <input id="onlineToggle" type="checkbox" onchange="toggleOnlineStatus(this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="search-container">
@@ -504,14 +528,14 @@
             <div class="mini-grid">
                 <div class="mini-card">
                     <div class="mini-title"><span><i class="fas fa-money-bill-wave"></i> Cash</span><span id="cashPct">0%</span></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between;"><span>Revenue</span><strong>₹<span id="cashRev">0</span></strong></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px; opacity:0.7;"><span>Orders</span><strong><span id="cashOrd">0</span></strong></div>
+                    <div class="mini-metric" style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color: var(--text-main);">₹<span id="cashRev">0</span></strong></div>
+                    <div class="mini-metric" style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color: var(--text-main);"><span id="cashOrd">0</span></strong></div>
                 </div>
 
                 <div class="mini-card">
                     <div class="mini-title"><span><i class="fas fa-qrcode"></i> UPI</span><span id="upiPct">0%</span></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between;"><span>Revenue</span><strong>₹<span id="upiRev">0</span></strong></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px; opacity:0.7;"><span>Orders</span><strong><span id="upiOrd">0</span></strong></div>
+                    <div class="mini-metric" style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color: var(--text-main);">₹<span id="upiRev">0</span></strong></div>
+                    <div class="mini-metric" style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color: var(--text-main);"><span id="upiOrd">0</span></strong></div>
                 </div>
             </div>
 
@@ -553,7 +577,7 @@
                 </div>
             </div>
             <div id="cartList" style="flex:1; overflow-y:auto; margin-bottom:20px;"></div>
-            <div style="display:flex; justify-content:space-between; font-size:24px; font-weight:800; margin-bottom:20px; padding:20px; background:rgba(255,107,53,0.1); border-radius:16px; border:1px solid rgba(255,107,53,0.3);">
+            <div style="display:flex; justify-content:space-between; font-size:24px; font-weight:800; margin-bottom:20px; padding:20px; background:rgba(255,107,53,0.1); border-radius:16px; border:1px solid rgba(255,107,53,0.3); color: var(--text-main);">
                 <span>Total</span><span style="color:var(--primary);">₹<span id="cartTotalSheet">0</span></span>
             </div>
             <button class="btn-primary" onclick="openPayment()">
@@ -605,6 +629,9 @@
     const CONFIG = { upi: "paytm.s1nij5e@pty", name: "WOW ROLLS" };
     let cart = [];
     let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
+    
+    // Theme Logic
+    let isLightMode = JSON.parse(localStorage.getItem('shwarma_theme_light') || 'false');
 
     let dashPreset = 'today';
     let dashFrom = null;
@@ -630,6 +657,27 @@
         localStorage.setItem('shwarma_menu', JSON.stringify(menu));
         localStorage.setItem('shwarma_sales', JSON.stringify(sales));
         renderMenu(); renderMgmt(); updateDash();
+    }
+    
+    // Theme Functions
+    function applyTheme() {
+        const body = document.body;
+        const icon = document.getElementById('themeIcon');
+        if(isLightMode) {
+            body.classList.add('light-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            body.classList.remove('light-mode');
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    }
+    
+    function toggleTheme() {
+        isLightMode = !isLightMode;
+        localStorage.setItem('shwarma_theme_light', JSON.stringify(isLightMode));
+        applyTheme();
     }
 
     function mapMenuRowToApp(row) {
@@ -712,17 +760,16 @@
     }
 
     async function init() { 
+        applyTheme();
         setOnlineStatus(isOnline);
         renderMenu(); 
         renderMgmt(); 
         initDashControls();
         updateDash();
 
-        // Try Supabase first; fallback stays on localStorage
         await loadMenuFromSupabase();
         await loadOrdersFromSupabase();
 
-        // Refresh dashboards with source-of-truth data
         initDashControls(false);
         updateDash();
     }
@@ -734,21 +781,10 @@
         el.classList.add('active');
     }
 
-    function pad2(n) {
-        return String(n).padStart(2, '0');
-    }
-
-    function toDateInputValue(d) {
-        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-    }
-
-    function startOfDayLocal(d) {
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-    }
-
-    function endOfDayLocal(d) {
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-    }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function toDateInputValue(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+    function startOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0); }
+    function endOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999); }
 
     function parseSaleTs(s) {
         if(s && typeof s.ts === 'number') return s.ts;
@@ -756,7 +792,6 @@
             const t = new Date(s.iso).getTime();
             if(!Number.isNaN(t)) return t;
         }
-        // Legacy fallback (best-effort)
         if(s && typeof s.date === 'string' && typeof s.time === 'string') {
             const t = new Date(`${s.date} ${s.time}`).getTime();
             if(!Number.isNaN(t)) return t;
@@ -765,25 +800,17 @@
     }
 
     function getDashRange() {
-        // If UI not ready yet, fallback to today
         let fromVal = dashFrom;
         let toVal = dashTo;
-
         const fromInput = document.getElementById('dashFrom');
         const toInput = document.getElementById('dashTo');
         if(fromInput && fromInput.value) fromVal = fromInput.value;
         if(toInput && toInput.value) toVal = toInput.value;
-
         const now = new Date();
         if(!fromVal || !toVal) {
-            const s = startOfDayLocal(now);
-            const e = endOfDayLocal(now);
-            return { from: s, to: e };
+            return { from: startOfDayLocal(now), to: endOfDayLocal(now) };
         }
-
-        const from = startOfDayLocal(new Date(fromVal + 'T00:00:00'));
-        const to = endOfDayLocal(new Date(toVal + 'T00:00:00'));
-        return { from, to };
+        return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) };
     }
 
     function setDashHint() {
@@ -800,23 +827,16 @@
         let to = endOfDayLocal(now);
 
         if(dashPreset === 'yesterday') {
-            const y = new Date(now);
-            y.setDate(y.getDate() - 1);
-            from = startOfDayLocal(y);
-            to = endOfDayLocal(y);
+            const y = new Date(now); y.setDate(y.getDate() - 1);
+            from = startOfDayLocal(y); to = endOfDayLocal(y);
         } else if(dashPreset === 'last7') {
-            const a = new Date(now);
-            a.setDate(a.getDate() - 6);
-            from = startOfDayLocal(a);
-            to = endOfDayLocal(now);
+            const a = new Date(now); a.setDate(a.getDate() - 6);
+            from = startOfDayLocal(a); to = endOfDayLocal(now);
         } else if(dashPreset === 'month') {
             from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
             to = endOfDayLocal(now);
         } else if(dashPreset === 'custom') {
-            // Keep current inputs
-            const r = getDashRange();
-            from = r.from;
-            to = r.to;
+            const r = getDashRange(); from = r.from; to = r.to;
         }
 
         if(applyToInputs) {
@@ -824,13 +844,10 @@
             const toInput = document.getElementById('dashTo');
             if(fromInput) fromInput.value = toDateInputValue(from);
             if(toInput) toInput.value = toDateInputValue(to);
-
             const presetEl = document.getElementById('dashPreset');
             if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset;
         }
-
-        dashFrom = toDateInputValue(from);
-        dashTo = toDateInputValue(to);
+        dashFrom = toDateInputValue(from); dashTo = toDateInputValue(to);
         setDashHint();
     }
 
@@ -840,10 +857,7 @@
         setPresetRange(dashPreset, true);
     }
 
-    function onDashPresetChange(preset) {
-        setPresetRange(preset, true);
-    }
-
+    function onDashPresetChange(preset) { setPresetRange(preset, true); }
     function onDashDateChange() {
         const presetEl = document.getElementById('dashPreset');
         if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom';
@@ -851,10 +865,7 @@
         setDashHint();
     }
 
-    function applyDashFilter() {
-        setDashHint();
-        updateDash();
-    }
+    function applyDashFilter() { setDashHint(); updateDash(); }
 
     async function fetchItemWiseSales(from, to) {
         if(!supabaseClient) return null;
@@ -869,10 +880,7 @@
             .lte('placed_at', toIso)
             .order('placed_at', { ascending: true });
 
-        if(ordersErr) {
-            console.error('Supabase item-wise orders query failed:', ordersErr);
-            return null;
-        }
+        if(ordersErr) return null;
 
         const ids = (orders || []).map(o => o.id).filter(Boolean);
         if(ids.length === 0) return [];
@@ -882,10 +890,7 @@
             .select('item_name,unit_price,qty,order_id')
             .in('order_id', ids);
 
-        if(itemsErr) {
-            console.error('Supabase item-wise order_items query failed:', itemsErr);
-            return null;
-        }
+        if(itemsErr) return null;
 
         const map = new Map();
         (items || []).forEach(it => {
@@ -905,22 +910,14 @@
     function renderItemReport(rows) {
         const wrap = document.getElementById('itemReport');
         if(!wrap) return;
-        if(!rows) {
-            wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>';
-            return;
-        }
-        if(rows.length === 0) {
-            wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>';
-            return;
-        }
+        if(!rows) { wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>'; return; }
+        if(rows.length === 0) { wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>'; return; }
         const top = rows.slice(0, 12);
         wrap.innerHTML = top.map(r => `
             <div class="item-row">
-                <div>
-                    <strong>${r.name}</strong>
-                </div>
+                <div><strong>${r.name}</strong></div>
                 <div class="item-meta">
-                    <span>Qty: <strong style="color:white;">${r.qty}</strong></span> |
+                    <span>Qty: <strong style="color:var(--text-main);">${r.qty}</strong></span> |
                     <span>₹<strong style="color:var(--primary);">${r.rev}</strong></span>
                 </div>
             </div>
@@ -930,15 +927,13 @@
     function buildTrendFromData(salesInRange) {
         const byDay = new Map();
         salesInRange.forEach(s => {
-            const t = parseSaleTs(s);
-            if(t === null) return;
+            const t = parseSaleTs(s); if(t === null) return;
             const d = new Date(t);
             const key = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
             const prev = byDay.get(key) || { key, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), rev: 0 };
             prev.rev += Number(s.total || 0);
             byDay.set(key, prev);
         });
-
         return Array.from(byDay.values())
             .sort((a,b) => a.key.localeCompare(b.key))
             .map(x => ({
@@ -951,10 +946,8 @@
     async function updateDash() {
         const range = getDashRange();
         setDashHint();
-
         const hist = document.getElementById('dashHistory');
         const chart = document.getElementById('weekChart');
-
         const fromTs = range.from.getTime();
         const toTs = range.to.getTime();
         const inRange = sales.filter(s => {
@@ -976,18 +969,15 @@
         const upiSales = inRange.filter(s => s.method === 'UPI');
         const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
         const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
-        const cashOrd = cashSales.length;
-        const upiOrd = upiSales.length;
         const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
 
         document.getElementById('cashRev').innerText = cashRev;
         document.getElementById('upiRev').innerText = upiRev;
-        document.getElementById('cashOrd').innerText = cashOrd;
-        document.getElementById('upiOrd').innerText = upiOrd;
+        document.getElementById('cashOrd').innerText = cashSales.length;
+        document.getElementById('upiOrd').innerText = upiSales.length;
         document.getElementById('cashPct').innerText = pct(cashRev, rangeRev) + '%';
         document.getElementById('upiPct').innerText = pct(upiRev, rangeRev) + '%';
 
-        // Dynamic daily chart: ONLY days that have data
         const chartDays = buildTrendFromData(inRange);
         const maxDayRev = Math.max(1, ...chartDays.map(x => x.rev));
         if(chart) {
@@ -998,11 +988,7 @@
                 chart.style.gridTemplateColumns = `repeat(${chartDays.length}, 1fr)`;
                 chart.innerHTML = chartDays.map(x => {
                     const h = Math.round((x.rev / maxDayRev) * 100);
-                    return `
-                        <div>
-                            <div class="bar" style="height:${h}%;" title="${x.label}: ₹${x.rev}"></div>
-                            <div class="bar-label">${x.label}</div>
-                        </div>`;
+                    return `<div><div class="bar" style="height:${h}%;" title="${x.label}: ₹${x.rev}"></div><div class="bar-label">${x.label}</div></div>`;
                 }).join('');
             }
         }
@@ -1016,14 +1002,9 @@
                     hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
                 } else {
                     hist.innerHTML = histRows.map(s => `
-                        <div style="padding:15px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:8px;">
-                            <div>
-                                <div style="font-weight:600;">₹${s.total}</div>
-                                <span class="text-sm"><i class="fas fa-calendar"></i> ${s.date || ''} • <i class="fas fa-clock"></i> ${s.time || ''}</span>
-                            </div>
-                            <div style="background:${s.method==='CASH'?'rgba(34,197,94,0.1)':'rgba(99,102,241,0.1)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${s.method==='CASH'?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${s.method==='CASH'?'rgba(34,197,94,0.2)':'rgba(99,102,241,0.2)'};">
-                                ${s.method || ''}
-                            </div>
+                        <div style="padding:15px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:var(--glass-surface); border-radius:10px; margin-bottom:8px;">
+                            <div><div style="font-weight:600; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${s.date || ''} • <i class="fas fa-clock"></i> ${s.time || ''}</span></div>
+                            <div style="background:${s.method==='CASH'?'rgba(34,197,94,0.1)':'rgba(99,102,241,0.1)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${s.method==='CASH'?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${s.method==='CASH'?'rgba(34,197,94,0.2)':'rgba(99,102,241,0.2)'};">${s.method || ''}</div>
                         </div>`).join('');
                 }
             }
@@ -1053,66 +1034,38 @@
             const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
 
             const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
-            if(!jsPDF) {
-                alert('PDF engine not loaded. Please refresh once and try again.');
-                return;
-            }
+            if(!jsPDF) { alert('PDF engine not loaded. Please refresh once and try again.'); return; }
 
             const doc = new jsPDF({ unit: 'pt', format: 'a4' });
             let y = 54;
-
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+            doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y); y += 22;
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+            doc.text(`Range: ${fromStr} to ${toStr}`, 40, y); y += 18;
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(18);
-            doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y);
-            y += 22;
-
+            doc.text(`Revenue: ₹${sumRev}`, 40, y); y += 14;
+            doc.text(`Orders: ${sumOrd}`, 40, y); y += 14;
+            doc.text(`Avg Order Value: ₹${sumAov}`, 40, y); y += 18;
+            doc.setFont('helvetica', 'bold'); doc.text('Payment Breakdown', 40, y); y += 14;
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
-            doc.text(`Range: ${fromStr} to ${toStr}`, 40, y);
-            y += 18;
-
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Revenue: ₹${sumRev}`, 40, y);
-            y += 14;
-            doc.text(`Orders: ${sumOrd}`, 40, y);
-            y += 14;
-            doc.text(`Avg Order Value: ₹${sumAov}`, 40, y);
-            y += 18;
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('Payment Breakdown', 40, y);
-            y += 14;
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y);
-            y += 12;
-            doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y);
-            y += 18;
-
-            doc.setFont('helvetica', 'bold');
-            doc.text('Top Items', 40, y);
-            y += 14;
+            doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y); y += 12;
+            doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y); y += 18;
+            doc.setFont('helvetica', 'bold'); doc.text('Top Items', 40, y); y += 14;
             doc.setFont('helvetica', 'normal');
 
             const wrap = document.getElementById('itemReport');
             const rows = wrap ? Array.from(wrap.querySelectorAll('.item-row')) : [];
             if(rows.length === 0) {
-                doc.text('No item-wise data available for this range.', 40, y);
-                y += 12;
+                doc.text('No item-wise data available for this range.', 40, y); y += 12;
             } else {
                 rows.slice(0, 12).forEach(row => {
                     const name = row.querySelector('strong')?.innerText || 'Item';
-                    // Strip HTML from meta
                     const metaDiv = row.querySelector('.item-meta');
                     const metaText = metaDiv ? metaDiv.innerText.replace(/\n/g, ' ') : '';
-                    doc.text(`${name} — ${metaText}`, 40, y);
-                    y += 12;
-                    if(y > 780) {
-                        doc.addPage();
-                        y = 54;
-                    }
+                    doc.text(`${name} — ${metaText}`, 40, y); y += 12;
+                    if(y > 780) { doc.addPage(); y = 54; }
                 });
             }
-
             const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
             doc.save(fname);
         } catch (e) {
@@ -1125,30 +1078,19 @@
         const list = document.getElementById('mgmtList'); 
         if(!list) return;
         list.innerHTML = '';
-
         if(menu.length === 0) {
             list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>';
             return;
         }
-        
         menu.forEach((item, idx) => {
             let stockColor = item.stock ? 'var(--accent-green)' : '#ef4444';
             list.innerHTML += `
                 <div class="mgmt-row">
-                    <div>
-                        <div style="font-weight:600; font-size:15px;">${item.name}</div>
-                        <div class="text-sm">₹${item.price} • ${item.cat}</div>
-                    </div>
+                    <div><div style="font-weight:600; font-size:15px;">${item.name}</div><div class="text-sm">₹${item.price} • ${item.cat}</div></div>
                     <div style="display:flex; gap:8px;">
-                        <div class="icon-btn" onclick="toggleStock(${idx})" style="background:${stockColor}20; color:${stockColor}">
-                            <i class="fas fa-power-off"></i>
-                        </div>
-                        <div class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.2); color:#38bdf8">
-                            <i class="fas fa-pen"></i>
-                        </div>
-                        <div class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.2); color:#ef4444">
-                            <i class="fas fa-trash"></i>
-                        </div>
+                        <div class="icon-btn" onclick="toggleStock(${idx})" style="background:${stockColor}20; color:${stockColor}"><i class="fas fa-power-off"></i></div>
+                        <div class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.2); color:#38bdf8"><i class="fas fa-pen"></i></div>
+                        <div class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.2); color:#ef4444"><i class="fas fa-trash"></i></div>
                     </div>
                 </div>`;
         });
@@ -1158,99 +1100,68 @@
         let n = document.getElementById('newItemName').value;
         let p = document.getElementById('newItemPrice').value;
         let c = document.getElementById('newItemCat').value; 
-        
         if(n && p) { 
-            const newItem = {
-                id: Date.now(),
-                name: n,
-                price: parseInt(p),
-                cat: c,
-                stock: true
-            };
-
+            const newItem = { id: Date.now(), name: n, price: parseInt(p), cat: c, stock: true };
             if(supabaseClient) {
-                const { data, error } = await supabaseClient
-                    .from('BILLINGO_menu_items')
-                    .insert(mapAppMenuToRow(newItem))
-                    .select('id,name,price,category,in_stock,created_at,updated_at')
-                    .single();
-                if(error) {
-                    console.error('Supabase add item failed:', error);
-                    menu.push(newItem);
-                } else {
-                    menu.push(mapMenuRowToApp(data));
-                }
-            } else {
-                menu.push(newItem);
-            }
-
+                const { data, error } = await supabaseClient.from('BILLINGO_menu_items').insert(mapAppMenuToRow(newItem)).select('id,name,price,category,in_stock,created_at,updated_at').single();
+                if(error) { console.error('Supabase add item failed:', error); menu.push(newItem); } else { menu.push(mapMenuRowToApp(data)); }
+            } else { menu.push(newItem); }
             saveData();
             document.getElementById('newItemName').value = ''; 
             document.getElementById('newItemPrice').value = ''; 
-        } else {
-            alert('Please fill all fields!');
-        }
+        } else { alert('Please fill all fields!'); }
     }
     
     async function delItem(idx) { 
         if(confirm("Delete this item?")) {
-            const id = menu[idx].id;
-            menu.splice(idx, 1);
-            saveData();
+            const id = menu[idx].id; menu.splice(idx, 1); saveData();
             if(!supabaseClient) return;
             if(typeof id !== 'string') return;
-            const { error } = await supabaseClient
-                .from('BILLINGO_menu_items')
-                .delete()
-                .eq('id', id);
-            if(error) console.error('Supabase delItem failed:', error);
+            await supabaseClient.from('BILLINGO_menu_items').delete().eq('id', id);
         }
     }
     
     async function toggleStock(idx) { 
-        menu[idx].stock = !menu[idx].stock; 
-        saveData();
+        menu[idx].stock = !menu[idx].stock; saveData();
         if(!supabaseClient) return;
-
-        const id = menu[idx].id;
-        if(typeof id !== 'string') return;
-        const { error } = await supabaseClient
-            .from('BILLINGO_menu_items')
-            .update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() })
-            .eq('id', id);
-        if(error) console.error('Supabase toggleStock failed:', error);
+        const id = menu[idx].id; if(typeof id !== 'string') return;
+        await supabaseClient.from('BILLINGO_menu_items').update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() }).eq('id', id);
     }
     
     async function editPrice(idx) { 
         let p = prompt("New Price:", menu[idx].price); 
         if(p && !isNaN(p)) { 
-            menu[idx].price = parseInt(p); 
-            saveData();
+            menu[idx].price = parseInt(p); saveData();
             if(!supabaseClient) return;
-            const id = menu[idx].id;
-            if(typeof id !== 'string') return;
-            const { error } = await supabaseClient
-                .from('BILLINGO_menu_items')
-                .update({ price: menu[idx].price, updated_at: new Date().toISOString() })
-                .eq('id', id);
-            if(error) console.error('Supabase editPrice failed:', error);
+            const id = menu[idx].id; if(typeof id !== 'string') return;
+            await supabaseClient.from('BILLINGO_menu_items').update({ price: menu[idx].price, updated_at: new Date().toISOString() }).eq('id', id);
         }
     }
 
     function renderMenu(filter='', catFilter='All') {
         const grid = document.getElementById('menuGrid'); 
         grid.innerHTML = '';
-        
         if(menu.length === 0) { 
             grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; text-align:center; color:gray; padding:40px;"><i class="fas fa-utensils" style="font-size:40px; margin-bottom:15px; display:block;"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items in menu</div><div>Go to Menu tab to add items!</div></div>'; 
             return; 
         }
-        
         menu.forEach(item => {
             if((catFilter==='All' || item.cat===catFilter) && item.name.toLowerCase().includes(filter.toLowerCase())) {
                 let outClass = item.stock ? '' : 'out-stock';
                 let badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
-                grid.innerHTML += `<div class="menu-item ${outClass}" onclick="addCart('${item.id}')">${badge}<div class="item-name">${item.name}</div><div class="item-price">${item.price}</div></div>`;
+                
+                // SELECTION CHECK
+                let inCart = cart.find(c => String(c.id) === String(item.id));
+                let selectedClass = inCart ? 'selected' : '';
+                let qtyBadge = inCart ? `<div class="badge-qty">${inCart.qty}</div>` : '';
+
+                grid.innerHTML += `
+                    <div class="menu-item ${outClass} ${selectedClass}" onclick="addCart('${item.id}')">
+                        ${badge}
+                        ${qtyBadge}
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">${item.price}</div>
+                    </div>`;
             }
         });
     }
@@ -1265,6 +1176,7 @@
         if(exist) exist.qty++; 
         else cart.push({...item, qty:1});
         updateCartUI();
+        renderMenu(); // Re-render to show selection
     }
     
     function updateCartUI() {
@@ -1278,13 +1190,10 @@
         cart.forEach((item, idx) => {
             list.innerHTML += `
                 <div class="cart-row">
-                    <div>
-                        <div style="font-weight:600; font-size:15px;">${item.name}</div>
-                        <div class="text-sm">₹${item.price} each</div>
-                    </div>
+                    <div><div style="font-weight:600; font-size:15px;">${item.name}</div><div class="text-sm">₹${item.price} each</div></div>
                     <div class="qty-control">
                         <div class="qty-btn" onclick="modQty(${idx}, -1)">−</div>
-                        <span style="font-weight:700; min-width:20px; text-align:center; color:white;">${item.qty}</span>
+                        <span style="font-weight:700; min-width:20px; text-align:center; color:var(--text-main);">${item.qty}</span>
                         <div class="qty-btn" onclick="modQty(${idx}, 1)">+</div>
                     </div>
                 </div>`;
@@ -1297,6 +1206,7 @@
         if(cart[idx].qty <= 0) cart.splice(idx, 1); 
         updateCartUI(); 
         if(cart.length===0) closeCart(); 
+        renderMenu(); // Re-render to update badges
     }
     
     function openCart() { document.getElementById('cartSheet').style.display = 'flex'; }
@@ -1322,69 +1232,23 @@
     async function processPay(method) {
         const now = new Date();
         const total = parseInt(document.getElementById('payAmount').innerText);
-
-        // Optimistic UI update
-        sales.push({
-            id: Date.now(),
-            total,
-            method,
-            time: now.toLocaleTimeString(),
-            date: now.toLocaleDateString(),
-            ts: now.getTime(),
-            iso: now.toISOString()
-        });
+        sales.push({ id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString() });
         saveData();
 
         if(supabaseClient) {
-            const { data: order, error: orderErr } = await supabaseClient
-                .from('BILLINGO_orders')
-                .insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() })
-                .select('id,total,payment_method,placed_at,created_at,status')
-                .single();
-            if(orderErr) {
-                console.error('Supabase order insert failed:', orderErr);
-            } else {
-                const items = cart.map(ci => ({
-                    order_id: order.id,
-                    menu_item_id: (typeof ci.id === 'string') ? ci.id : null,
-                    item_name: ci.name,
-                    unit_price: ci.price,
-                    qty: ci.qty
-                }));
-                const { error: itemsErr } = await supabaseClient
-                    .from('BILLINGO_order_items')
-                    .insert(items);
-                if(itemsErr) console.error('Supabase order items insert failed:', itemsErr);
-
-                // Refresh orders from source of truth
+            const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
+            if(!orderErr) {
+                const items = cart.map(ci => ({ order_id: order.id, menu_item_id: (typeof ci.id === 'string') ? ci.id : null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
+                await supabaseClient.from('BILLINGO_order_items').insert(items);
                 await loadOrdersFromSupabase();
             }
         }
-
-        closeModal('payModal'); 
-        cart = []; 
-        updateCartUI();
+        closeModal('payModal'); cart = []; updateCartUI(); renderMenu();
         alert("✅ Order Saved Successfully!");
     }
     
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    async function clearData() { 
-        if(confirm("⚠️ Reset all sales and menu data? This cannot be undone!")) { 
-            if(confirm("Are you absolutely sure? All data will be lost!")) {
-                if(supabaseClient) {
-                    const a = await supabaseClient.from('BILLINGO_order_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    if(a.error) console.error('Supabase clear order_items failed:', a.error);
-                    const b = await supabaseClient.from('BILLINGO_orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    if(b.error) console.error('Supabase clear orders failed:', b.error);
-                    const c = await supabaseClient.from('BILLINGO_menu_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                    if(c.error) console.error('Supabase clear menu_items failed:', c.error);
-                }
-                localStorage.clear(); 
-                location.reload(); 
-            }
-        } 
-    }
+    async function clearData() { if(confirm("⚠️ Reset all data?")) { if(confirm("Are you sure?")) { localStorage.clear(); location.reload(); } } }
 
     init();
 </script>
