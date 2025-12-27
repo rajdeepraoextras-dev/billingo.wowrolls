@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SHWARMAGO POS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <title>WOW ROLLS POS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
     <style>
         :root { 
@@ -43,7 +44,7 @@
         }
         
         body { 
-            font-family: 'Poppins', sans-serif; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
             background:
                 radial-gradient(1200px 900px at 15% 0%, rgba(255, 107, 53, 0.10), transparent 60%),
                 radial-gradient(900px 700px at 90% 20%, rgba(99, 102, 241, 0.10), transparent 55%),
@@ -137,6 +138,19 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .lang-select {
+            height: 30px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(2, 6, 23, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.2px;
+            cursor: pointer;
         }
 
         .toggle-switch {
@@ -294,6 +308,7 @@
             display: flex; 
             gap: 10px; 
             overflow-x: auto; 
+            margin-top: 12px;
             padding: 5px 2px 15px; 
             margin-bottom: 20px; 
             scrollbar-width: none; 
@@ -355,6 +370,7 @@
 
             .category-scroll {
                 margin-bottom: 12px;
+                margin-top: 10px;
                 padding: 4px 2px 10px;
             }
 
@@ -840,7 +856,79 @@
             margin-top: 6px;
             letter-spacing: 0.2px;
         }
-        
+
+        .dash-filters {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .dash-filter-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .dash-filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .dash-btn {
+            white-space: nowrap;
+        }
+
+        .dash-filter-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .item-report {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .item-row strong {
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (max-width: 420px) {
+            .dash-filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .item-meta {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 4px;
+            }
+        }
+
         .hidden { display: none !important; }
         .text-sm { font-size: 12px; color: var(--text-muted); }
         
@@ -915,8 +1003,7 @@
         <div id="view-pos" class="view active">
             <div class="brand-header">
                 <div class="brand-left">
-                    <span class="brand-icon">🌯</span>
-                    <span class="brand-name">SHWARMAGO</span>
+                    <span class="brand-name">WOW ROLLS</span>
                 </div>
                 <div class="status-toggle">
                     <span id="statusBadge" class="status-badge">OFFLINE</span>
@@ -958,23 +1045,50 @@
         </div>
 
         <div id="view-dash" class="view">
-            <h2><i class="fas fa-chart-line"></i> Today's Stats</h2>
+            <h2><i class="fas fa-chart-line"></i> <span id="dashTitle">Sales Dashboard</span></h2>
+
+            <div class="dash-filters">
+                <div class="dash-filter-row">
+                    <select id="dashPreset" class="input-dark" onchange="onDashPresetChange(this.value)">
+                        <option value="today" selected>Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="last7">Last 7 Days</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" style="margin-top:0; padding:12px 14px; font-size:13px;">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
+                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="margin-top:0; padding:12px 14px; font-size:13px; background: linear-gradient(135deg, #334155 0%, #475569 100%);">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+
+                <div class="dash-filter-row">
+                    <input id="dashFrom" type="date" class="input-dark" onchange="onDashDateChange()">
+                    <input id="dashTo" type="date" class="input-dark" onchange="onDashDateChange()">
+                </div>
+                <div class="dash-filter-hint" id="dashRangeHint"></div>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-rupee-sign"></i> Today Revenue</div>
                     <div class="stat-value">₹<span id="dashRev">0</span></div>
                     <div class="stat-sub">All payments</div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-shopping-bag"></i> Today Orders</div>
                     <div class="stat-value"><span id="dashOrd">0</span></div>
                     <div class="stat-sub">Total orders today</div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-percent"></i> Avg Order Value</div>
                     <div class="stat-value">₹<span id="dashAov">0</span></div>
                     <div class="stat-sub">Today average</div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-layer-group"></i> All-time Revenue</div>
                     <div class="stat-value">₹<span id="dashAllRev">0</span></div>
@@ -982,13 +1096,14 @@
                 </div>
             </div>
 
-            <h3>Payment Breakdown (Today)</h3>
+            <h3 id="dashPayTitle">Payment Breakdown</h3>
             <div class="mini-grid">
                 <div class="mini-card">
                     <div class="mini-title"><span><i class="fas fa-money-bill-wave"></i> Cash</span><span id="cashPct">0%</span></div>
                     <div class="mini-metric"><span>Revenue</span><strong>₹<span id="cashRev">0</span></strong></div>
                     <div class="mini-metric"><span>Orders</span><strong><span id="cashOrd">0</span></strong></div>
                 </div>
+
                 <div class="mini-card">
                     <div class="mini-title"><span><i class="fas fa-qrcode"></i> UPI</span><span id="upiPct">0%</span></div>
                     <div class="mini-metric"><span>Revenue</span><strong>₹<span id="upiRev">0</span></strong></div>
@@ -996,10 +1111,15 @@
                 </div>
             </div>
 
-            <h3>Last 7 Days Revenue</h3>
+            <h3 id="dashWeekTitle">Revenue Trend</h3>
             <div class="chart-wrap">
                 <div class="text-sm">Daily total (₹)</div>
                 <div id="weekChart" class="bar-chart"></div>
+            </div>
+
+            <h3>Item-wise Sales (Selected Range)</h3>
+            <div class="chart-wrap">
+                <div id="itemReport" class="item-report"></div>
             </div>
 
             <h3>Recent Orders</h3>
@@ -1078,9 +1198,13 @@
     </div>
 
 <script>
-    const CONFIG = { upi: "8003270534@PTSBI", name: "SHWARMAGO" };
+    const CONFIG = { upi: "paytm.s1nij5e@pty", name: "WOW ROLLS" };
     let cart = [];
     let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
+
+    let dashPreset = 'today';
+    let dashFrom = null;
+    let dashTo = null;
 
     const SUPABASE_URL = "https://vodxwyvpulrlpqkapiln.supabase.co";
     const SUPABASE_KEY = "sb_publishable_g_NWhtfzz5k-i0mxHdOHBw_GvgbtO1F";
@@ -1187,11 +1311,16 @@
         setOnlineStatus(isOnline);
         renderMenu(); 
         renderMgmt(); 
+        initDashControls();
         updateDash();
 
         // Try Supabase first; fallback stays on localStorage
         await loadMenuFromSupabase();
         await loadOrdersFromSupabase();
+
+        // Refresh dashboards with source-of-truth data
+        initDashControls(false);
+        updateDash();
     }
     
     function nav(view, el) {
@@ -1199,6 +1328,507 @@
         document.getElementById('view-'+view).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
+    }
+
+    function pad2(n) {
+        return String(n).padStart(2, '0');
+    }
+
+    function toDateInputValue(d) {
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    }
+
+    function startOfDayLocal(d) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    }
+
+    function endOfDayLocal(d) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+    }
+
+    function parseSaleTs(s) {
+        if(s && typeof s.ts === 'number') return s.ts;
+        if(s && typeof s.iso === 'string') {
+            const t = new Date(s.iso).getTime();
+            if(!Number.isNaN(t)) return t;
+        }
+        // Legacy fallback (best-effort)
+        if(s && typeof s.date === 'string' && typeof s.time === 'string') {
+            const t = new Date(`${s.date} ${s.time}`).getTime();
+            if(!Number.isNaN(t)) return t;
+        }
+        return null;
+    }
+
+    function getDashRange() {
+        // If UI not ready yet, fallback to today
+        let fromVal = dashFrom;
+        let toVal = dashTo;
+
+        const fromInput = document.getElementById('dashFrom');
+        const toInput = document.getElementById('dashTo');
+        if(fromInput && fromInput.value) fromVal = fromInput.value;
+        if(toInput && toInput.value) toVal = toInput.value;
+
+        const now = new Date();
+        if(!fromVal || !toVal) {
+            const s = startOfDayLocal(now);
+            const e = endOfDayLocal(now);
+            return { from: s, to: e };
+        }
+
+        const from = startOfDayLocal(new Date(fromVal + 'T00:00:00'));
+        const to = endOfDayLocal(new Date(toVal + 'T00:00:00'));
+        return { from, to };
+    }
+
+    function setDashHint() {
+        const hint = document.getElementById('dashRangeHint');
+        if(!hint) return;
+        const r = getDashRange();
+        hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`;
+    }
+
+    function setPresetRange(preset, applyToInputs = true) {
+        dashPreset = preset || 'today';
+        const now = new Date();
+        let from = startOfDayLocal(now);
+        let to = endOfDayLocal(now);
+
+        if(dashPreset === 'yesterday') {
+            const y = new Date(now);
+            y.setDate(y.getDate() - 1);
+            from = startOfDayLocal(y);
+            to = endOfDayLocal(y);
+        } else if(dashPreset === 'last7') {
+            const a = new Date(now);
+            a.setDate(a.getDate() - 6);
+            from = startOfDayLocal(a);
+            to = endOfDayLocal(now);
+        } else if(dashPreset === 'month') {
+            from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+            to = endOfDayLocal(now);
+        } else if(dashPreset === 'custom') {
+            // Keep current inputs
+            const r = getDashRange();
+            from = r.from;
+            to = r.to;
+        }
+
+        if(applyToInputs) {
+            const fromInput = document.getElementById('dashFrom');
+            const toInput = document.getElementById('dashTo');
+            if(fromInput) fromInput.value = toDateInputValue(from);
+            if(toInput) toInput.value = toDateInputValue(to);
+
+            const presetEl = document.getElementById('dashPreset');
+            if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset;
+        }
+
+        dashFrom = toDateInputValue(from);
+        dashTo = toDateInputValue(to);
+        setDashHint();
+    }
+
+    function initDashControls(forcePreset = true) {
+        const presetEl = document.getElementById('dashPreset');
+        if(presetEl && forcePreset) dashPreset = presetEl.value || 'today';
+        setPresetRange(dashPreset, true);
+    }
+
+    function onDashPresetChange(preset) {
+        setPresetRange(preset, true);
+    }
+
+    function onDashDateChange() {
+        const presetEl = document.getElementById('dashPreset');
+        if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom';
+        dashPreset = 'custom';
+        setDashHint();
+    }
+
+    function applyDashFilter() {
+        setDashHint();
+        updateDash();
+    }
+
+    async function fetchItemWiseSales(from, to) {
+        if(!supabaseClient) return null;
+        const fromIso = from.toISOString();
+        const toIso = to.toISOString();
+
+        const { data: orders, error: ordersErr } = await supabaseClient
+            .from('BILLINGO_orders')
+            .select('id,placed_at,created_at,status')
+            .eq('status', 'PAID')
+            .gte('placed_at', fromIso)
+            .lte('placed_at', toIso)
+            .order('placed_at', { ascending: true });
+
+        if(ordersErr) {
+            console.error('Supabase item-wise orders query failed:', ordersErr);
+            return null;
+        }
+
+        const ids = (orders || []).map(o => o.id).filter(Boolean);
+        if(ids.length === 0) return [];
+
+        const { data: items, error: itemsErr } = await supabaseClient
+            .from('BILLINGO_order_items')
+            .select('item_name,unit_price,qty,order_id')
+            .in('order_id', ids);
+
+        if(itemsErr) {
+            console.error('Supabase item-wise order_items query failed:', itemsErr);
+            return null;
+        }
+
+        const map = new Map();
+        (items || []).forEach(it => {
+            const name = it.item_name || 'Unknown';
+            const qty = Number(it.qty || 0);
+            const unit = Number(it.unit_price || 0);
+            const rev = qty * unit;
+            const prev = map.get(name) || { name, qty: 0, rev: 0 };
+            prev.qty += qty;
+            prev.rev += rev;
+            map.set(name, prev);
+        });
+
+        return Array.from(map.values()).sort((a,b) => b.rev - a.rev);
+    }
+
+    function renderItemReport(rows) {
+        const wrap = document.getElementById('itemReport');
+        if(!wrap) return;
+        if(!rows) {
+            wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>';
+            return;
+        }
+        if(rows.length === 0) {
+            wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>';
+            return;
+        }
+        const top = rows.slice(0, 12);
+        wrap.innerHTML = top.map(r => `
+            <div class="item-row">
+                <div>
+                    <strong>${r.name}</strong>
+                </div>
+                <div class="item-meta">
+                    <span>Qty: <strong style="color:var(--text-main);">${r.qty}</strong></span>
+                    <span>Revenue: <strong style="color:var(--text-main);">₹${r.rev}</strong></span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function buildTrendFromData(salesInRange) {
+        const byDay = new Map();
+        salesInRange.forEach(s => {
+            const t = parseSaleTs(s);
+            if(t === null) return;
+            const d = new Date(t);
+            const key = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+            const prev = byDay.get(key) || { key, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), rev: 0 };
+            prev.rev += Number(s.total || 0);
+            byDay.set(key, prev);
+        });
+
+        return Array.from(byDay.values())
+            .sort((a,b) => a.key.localeCompare(b.key))
+            .map(x => ({
+                key: x.key,
+                rev: x.rev,
+                label: x.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+            }));
+    }
+
+    async function updateDash() {
+        const range = getDashRange();
+        setDashHint();
+
+        const hist = document.getElementById('dashHistory');
+        const chart = document.getElementById('weekChart');
+
+        const fromTs = range.from.getTime();
+        const toTs = range.to.getTime();
+        const inRange = sales.filter(s => {
+            const t = parseSaleTs(s);
+            return t !== null && t >= fromTs && t <= toTs;
+        });
+
+        const rangeRev = inRange.reduce((a,b)=>a + (b.total || 0), 0);
+        const rangeOrd = inRange.length;
+        const allRev = sales.reduce((a,b)=>a + (b.total || 0), 0);
+        const aov = rangeOrd ? Math.round(rangeRev / rangeOrd) : 0;
+
+        document.getElementById('dashRev').innerText = rangeRev;
+        document.getElementById('dashOrd').innerText = rangeOrd;
+        document.getElementById('dashAov').innerText = aov;
+        document.getElementById('dashAllRev').innerText = allRev;
+
+        const cashSales = inRange.filter(s => s.method === 'CASH');
+        const upiSales = inRange.filter(s => s.method === 'UPI');
+        const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
+        const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
+        const cashOrd = cashSales.length;
+        const upiOrd = upiSales.length;
+        const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
+
+        document.getElementById('cashRev').innerText = cashRev;
+        document.getElementById('upiRev').innerText = upiRev;
+        document.getElementById('cashOrd').innerText = cashOrd;
+        document.getElementById('upiOrd').innerText = upiOrd;
+        document.getElementById('cashPct').innerText = pct(cashRev, rangeRev) + '%';
+        document.getElementById('upiPct').innerText = pct(upiRev, rangeRev) + '%';
+
+        // Dynamic daily chart: ONLY days that have data
+        const chartDays = buildTrendFromData(inRange);
+        const maxDayRev = Math.max(1, ...chartDays.map(x => x.rev));
+        if(chart) {
+            if(chartDays.length === 0) {
+                chart.style.gridTemplateColumns = '1fr';
+                chart.innerHTML = '<div class="text-sm" style="grid-column:1/-1; padding:8px 0;">No chart data for this range.</div>';
+            } else {
+                chart.style.gridTemplateColumns = `repeat(${chartDays.length}, 1fr)`;
+                chart.innerHTML = chartDays.map(x => {
+                    const h = Math.round((x.rev / maxDayRev) * 100);
+                    return `
+                        <div>
+                            <div class="bar" style="height:${h}%;" title="${x.label}: ₹${x.rev}"></div>
+                            <div class="bar-label">${x.label}</div>
+                        </div>`;
+                }).join('');
+            }
+        }
+
+        if(hist) {
+            if(sales.length === 0) {
+                hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
+            } else {
+                const histRows = inRange.slice().reverse().slice(0, 25);
+                if(histRows.length === 0) {
+                    hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
+                } else {
+                    hist.innerHTML = histRows.map(s => `
+                        <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:8px;">
+                            <div>
+                                <div style="font-weight:600;">₹${s.total}</div>
+                                <span class="text-sm"><i class="fas fa-calendar"></i> ${s.date || ''} • <i class="fas fa-clock"></i> ${s.time || ''}</span>
+                            </div>
+                            <div style="background:${s.method==='CASH'?'rgba(34,197,94,0.2)':'rgba(99,102,241,0.2)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${s.method==='CASH'?'var(--success)':'#6366f1'}">
+                                ${s.method || ''}
+                            </div>
+                        </div>`).join('');
+                }
+            }
+        }
+
+        if(supabaseClient) {
+            const rows = await fetchItemWiseSales(range.from, range.to);
+            renderItemReport(rows);
+        } else {
+            const wrap = document.getElementById('itemReport');
+            if(wrap) wrap.innerHTML = '<div class="text-sm">Connect Supabase to view item-wise sales report.</div>';
+        }
+    }
+
+    function downloadDashPdf() {
+        try {
+            const range = getDashRange();
+            const fromStr = range.from.toLocaleDateString();
+            const toStr = range.to.toLocaleDateString();
+
+            const sumRev = Number(document.getElementById('dashRev')?.innerText || 0);
+            const sumOrd = Number(document.getElementById('dashOrd')?.innerText || 0);
+            const sumAov = Number(document.getElementById('dashAov')?.innerText || 0);
+            const cashRev = Number(document.getElementById('cashRev')?.innerText || 0);
+            const upiRev = Number(document.getElementById('upiRev')?.innerText || 0);
+            const cashOrd = Number(document.getElementById('cashOrd')?.innerText || 0);
+            const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
+
+            const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+            if(!jsPDF) {
+                alert('PDF engine not loaded. Please refresh once and try again.');
+                return;
+            }
+
+            const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+            let y = 54;
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y);
+            y += 22;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text(`Range: ${fromStr} to ${toStr}`, 40, y);
+            y += 18;
+
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Revenue: ₹${sumRev}`, 40, y);
+            y += 14;
+            doc.text(`Orders: ${sumOrd}`, 40, y);
+            y += 14;
+            doc.text(`Avg Order Value: ₹${sumAov}`, 40, y);
+            y += 18;
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('Payment Breakdown', 40, y);
+            y += 14;
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y);
+            y += 12;
+            doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y);
+            y += 18;
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('Top Items', 40, y);
+            y += 14;
+            doc.setFont('helvetica', 'normal');
+
+            const wrap = document.getElementById('itemReport');
+            const rows = wrap ? Array.from(wrap.querySelectorAll('.item-row')) : [];
+            if(rows.length === 0) {
+                doc.text('No item-wise data available for this range.', 40, y);
+                y += 12;
+            } else {
+                rows.slice(0, 12).forEach(row => {
+                    const name = row.querySelector('strong')?.innerText || 'Item';
+                    const meta = row.querySelector('.item-meta')?.innerText || '';
+                    doc.text(`${name} — ${meta}`, 40, y);
+                    y += 12;
+                    if(y > 780) {
+                        doc.addPage();
+                        y = 54;
+                    }
+                });
+            }
+
+            const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
+            doc.save(fname);
+        } catch (e) {
+            console.error('PDF download failed:', e);
+            alert('Unable to generate PDF. Check console for details.');
+        }
+    }
+
+    function renderMgmt() {
+        const list = document.getElementById('mgmtList'); 
+        if(!list) return;
+        list.innerHTML = '';
+
+        if(menu.length === 0) {
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>';
+            return;
+        }
+        
+        menu.forEach((item, idx) => {
+            let stockColor = item.stock ? 'var(--success)' : 'var(--danger)';
+            list.innerHTML += `
+                <div class="mgmt-row">
+                    <div>
+                        <div style="font-weight:600; font-size:15px;">${item.name}</div>
+                        <div class="text-sm">₹${item.price} • ${item.cat}</div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <div class="icon-btn" onclick="toggleStock(${idx})" style="background:${stockColor}20; color:${stockColor}">
+                            <i class="fas fa-power-off"></i>
+                        </div>
+                        <div class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.2); color:#38bdf8">
+                            <i class="fas fa-pen"></i>
+                        </div>
+                        <div class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.2); color:var(--danger)">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+    
+    async function addNewItem() { 
+        let n = document.getElementById('newItemName').value;
+        let p = document.getElementById('newItemPrice').value;
+        let c = document.getElementById('newItemCat').value; 
+        
+        if(n && p) { 
+            const newItem = {
+                id: Date.now(),
+                name: n,
+                price: parseInt(p),
+                cat: c,
+                stock: true
+            };
+
+            if(supabaseClient) {
+                const { data, error } = await supabaseClient
+                    .from('BILLINGO_menu_items')
+                    .insert(mapAppMenuToRow(newItem))
+                    .select('id,name,price,category,in_stock,created_at,updated_at')
+                    .single();
+                if(error) {
+                    console.error('Supabase add item failed:', error);
+                    menu.push(newItem);
+                } else {
+                    menu.push(mapMenuRowToApp(data));
+                }
+            } else {
+                menu.push(newItem);
+            }
+
+            saveData();
+            document.getElementById('newItemName').value = ''; 
+            document.getElementById('newItemPrice').value = ''; 
+        } else {
+            alert('Please fill all fields!');
+        }
+    }
+    
+    async function delItem(idx) { 
+        if(confirm("Delete this item?")) {
+            const id = menu[idx].id;
+            menu.splice(idx, 1);
+            saveData();
+            if(!supabaseClient) return;
+            if(typeof id !== 'string') return;
+            const { error } = await supabaseClient
+                .from('BILLINGO_menu_items')
+                .delete()
+                .eq('id', id);
+            if(error) console.error('Supabase delItem failed:', error);
+        }
+    }
+    
+    async function toggleStock(idx) { 
+        menu[idx].stock = !menu[idx].stock; 
+        saveData();
+        if(!supabaseClient) return;
+
+        const id = menu[idx].id;
+        if(typeof id !== 'string') return;
+        const { error } = await supabaseClient
+            .from('BILLINGO_menu_items')
+            .update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() })
+            .eq('id', id);
+        if(error) console.error('Supabase toggleStock failed:', error);
+    }
+    
+    async function editPrice(idx) { 
+        let p = prompt("New Price:", menu[idx].price); 
+        if(p && !isNaN(p)) { 
+            menu[idx].price = parseInt(p); 
+            saveData();
+            if(!supabaseClient) return;
+            const id = menu[idx].id;
+            if(typeof id !== 'string') return;
+            const { error } = await supabaseClient
+                .from('BILLINGO_menu_items')
+                .update({ price: menu[idx].price, updated_at: new Date().toISOString() })
+                .eq('id', id);
+            if(error) console.error('Supabase editPrice failed:', error);
+        }
     }
 
     function renderMenu(filter='', catFilter='All') {
@@ -1333,190 +1963,6 @@
     
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function renderMgmt() {
-        const list = document.getElementById('mgmtList'); 
-        list.innerHTML = '';
-        
-        if(menu.length === 0) {
-            list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>';
-            return;
-        }
-        
-        menu.forEach((item, idx) => {
-            let stockColor = item.stock ? 'var(--success)' : 'var(--danger)';
-            list.innerHTML += `
-                <div class="mgmt-row">
-                    <div>
-                        <div style="font-weight:600; font-size:15px;">${item.name}</div>
-                        <div class="text-sm">₹${item.price} • ${item.cat}</div>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <div class="icon-btn" onclick="toggleStock(${idx})" style="background:${stockColor}20; color:${stockColor}">
-                            <i class="fas fa-power-off"></i>
-                        </div>
-                        <div class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.2); color:#38bdf8">
-                            <i class="fas fa-pen"></i>
-                        </div>
-                        <div class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.2); color:var(--danger)">
-                            <i class="fas fa-trash"></i>
-                        </div>
-                    </div>
-                </div>`;
-        });
-    }
-    
-    async function addNewItem() { 
-        let n = document.getElementById('newItemName').value;
-        let p = document.getElementById('newItemPrice').value;
-        let c = document.getElementById('newItemCat').value; 
-        
-        if(n && p) { 
-            const newItem = {
-                id: Date.now(),
-                name: n,
-                price: parseInt(p),
-                cat: c,
-                stock: true
-            };
-
-            if(supabaseClient) {
-                const { data, error } = await supabaseClient
-                    .from('BILLINGO_menu_items')
-                    .insert(mapAppMenuToRow(newItem))
-                    .select('id,name,price,category,in_stock,created_at,updated_at')
-                    .single();
-                if(error) {
-                    console.error('Supabase add item failed:', error);
-                    menu.push(newItem);
-                } else {
-                    menu.push(mapMenuRowToApp(data));
-                }
-            } else {
-                menu.push(newItem);
-            }
-
-            saveData();
-            document.getElementById('newItemName').value = ''; 
-            document.getElementById('newItemPrice').value = ''; 
-        } else {
-            alert('Please fill all fields!');
-        }
-    }
-    
-    async function delItem(idx) { 
-        if(confirm("Delete this item?")) {
-            const id = menu[idx].id;
-            menu.splice(idx, 1);
-            saveData();
-            if(!supabaseClient) return;
-            if(typeof id !== 'string') return;
-            const { error } = await supabaseClient
-                .from('BILLINGO_menu_items')
-                .delete()
-                .eq('id', id);
-            if(error) console.error('Supabase delItem failed:', error);
-        }
-    }
-    
-    async function toggleStock(idx) { 
-        menu[idx].stock = !menu[idx].stock; 
-        saveData();
-        if(!supabaseClient) return;
-
-        const id = menu[idx].id;
-        if(typeof id !== 'string') return;
-        const { error } = await supabaseClient
-            .from('BILLINGO_menu_items')
-            .update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() })
-            .eq('id', id);
-        if(error) console.error('Supabase toggleStock failed:', error);
-    }
-    
-    async function editPrice(idx) { 
-        let p = prompt("New Price:", menu[idx].price); 
-        if(p && !isNaN(p)) { 
-            menu[idx].price = parseInt(p); 
-            saveData();
-            if(!supabaseClient) return;
-            const id = menu[idx].id;
-            if(typeof id !== 'string') return;
-            const { error } = await supabaseClient
-                .from('BILLINGO_menu_items')
-                .update({ price: menu[idx].price, updated_at: new Date().toISOString() })
-                .eq('id', id);
-            if(error) console.error('Supabase editPrice failed:', error);
-        }
-    }
-
-    function updateDash() {
-        const todayStr = new Date().toLocaleDateString();
-        const todaySales = sales.filter(s => s.date === todayStr);
-
-        const todayRev = todaySales.reduce((a,b)=>a + (b.total || 0), 0);
-        const todayOrd = todaySales.length;
-        const allRev = sales.reduce((a,b)=>a + (b.total || 0), 0);
-        const aov = todayOrd ? Math.round(todayRev / todayOrd) : 0;
-
-        document.getElementById('dashRev').innerText = todayRev;
-        document.getElementById('dashOrd').innerText = todayOrd;
-        document.getElementById('dashAov').innerText = aov;
-        document.getElementById('dashAllRev').innerText = allRev;
-
-        const cashSales = todaySales.filter(s => s.method === 'CASH');
-        const upiSales = todaySales.filter(s => s.method === 'UPI');
-        const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
-        const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
-        const cashOrd = cashSales.length;
-        const upiOrd = upiSales.length;
-        const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
-
-        document.getElementById('cashRev').innerText = cashRev;
-        document.getElementById('upiRev').innerText = upiRev;
-        document.getElementById('cashOrd').innerText = cashOrd;
-        document.getElementById('upiOrd').innerText = upiOrd;
-        document.getElementById('cashPct').innerText = pct(cashRev, todayRev) + '%';
-        document.getElementById('upiPct').innerText = pct(upiRev, todayRev) + '%';
-
-        // Last 7 days revenue chart (based on the same locale date strings stored in sales)
-        const days = [];
-        for(let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const label = d.toLocaleDateString();
-            const rev = sales.filter(s => s.date === label).reduce((a,b)=>a + (b.total || 0), 0);
-            days.push({ label, rev, day: d.toLocaleDateString(undefined, { weekday: 'short' }) });
-        }
-        const maxRev = Math.max(1, ...days.map(x => x.rev));
-        const chart = document.getElementById('weekChart');
-        if(chart) {
-            chart.innerHTML = days.map(x => {
-                const h = Math.round((x.rev / maxRev) * 100);
-                return `
-                    <div>
-                        <div class="bar" style="height:${h}%;" title="${x.day}: ₹${x.rev}"></div>
-                        <div class="bar-label">${x.day}</div>
-                    </div>`;
-            }).join('');
-        }
-
-        const hist = document.getElementById('dashHistory');
-        if(sales.length === 0) {
-            hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
-            return;
-        }
-        
-        hist.innerHTML = sales.slice().reverse().map(s => `
-            <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border-radius:10px; margin-bottom:8px;">
-                <div>
-                    <div style="font-weight:600;">₹${s.total}</div>
-                    <span class="text-sm"><i class="fas fa-calendar"></i> ${s.date} • <i class="fas fa-clock"></i> ${s.time}</span>
-                </div>
-                <div style="background:${s.method==='CASH'?'rgba(34,197,94,0.2)':'rgba(99,102,241,0.2)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${s.method==='CASH'?'var(--success)':'#6366f1'}">
-                    ${s.method}
-                </div>
-            </div>`).join('');
-    }
-    
     async function clearData() { 
         if(confirm("⚠️ Reset all sales and menu data? This cannot be undone!")) { 
             if(confirm("Are you absolutely sure? All data will be lost!")) {
