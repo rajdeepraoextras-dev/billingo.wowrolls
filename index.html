@@ -150,6 +150,11 @@
         .mini-card{ background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border); }
         .mini-title{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); font-weight:700; margin-bottom:8px; }
 
+        .order-actions { display:flex; gap:8px; align-items:center; }
+        .order-action-btn { background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text-main); padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; }
+        .order-action-btn.delete { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.12); color: #ef4444; }
+        .order-action-btn.edit { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.12); color: #38bdf8; }
+
         .bottom-nav{
             position:fixed; bottom:14px; left:50%; transform:translateX(-50%); width:92%; max-width:420px; height:70px;
             background: rgba(15,23,42,0.88); backdrop-filter: blur(10px); border-radius:96px; border:1px solid rgba(255,255,255,0.08);
@@ -183,6 +188,7 @@
             .brand-header{ padding:10px 12px; }
             .search-input{ padding-left:44px; }
             .dash-filter-row{ flex-direction:column; align-items:stretch; }
+            .order-action-btn{ padding:6px; font-size:11px; }
         }
     </style>
 </head>
@@ -498,6 +504,70 @@ function closeOrderSaved() {
     }
 }
 
+/* Edit and Delete order functions */
+async function deleteOrder(orderId) {
+    if(!confirm('Delete this order? This action cannot be undone.')) return;
+    // Remove locally
+    const idx = sales.findIndex(s => String(s.id) === String(orderId));
+    if(idx !== -1) {
+        sales.splice(idx, 1);
+        saveData();
+    }
+    // Try server delete (best-effort)
+    if(!supabaseClient) return;
+    try {
+        // delete order items first then order
+        await supabaseClient.from('BILLINGO_order_items').delete().eq('order_id', orderId);
+        await supabaseClient.from('BILLINGO_orders').delete().eq('id', orderId);
+        // refresh server-loaded orders if any
+        await loadOrdersFromSupabase();
+        updateDash();
+    } catch (e) {
+        console.warn('Server delete order failed:', e);
+    }
+}
+
+async function editOrder(orderId) {
+    const idx = sales.findIndex(s => String(s.id) === String(orderId));
+    if(idx === -1) { alert('Order not found locally.'); return; }
+    const order = sales[idx];
+    // Prompt for new total and method (simple edit)
+    let newTotal = prompt('Edit total amount (₹):', order.total);
+    if(newTotal === null) return; // cancelled
+    newTotal = parseInt(newTotal, 10);
+    if(Number.isNaN(newTotal)) { alert('Invalid total'); return; }
+    let newMethod = prompt('Payment method (CASH or UPI):', order.method || order.payment_method || 'CASH');
+    if(newMethod === null) return;
+    newMethod = String(newMethod).toUpperCase();
+
+    // Update local
+    order.total = newTotal;
+    order.method = newMethod;
+    // update time to now optionally
+    order.time = new Date().toLocaleTimeString();
+    order.date = new Date().toLocaleDateString();
+    order.ts = Date.now();
+    order.iso = new Date().toISOString();
+    saveData();
+
+    // Update server (best-effort)
+    if(!supabaseClient) {
+        updateDash();
+        alert('Order updated locally.');
+        return;
+    }
+    try {
+        await supabaseClient.from('BILLINGO_orders').update({ total: newTotal, payment_method: newMethod, placed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', orderId);
+        // reload
+        await loadOrdersFromSupabase();
+        updateDash();
+        alert('Order updated.');
+    } catch (e) {
+        console.warn('Server edit order failed:', e);
+        alert('Order updated locally, server update failed (see console).');
+    }
+}
+
 /* Process payment (save order) */
 async function processPay(method){
     try{
@@ -516,6 +586,13 @@ async function processPay(method){
                 if(!orderErr && order && order.id){
                     const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
                     await supabaseClient.from('BILLINGO_order_items').insert(items);
+                    // Optionally replace local order id with server id for consistency
+                    // find the local order we just pushed (by matching timestamp)
+                    const localIdx = sales.findIndex(s => s.ts === orderRecord.ts && String(s.total) === String(orderRecord.total));
+                    if(localIdx !== -1) {
+                        sales[localIdx].id = order.id;
+                        saveData();
+                    }
                     await loadOrdersFromSupabase();
                 } else if(orderErr){
                     console.warn('Order insert error:', orderErr);
@@ -623,10 +700,21 @@ async function updateDash(){
                     let items = s.items || orderItemsMap.get(s.id) || [];
                     // build items HTML
                     const itemsHtml = items.length ? `<div style="margin-top:8px; font-size:13px; color:var(--text-muted);">${items.map(it => `<div>${escapeHtml(it.name)} × ${escapeHtml(String(it.qty))}${(typeof it.price !== 'undefined') ? ` • ₹${escapeHtml(String(it.price))}` : ''}</div>`).join('')}</div>` : '';
+                    // action buttons (edit/delete) — use order id in data attribute
+                    const actionButtons = `<div class="order-actions">
+                        <button class="order-action-btn edit" title="Edit order" onclick="editOrder('${escapeHtml(String(s.id))}')"><i class="fas fa-pen" aria-hidden="true"></i> Edit</button>
+                        <button class="order-action-btn delete" title="Delete order" onclick="deleteOrder('${escapeHtml(String(s.id))}')"><i class="fas fa-trash" aria-hidden="true"></i> Delete</button>
+                    </div>`;
                     return `<div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; flex-direction:column; gap:8px; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div><div style="font-weight:700; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</span></div>
-                                    <div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                                    <div style="flex:1;">
+                                        <div style="font-weight:700; color:var(--text-main);">₹${s.total}</div>
+                                        <div class="text-sm" style="margin-top:4px;"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</div>
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                                        <div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div>
+                                        ${actionButtons}
+                                    </div>
                                 </div>
                                 ${itemsHtml}
                             </div>`;
