@@ -1,39 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#050505" />
     <title>WOW ROLLS POS</title>
+
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+    <!-- Libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
 
     <style>
-        :root { 
-            /* --- DARK THEME (DEFAULT) --- */
+        :root {
             --bg-body: #050505;
             --bg-gradient: radial-gradient(circle at 50% 0%, #1a1f35 0%, #050505 100%);
-            
-            --primary: #ff6b35; 
+            --primary: #ff6b35;
             --primary-gradient: linear-gradient(135deg, #ff6b35 0%, #ff8f6b 100%);
-            
             --accent-green: #10b981;
             --accent-blue: #3b82f6;
-            
-            --glass-surface: rgba(255, 255, 255, 0.03);
-            --glass-header: rgba(20, 20, 25, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-surface: rgba(255,255,255,0.03);
+            --glass-header: rgba(20,20,25,0.6);
+            --glass-border: rgba(255,255,255,0.08);
             --glass-blur: blur(20px);
-            
-            --text-main: #ffffff; 
-            --text-muted: #94a3b8; 
-            --text-invert: #000000;
-            
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
             --input-bg: rgba(0,0,0,0.3);
-            --card-hover: rgba(255,255,255,0.06);
-            
             --shadow-float: 0 20px 40px rgba(0,0,0,0.6);
             --radius-xl: 24px;
             --radius-lg: 16px;
@@ -41,837 +37,706 @@
             --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* --- LIGHT THEME OVERRIDES --- */
         body.light-mode {
             --bg-body: #f3f4f6;
             --bg-gradient: linear-gradient(180deg, #eef2ff 0%, #f3f4f6 100%);
-            
             --glass-surface: #ffffff;
-            --glass-header: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.06);
-            
+            --glass-header: rgba(255,255,255,0.8);
+            --glass-border: rgba(0,0,0,0.06);
             --text-main: #1f2937;
             --text-muted: #6b7280;
-            --text-invert: #ffffff;
-            
             --input-bg: #f9fafb;
-            --card-hover: #f9fafb;
-            
             --shadow-float: 0 20px 40px rgba(0,0,0,0.1);
         }
 
-        * { 
-            box-sizing: border-box; 
-            outline: none; 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none; 
-            font-family: 'Outfit', sans-serif; 
-        }
-        
-        body { 
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; font-family: 'Outfit', sans-serif; }
+        html, body { height: 100%; margin: 0; }
+        body {
             background: var(--bg-body);
             background-image: var(--bg-gradient);
-            color: var(--text-main); 
-            margin: 0; 
-            height: 100dvh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
+            color: var(--text-main);
+            min-height: 100vh; /* fallback */
+            height: 100dvh; /* better on mobile browsers that support it */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             transition: background 0.3s, color 0.3s;
+            -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+            touch-action: manipulation;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.2); border-radius: 10px; }
-        
-        .main-container { 
-            flex: 1; 
-            position: relative; 
-            overflow: hidden; 
-            padding-bottom: 90px; 
-        }
-        
-        .view { 
-            position: absolute; 
+
+        .main-container { flex: 1; position: relative; overflow: hidden; padding-bottom: 110px; }
+
+        .view {
+            position: absolute;
             top: 0; left: 50%;
             transform: translateX(-50%);
-            width: min(1200px, 100%);
-            height: 100%; 
-            overflow-y: auto; 
-            padding: 20px;
-            display: none; 
-            flex-direction: column; 
-            padding-bottom: 120px;
-            animation: fadeIn 0.4s ease;
+            width: min(1100px, 100%);
+            height: 100%;
+            overflow-y: auto;
+            padding: 18px;
+            display: none;
+            flex-direction: column;
+            padding-bottom: 140px;
+            animation: fadeIn 0.35s ease;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-50%) scale(0.98); }
-            to { opacity: 1; transform: translateX(-50%) scale(1); }
-        }
-        
         .view.active { display: flex; }
 
-        /* --- Header --- */
-        .brand-header { 
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) scale(0.98); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+        .brand-header {
             display: flex; align-items: center; justify-content: space-between;
             background: var(--glass-header);
             backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            padding: 16px 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
         }
-        
-        .brand-left { display: flex; align-items: center; gap: 16px; }
-        .brand-icon { font-size: 32px; filter: drop-shadow(0 0 15px rgba(255, 107, 53, 0.3)); }
-        .brand-name { 
-            font-size: 24px; font-weight: 800; letter-spacing: 1px;
-            color: var(--text-main);
-        }
-        
-        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .brand-left { display:flex; gap:12px; align-items:center; }
+        .brand-icon { font-size: 28px; filter: drop-shadow(0 0 12px rgba(255,107,53,0.25)); }
+        .brand-name { font-size: 18px; font-weight:800; letter-spacing:0.6px; color:var(--text-main); }
 
-        /* --- Theme Toggle Button --- */
+        .header-actions { display:flex; gap:10px; align-items:center; }
+
         .theme-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--glass-surface); border: 1px solid var(--glass-border);
-            color: var(--text-main); display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s;
+            width:44px; height:44px; border-radius:50%; background:var(--glass-surface); border:1px solid var(--glass-border);
+            color:var(--text-main); display:flex; align-items:center; justify-content:center; cursor:pointer;
         }
-        .theme-btn:active { transform: scale(0.9); }
+        .theme-btn:active { transform: scale(0.96); }
 
-        /* --- Status & Toggles --- */
-        .status-badge { 
-            background: rgba(255, 71, 87, 0.15); color: #ff4757;
-            padding: 6px 14px; border-radius: 20px;
-            font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-            border: 1px solid rgba(255, 71, 87, 0.2);
-            transition: 0.3s;
-        }
-        .status-badge.online { 
-            background: rgba(16, 185, 129, 0.15); color: #10b981;
-            border-color: rgba(16, 185, 129, 0.2);
-        }
+        .status-badge { padding:6px 12px; border-radius:18px; font-weight:700; font-size:12px; color:var(--text-main); background:transparent; border:1px solid var(--glass-border); }
+        .status-badge.online { background: rgba(16,185,129,0.12); color: #10b981; border-color: rgba(16,185,129,0.18); }
 
-        .toggle-switch { position: relative; width: 50px; height: 28px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { 
-            position: absolute; cursor: pointer; inset: 0;
-            background: var(--input-bg); border-radius: 30px; transition: 0.3s;
-            border: 1px solid var(--glass-border);
-        }
-        .toggle-slider:before { 
-            content: ""; position: absolute; height: 20px; width: 20px;
-            left: 4px; bottom: 3px; background: var(--text-muted);
-            border-radius: 50%; transition: 0.3s;
-        }
-        input:checked + .toggle-slider { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
-        input:checked + .toggle-slider:before { transform: translateX(22px); background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .toggle-switch { position: relative; width: 46px; height: 28px; }
+        .toggle-switch input { opacity:0; width:0; height:0; }
+        .toggle-slider { position:absolute; inset:0; border-radius:30px; background:var(--input-bg); border:1px solid var(--glass-border); }
+        .toggle-slider:before { content:""; position:absolute; height:20px; width:20px; left:4px; bottom:3px; background:var(--text-muted); border-radius:50%; transition:0.25s; }
+        input:checked + .toggle-slider { background: rgba(16,185,129,0.14); border-color: #10b981; }
+        input:checked + .toggle-slider:before { transform: translateX(18px); background:#10b981; box-shadow:0 0 8px #10b981; }
 
-        /* --- Search --- */
-        .search-container { position: sticky; top: 0; z-index: 10; padding-bottom: 10px; }
-        
-        .search-input { 
-            width: 100%; background: var(--glass-surface);
-            border: 1px solid var(--glass-border);
-            padding: 16px 20px 16px 50px; border-radius: var(--radius-lg);
-            color: var(--text-main); font-size: 16px; transition: 0.3s;
-            backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .search-input:focus { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.15);
+        .search-container { position: sticky; top: 0; z-index: 12; padding-bottom: 8px; }
+        .search-input {
+            width:100%; background:var(--glass-surface); border:1px solid var(--glass-border);
+            padding:14px 18px 14px 46px; border-radius:14px; color:var(--text-main); font-size:15px;
+            backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.04);
         }
         .search-container::after {
-            content: '\f002'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-            position: absolute; left: 20px; top: 18px; color: var(--text-muted); font-size: 16px; pointer-events: none;
+            content: '\f002'; font-family: 'Font Awesome 6 Free'; font-weight:900;
+            position:absolute; left:18px; top:16px; color:var(--text-muted); font-size:14px; pointer-events:none;
         }
 
-        .category-scroll { 
-            display: flex; gap: 12px; overflow-x: auto; 
-            padding: 15px 5px; scrollbar-width: none;
+        .category-scroll { display:flex; gap:10px; overflow-x:auto; padding:12px 4px; }
+        .cat-chip { padding:8px 18px; background:var(--glass-surface); border-radius:999px; border:1px solid var(--glass-border); font-weight:600; color:var(--text-muted); cursor:pointer; white-space:nowrap; font-size:13px; }
+        .cat-chip.active { background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 6px 18px rgba(255,107,53,0.28); transform: translateY(-2px); }
+
+        .menu-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap:12px; padding-bottom:24px; }
+        .menu-item {
+            background:var(--glass-surface); border:1px solid var(--glass-border);
+            border-radius:18px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;
+            min-height:140px; position:relative; overflow:hidden; transition: all 0.18s var(--ease-bounce); cursor:pointer;
         }
-        .cat-chip { 
-            padding: 10px 24px; background: var(--glass-surface);
-            border: 1px solid var(--glass-border); border-radius: 100px;
-            font-size: 14px; font-weight: 500; color: var(--text-muted);
-            transition: all 0.3s; cursor: pointer; white-space: nowrap;
+        .menu-item:active { transform: scale(0.985); }
+        .menu-item.selected { border:2px solid var(--accent-green); background: rgba(16,185,129,0.08); }
+        body.light-mode .menu-item.selected { background: rgba(16,185,129,0.06); border-color: var(--accent-green); }
+
+        .item-name { font-weight:700; font-size:14px; margin-bottom:8px; color:var(--text-main); }
+        .item-price { color:var(--primary); font-weight:800; font-size:16px; }
+
+        .out-stock { opacity:0.5; filter:grayscale(1); pointer-events:none; }
+        .badge-out { position:absolute; top:10px; right:10px; background:#ef4444; color:white; font-size:11px; padding:5px 9px; border-radius:8px; font-weight:700; }
+        .badge-qty { position:absolute; top:10px; right:10px; background:var(--accent-green); color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; box-shadow:0 6px 18px rgba(16,185,129,0.32); }
+
+        .mgmt-row { background:var(--glass-surface); border:1px solid var(--glass-border); padding:12px; border-radius:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+        .icon-btn { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.15s; font-size:16px; }
+        .icon-btn:active { transform:scale(0.96); }
+
+        .input-group { background:var(--glass-surface); padding:16px; border-radius:18px; border:1px solid var(--glass-border); margin-bottom:18px; display:grid; gap:12px; }
+        .input-dark { background:var(--input-bg); border:1px solid var(--glass-border); color:var(--text-main); padding:12px 14px; border-radius:12px; font-size:14px; width:100%; }
+        .input-dark:focus { border-color:var(--primary); }
+
+        .btn-primary { width:100%; background:var(--primary-gradient); color:white; padding:14px; border-radius:14px; font-weight:800; font-size:15px; border:none; cursor:pointer; display:inline-flex; gap:8px; align-items:center; justify-content:center; }
+        .btn-primary:active { transform:scale(0.99); }
+
+        .stats-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:14px; }
+        .stat-card { background:var(--glass-surface); padding:14px; border-radius:16px; border:1px solid var(--glass-border); }
+        .stat-label { font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+        .stat-value { font-size:20px; font-weight:800; color:var(--text-main); }
+        .stat-sub { font-size:11px; color:var(--text-muted); margin-top:6px; opacity:0.8; }
+
+        .chart-wrap { background:var(--glass-surface); border:1px solid var(--glass-border); border-radius:16px; padding:14px; margin-bottom:12px; }
+        .bar-chart { display:grid; grid-template-columns: repeat(7,1fr); gap:8px; align-items:end; height:120px; margin-top:10px; }
+        .bar { width:100%; border-radius:8px; background: linear-gradient(to top, var(--primary) 0%, #fb923c 100%); opacity:0.85; }
+        .bar-label { font-size:11px; text-align:center; color:var(--text-muted); margin-top:8px; }
+
+        .bottom-nav {
+            position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+            width:92%; max-width:420px; height:70px; background: rgba(15,23,42,0.88); backdrop-filter: blur(10px);
+            border-radius:96px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-evenly; align-items:center; z-index:80; box-shadow:var(--shadow-float);
         }
-        .cat-chip.active { 
-            background: var(--primary); color: white; border-color: var(--primary);
-            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4); transform: translateY(-2px);
+        body.light-mode .bottom-nav { background: rgba(255,255,255,0.92); border:1px solid rgba(0,0,0,0.06); }
+        .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); gap:4px; transition:0.2s; width:64px; font-size:12px; }
+        .nav-btn.active { color:var(--primary); transform:translateY(-4px); }
+
+        .cart-bar {
+            position: fixed; bottom: 98px; left:50%; transform: translateX(-50%) translateY(8px); width:92%; max-width:520px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; border-radius:14px; padding:12px 18px; display:none; justify-content:space-between; align-items:center; box-shadow: 0 14px 40px rgba(16,185,129,0.32); z-index:70; cursor:pointer;
         }
 
-        /* --- Menu Grid --- */
-        .menu-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; 
-            padding-bottom: 20px;
-        }
-        .menu-item { 
-            background: var(--glass-surface);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
-            min-height: 160px; position: relative; overflow: hidden;
-            transition: all 0.2s var(--ease-bounce); cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-        .menu-item:active { transform: scale(0.96); }
-        
-        /* SELECTED STATE */
-        .menu-item.selected {
-            border: 2px solid var(--accent-green);
-            background: rgba(16, 185, 129, 0.1);
-        }
-        /* Make background white in light mode when selected for better contrast */
-        body.light-mode .menu-item.selected {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: var(--accent-green);
-        }
+        .sheet-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index:90; display:none; justify-content:center; align-items:flex-end; padding:12px; }
+        .sheet-content { background:var(--bg-body); width:100%; max-width:640px; max-height:85vh; border-radius:20px 20px 8px 8px; padding:20px; display:flex; flex-direction:column; box-shadow: 0 -20px 60px rgba(0,0,0,0.3); border-top:1px solid var(--glass-border); }
 
-        .item-name { font-weight: 600; font-size: 15px; line-height: 1.4; margin-bottom: 10px; z-index: 2; color: var(--text-main); }
-        .item-price { 
-            color: var(--primary); font-weight: 800; font-size: 20px; 
-        }
-        .out-stock { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
-        
-        .badge-out { 
-            position: absolute; top: 10px; right: 10px; background: #ef4444; color: white;
-            font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 700; z-index: 10;
-        }
+        .modal-center { position:fixed; inset:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index:110; display:none; justify-content:center; align-items:center; padding:16px; }
+        .modal-box { background:var(--bg-body); width:100%; max-width:420px; padding:28px; border-radius:18px; text-align:center; border:1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
 
-        .badge-qty {
-            position: absolute; top: 10px; right: 10px; 
-            background: var(--accent-green); color: white;
-            width: 28px; height: 28px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 14px;
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        .hidden { display:none !important; }
+        .text-sm { font-size:12px; color:var(--text-muted); }
+        .form-row { display:flex; gap:10px; }
 
-        /* --- Management List --- */
-        .mgmt-row { 
-            background: var(--glass-surface); border: 1px solid var(--glass-border);
-            padding: 16px; border-radius: var(--radius-lg); margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            transition: 0.2s; color: var(--text-main);
+        /* Responsive tweaks */
+        @media (max-width:520px) {
+            .brand-name { font-size:16px; }
+            .menu-item { min-height:120px; padding:12px; border-radius:14px; }
+            .menu-grid { grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
+            .bottom-nav { height:76px; }
+            .cart-bar { bottom: 106px; }
+            .brand-header { padding:10px 12px; }
+            .search-input { padding-left:44px; }
         }
-        .icon-btn { 
-            width: 40px; height: 40px; border-radius: 12px; display: flex; 
-            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; 
-        }
-        .icon-btn:active { transform: scale(0.9); }
-
-        /* --- Inputs --- */
-        .input-group { 
-            background: var(--glass-surface); padding: 24px; border-radius: var(--radius-xl);
-            border: 1px solid var(--glass-border); margin-bottom: 24px; display: grid; gap: 16px;
-        }
-        .input-dark { 
-            background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text-main);
-            padding: 14px 18px; border-radius: var(--radius-md); font-size: 14px; width: 100%; transition: 0.3s;
-        }
-        .input-dark:focus { border-color: var(--primary); }
-
-        .btn-primary { 
-            width: 100%; background: var(--primary-gradient); color: white;
-            padding: 16px; border-radius: var(--radius-lg); font-weight: 700; font-size: 16px;
-            border: none; cursor: pointer; transition: all 0.3s;
-            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.25);
-            text-transform: uppercase; letter-spacing: 0.5px;
-            margin-top: 10px;
-        }
-        .btn-primary:active { transform: scale(0.98); }
-        
-        /* --- Dashboard --- */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { 
-            background: var(--glass-surface);
-            padding: 20px; border-radius: var(--radius-xl); border: 1px solid var(--glass-border);
-            position: relative; overflow: hidden;
-        }
-        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
-        .stat-value { font-size: 28px; font-weight: 800; color: var(--text-main); }
-        .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; opacity: 0.7; }
-        
-        .stat-card:nth-child(1) .stat-value { color: var(--accent-green); }
-        .stat-card:nth-child(2) .stat-value { color: var(--accent-blue); }
-
-        .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .mini-card { background: var(--glass-surface); border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--glass-border); }
-        .mini-title { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
-        
-        .chart-wrap { 
-            background: var(--glass-surface); border: 1px solid var(--glass-border); 
-            border-radius: var(--radius-xl); padding: 20px; margin-bottom: 20px; 
-        }
-        .bar-chart { 
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; 
-            align-items: end; height: 140px; margin-top: 15px; 
-        }
-        .bar { 
-            width: 100%; min-height: 6px; border-radius: 8px;
-            background: linear-gradient(to top, var(--primary) 0%, #fb923c 100%);
-            opacity: 0.8;
-        }
-        .bar-label { font-size: 10px; text-align: center; color: var(--text-muted); margin-top: 8px; }
-
-        /* --- Floating UI --- */
-        .bottom-nav { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; height: 70px;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
-            border-radius: 100px; border: 1px solid rgba(255,255,255,0.15);
-            display: flex; justify-content: space-evenly; align-items: center;
-            z-index: 50; box-shadow: var(--shadow-float);
-        }
-        body.light-mode .bottom-nav { 
-            background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0,0,0,0.1);
-        }
-
-        .nav-btn { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: var(--text-muted); gap: 4px; transition: 0.3s;
-            position: relative; width: 60px;
-        }
-        .nav-btn.active { color: var(--primary); }
-        
-        .cart-bar { 
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
-            width: 90%; max-width: 500px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white; border-radius: 20px; padding: 16px 24px;
-            display: none; justify-content: space-between; align-items: center;
-            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.35); z-index: 40;
-            cursor: pointer; animation: slideUp 0.4s var(--ease-bounce) forwards;
-        }
-        @keyframes slideUp { to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-        
-        .sheet-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            z-index: 60; display: none; justify-content: center; align-items: flex-end;
-            animation: fadeIn 0.3s ease;
-        }
-        .sheet-content { 
-            background: var(--bg-body); width: 100%; max-width: 600px;
-            max-height: 85vh; border-radius: 30px 30px 0 0; padding: 30px;
-            display: flex; flex-direction: column;
-            box-shadow: 0 -20px 60px rgba(0,0,0,0.3);
-            animation: slideUpSheet 0.4s var(--ease-bounce);
-            border-top: 1px solid var(--glass-border);
-        }
-        @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; color: var(--text-main); }
-        .close-btn { 
-            width: 36px; height: 36px; border-radius: 50%; background: var(--glass-border);
-            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main);
-        }
-        
-        .cart-row { 
-            display: flex; justify-content: space-between; align-items: center; padding: 15px;
-            background: var(--glass-surface); border-radius: 16px; margin-bottom: 12px;
-            border: 1px solid var(--glass-border); color: var(--text-main);
-        }
-        .qty-control { 
-            background: var(--input-bg); padding: 5px; border-radius: 12px; 
-            display: flex; align-items: center; gap: 10px; border: 1px solid var(--glass-border);
-        }
-        .qty-btn { 
-            width: 32px; height: 32px; background: var(--primary); color: white;
-            border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; cursor: pointer;
-        }
-
-        .modal-center { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-            z-index: 100; display: none; justify-content: center; align-items: center; padding: 20px;
-        }
-        .modal-box { 
-            background: var(--bg-body); width: 100%; max-width: 400px; padding: 40px 30px;
-            border-radius: 30px; text-align: center; border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: scaleIn 0.3s var(--ease-bounce);
-        }
-        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        /* --- UTILS --- */
-        h2 { margin: 0 0 20px; font-weight: 700; font-size: 22px; color: var(--text-main); }
-        h3 { margin: 30px 0 15px; font-weight: 600; font-size: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .hidden { display: none !important; }
-        .text-sm { font-size: 12px; color: var(--text-muted); }
-        .form-row { display: flex; gap: 10px; }
-        
-        /* Filters */
-        .dash-filters { background: var(--glass-surface); border: 1px solid var(--glass-border); padding: 15px; border-radius: var(--radius-lg); margin-bottom: 20px; }
-        .dash-filter-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 10px; }
-        .dash-btn { margin-top: 0; padding: 0 20px; font-size: 13px; border-radius: var(--radius-md); box-shadow: none; }
-        
-        /* Item Report Fix */
-        .item-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--glass-border); color: var(--text-main); }
-        .item-row:last-child { border-bottom: none; }
-        .item-meta { font-size: 12px; opacity: 0.8; margin-top: 4px; display: block; text-align: right; color: var(--text-muted); }
-
     </style>
 </head>
 <body class="">
-
     <div class="main-container">
-        <div id="view-pos" class="view active">
-            <div class="brand-header">
+        <div id="view-pos" class="view active" aria-live="polite">
+            <div class="brand-header" role="banner">
                 <div class="brand-left">
-                    <span class="brand-icon">🌯</span>
+                    <span class="brand-icon" aria-hidden="true">🌯</span>
                     <span class="brand-name">WOW ROLLS</span>
                 </div>
-                <div class="header-actions">
-                    <div class="theme-btn" onclick="toggleTheme()">
-                        <i class="fas fa-moon" id="themeIcon"></i>
-                    </div>
-                    <div class="status-toggle">
-                        <span id="statusBadge" class="status-badge">OFFLINE</span>
+                <div class="header-actions" role="region" aria-label="Actions">
+                    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+                        <i class="fas fa-moon" id="themeIcon" aria-hidden="true"></i>
+                    </button>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span id="statusBadge" class="status-badge" aria-live="polite">OFFLINE</span>
                         <label class="toggle-switch" aria-label="Online status toggle">
-                            <input id="onlineToggle" type="checkbox" onchange="toggleOnlineStatus(this.checked)">
-                            <span class="toggle-slider"></span>
+                            <input id="onlineToggle" type="checkbox" onchange="toggleOnlineStatus(this.checked)" aria-label="Set online status">
+                            <span class="toggle-slider" aria-hidden="true"></span>
                         </label>
                     </div>
                 </div>
             </div>
+
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Search menu..." onkeyup="filterMenu(this.value)">
-                <div class="category-scroll">
-                    <div class="cat-chip active" onclick="filterCat('All', this)">All</div>
-                    <div class="cat-chip" onclick="filterCat('Rolls', this)">Rolls</div>
-                    <div class="cat-chip" onclick="filterCat('Sides', this)">Sides</div>
-                    <div class="cat-chip" onclick="filterCat('Drinks', this)">Drinks</div>
+                <input type="text" id="menuSearch" class="search-input" placeholder="Search menu..." onkeyup="filterMenu(this.value)" aria-label="Search menu">
+                <div class="category-scroll" role="tablist" aria-label="Categories">
+                    <button class="cat-chip active" onclick="filterCat('All', this)" role="tab" aria-selected="true">All</button>
+                    <button class="cat-chip" onclick="filterCat('Rolls', this)" role="tab">Rolls</button>
+                    <button class="cat-chip" onclick="filterCat('Sides', this)" role="tab">Sides</button>
+                    <button class="cat-chip" onclick="filterCat('Drinks', this)" role="tab">Drinks</button>
                 </div>
             </div>
-            <div class="menu-grid" id="menuGrid"></div>
+
+            <div class="menu-grid" id="menuGrid" role="grid" aria-label="Menu items"></div>
         </div>
 
-        <div id="view-menu" class="view">
-            <h2><i class="fas fa-utensils"></i> Manage Menu</h2>
-            <div class="input-group">
-                <input type="text" id="newItemName" class="input-dark" placeholder="Item Name">
+        <div id="view-menu" class="view" aria-hidden="true">
+            <h2><i class="fas fa-utensils" aria-hidden="true"></i> Manage Menu</h2>
+
+            <div class="input-group" aria-label="Add new menu item">
+                <input type="text" id="newItemName" class="input-dark" placeholder="Item Name" aria-label="Item name">
                 <div class="form-row">
-                    <input type="number" id="newItemPrice" class="input-dark" placeholder="Price">
-                    <select id="newItemCat" class="input-dark">
+                    <input type="number" id="newItemPrice" class="input-dark" placeholder="Price" aria-label="Item price">
+                    <select id="newItemCat" class="input-dark" aria-label="Category">
                         <option value="Rolls">Rolls</option>
                         <option value="Sides">Sides</option>
                         <option value="Drinks">Drinks</option>
                     </select>
                 </div>
-                <button class="btn-primary" onclick="addNewItem()" style="background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);">
-                    <i class="fas fa-plus"></i> Add Item
+                <button class="btn-primary" onclick="addNewItem()" aria-label="Add item">
+                    <i class="fas fa-plus" aria-hidden="true"></i> Add Item
                 </button>
             </div>
+
             <div id="mgmtList" style="padding-bottom:50px;"></div>
         </div>
 
-        <div id="view-dash" class="view">
-            <h2><i class="fas fa-chart-line"></i> <span id="dashTitle">Sales Dashboard</span></h2>
+        <div id="view-dash" class="view" aria-hidden="true">
+            <h2><i class="fas fa-chart-line" aria-hidden="true"></i> <span id="dashTitle">Sales Dashboard</span></h2>
 
             <div class="dash-filters">
                 <div class="dash-filter-row">
-                    <select id="dashPreset" class="input-dark" onchange="onDashPresetChange(this.value)">
+                    <select id="dashPreset" class="input-dark" onchange="onDashPresetChange(this.value)" aria-label="Preset range">
                         <option value="today" selected>Today</option>
                         <option value="yesterday">Yesterday</option>
                         <option value="last7">Last 7 Days</option>
                         <option value="month">This Month</option>
                         <option value="custom">Custom</option>
                     </select>
-                    <button class="btn-primary dash-btn" onclick="applyDashFilter()">
-                        <i class="fas fa-filter"></i>
+                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter">
+                        <i class="fas fa-filter" aria-hidden="true"></i>
                     </button>
-                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background: #334155;">
-                        <i class="fas fa-file-pdf"></i>
+                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF">
+                        <i class="fas fa-file-pdf" aria-hidden="true"></i>
                     </button>
                 </div>
 
                 <div class="dash-filter-row">
-                    <input id="dashFrom" type="date" class="input-dark" onchange="onDashDateChange()">
-                    <input id="dashTo" type="date" class="input-dark" onchange="onDashDateChange()">
+                    <input id="dashFrom" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="From date">
+                    <input id="dashTo" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="To date">
                 </div>
-                <div class="text-sm" id="dashRangeHint" style="text-align: center; margin-top: 5px;"></div>
+                <div class="text-sm" id="dashRangeHint" style="text-align:center; margin-top:6px;"></div>
             </div>
 
-            <div class="stats-grid">
+            <div class="stats-grid" aria-live="polite">
                 <div class="stat-card">
-                    <div class="stat-label"><i class="fas fa-rupee-sign"></i> Today Revenue</div>
+                    <div class="stat-label"><i class="fas fa-rupee-sign" aria-hidden="true"></i> Today Revenue</div>
                     <div class="stat-value">₹<span id="dashRev">0</span></div>
                     <div class="stat-sub">All payments</div>
                 </div>
-
                 <div class="stat-card">
-                    <div class="stat-label"><i class="fas fa-shopping-bag"></i> Today Orders</div>
+                    <div class="stat-label"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Today Orders</div>
                     <div class="stat-value"><span id="dashOrd">0</span></div>
                     <div class="stat-sub">Total orders today</div>
                 </div>
-
                 <div class="stat-card">
-                    <div class="stat-label"><i class="fas fa-percent"></i> Avg Order Value</div>
+                    <div class="stat-label"><i class="fas fa-percent" aria-hidden="true"></i> Avg Order Value</div>
                     <div class="stat-value">₹<span id="dashAov">0</span></div>
                     <div class="stat-sub">Today average</div>
                 </div>
-
                 <div class="stat-card">
-                    <div class="stat-label"><i class="fas fa-layer-group"></i> All-time Revenue</div>
+                    <div class="stat-label"><i class="fas fa-layer-group" aria-hidden="true"></i> All-time Revenue</div>
                     <div class="stat-value">₹<span id="dashAllRev">0</span></div>
                     <div class="stat-sub">Since first sale</div>
                 </div>
             </div>
 
             <h3 id="dashPayTitle">Payment Breakdown</h3>
-            <div class="mini-grid">
-                <div class="mini-card">
-                    <div class="mini-title"><span><i class="fas fa-money-bill-wave"></i> Cash</span><span id="cashPct">0%</span></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color: var(--text-main);">₹<span id="cashRev">0</span></strong></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color: var(--text-main);"><span id="cashOrd">0</span></strong></div>
+            <div class="mini-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+                <div class="mini-card" style="background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border);">
+                    <div class="mini-title" style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); font-weight:700;">
+                        <span><i class="fas fa-money-bill-wave"></i> Cash</span><span id="cashPct">0%</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color:var(--text-main);">₹<span id="cashRev">0</span></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="cashOrd">0</span></strong></div>
                 </div>
 
-                <div class="mini-card">
-                    <div class="mini-title"><span><i class="fas fa-qrcode"></i> UPI</span><span id="upiPct">0%</span></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color: var(--text-main);">₹<span id="upiRev">0</span></strong></div>
-                    <div class="mini-metric" style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color: var(--text-main);"><span id="upiOrd">0</span></strong></div>
+                <div class="mini-card" style="background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border);">
+                    <div class="mini-title" style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); font-weight:700;">
+                        <span><i class="fas fa-qrcode"></i> UPI</span><span id="upiPct">0%</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color:var(--text-main);">₹<span id="upiRev">0</span></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="upiOrd">0</span></strong></div>
                 </div>
             </div>
 
             <h3 id="dashWeekTitle">Revenue Trend</h3>
             <div class="chart-wrap">
                 <div class="text-sm">Daily total (₹)</div>
-                <div id="weekChart" class="bar-chart"></div>
+                <div id="weekChart" class="bar-chart" role="img" aria-label="Revenue trend chart"></div>
             </div>
 
             <h3>Item-wise Sales</h3>
-            <div class="chart-wrap" style="max-height: 300px; overflow-y: auto;">
+            <div class="chart-wrap" style="max-height:300px; overflow-y:auto;">
                 <div id="itemReport" style="display:flex; flex-direction:column; gap:8px;"></div>
             </div>
 
             <h3>Recent Orders</h3>
             <div id="dashHistory"></div>
             <br>
-            <button class="btn-primary" onclick="clearData()" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); font-size:14px; padding:14px;">
-                <i class="fas fa-trash-alt"></i> Reset All Data
+            <button class="btn-primary" onclick="clearData()" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); font-size:14px; padding:12px;" aria-label="Reset all data">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i> Reset All Data
             </button>
         </div>
-
     </div>
 
-    <div id="cartBar" class="cart-bar" onclick="openCart()">
+    <div id="cartBar" class="cart-bar" onclick="openCart()" role="button" aria-label="Open cart">
         <div style="display:flex; flex-direction:column;">
-            <span style="font-size:12px; opacity:0.9;"><i class="fas fa-shopping-cart"></i> <span id="cartCount">0</span> Items</span>
+            <span style="font-size:13px; opacity:0.95;"><i class="fas fa-shopping-cart" aria-hidden="true"></i> <span id="cartCount">0</span> Items</span>
             <span style="font-weight:800; font-size:18px;">₹<span id="cartTotalBar">0</span></span>
         </div>
-        <div style="font-weight:700; font-size:15px;">View Cart <i class="fas fa-arrow-right"></i></div>
+        <div style="font-weight:700; font-size:15px;">View Cart <i class="fas fa-arrow-right" aria-hidden="true"></i></div>
     </div>
 
-    <div id="cartSheet" class="sheet-overlay" onclick="if(event.target === this) closeCart()">
+    <div id="cartSheet" class="sheet-overlay" onclick="if(event.target === this) closeCart()" aria-hidden="true" role="dialog" aria-label="Current order">
         <div class="sheet-content">
-            <div class="sheet-header">
-                <h2><i class="fas fa-receipt"></i> Current Order</h2>
-                <div class="close-btn" onclick="closeCart()">
-                    <i class="fas fa-times"></i>
-                </div>
+            <div class="sheet-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h2><i class="fas fa-receipt" aria-hidden="true"></i> Current Order</h2>
+                <button class="close-btn" onclick="closeCart()" aria-label="Close cart" style="width:36px; height:36px; border-radius:50%; background:var(--glass-border); display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
             </div>
-            <div id="cartList" style="flex:1; overflow-y:auto; margin-bottom:20px;"></div>
-            <div style="display:flex; justify-content:space-between; font-size:24px; font-weight:800; margin-bottom:20px; padding:20px; background:rgba(255,107,53,0.1); border-radius:16px; border:1px solid rgba(255,107,53,0.3); color: var(--text-main);">
+            <div id="cartList" style="flex:1; overflow-y:auto; margin-bottom:12px;"></div>
+            <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:800; margin-bottom:12px; padding:14px; background:rgba(255,107,53,0.08); border-radius:12px; border:1px solid rgba(255,107,53,0.18);">
                 <span>Total</span><span style="color:var(--primary);">₹<span id="cartTotalSheet">0</span></span>
             </div>
-            <button class="btn-primary" onclick="openPayment()">
-                <i class="fas fa-credit-card"></i> Proceed to Pay
+            <button class="btn-primary" onclick="openPayment()" aria-label="Proceed to pay">
+                <i class="fas fa-credit-card" aria-hidden="true"></i> Proceed to Pay
             </button>
         </div>
     </div>
 
-    <div id="payModal" class="modal-center">
+    <div id="payModal" class="modal-center" aria-hidden="true" role="dialog" aria-label="Select payment">
         <div class="modal-box">
-            <h2><i class="fas fa-wallet"></i> Select Payment</h2>
-            <div style="font-size:42px; font-weight:800; color:var(--primary); margin:20px 0; text-shadow: 0 0 30px rgba(255,107,53,0.4);">₹<span id="payAmount">0</span></div>
-            <div id="payBtns" style="display:grid; gap:16px;">
-                <button class="btn-primary" style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); box-shadow:none; border:1px solid rgba(255,255,255,0.1);" onclick="processPay('CASH')">
-                    <i class="fas fa-money-bill-wave"></i> Cash Payment
+            <h2><i class="fas fa-wallet" aria-hidden="true"></i> Select Payment</h2>
+            <div style="font-size:42px; font-weight:800; color:var(--primary); margin:18px 0; text-shadow: 0 0 24px rgba(255,107,53,0.28);">₹<span id="payAmount">0</span></div>
+            <div id="payBtns" style="display:grid; gap:12px;">
+                <button class="btn-primary" style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); box-shadow:none; border:1px solid rgba(255,255,255,0.06);" onclick="processPay('CASH')" aria-label="Cash payment">
+                    <i class="fas fa-money-bill-wave" aria-hidden="true"></i> Cash Payment
                 </button>
-                <button class="btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" onclick="showQR()">
-                    <i class="fas fa-qrcode"></i> UPI QR Code
-                </button>
-            </div>
-            <div id="qrBox" class="hidden">
-                <div id="qrcode" style="background:white; padding:15px; border-radius:16px; width:fit-content; margin:0 auto 20px;"></div>
-                <button class="btn-primary" onclick="processPay('UPI')" style="background: var(--accent-green);">
-                    <i class="fas fa-check-circle"></i> Payment Done
+                <button class="btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" onclick="showQR()" aria-label="Show UPI QR code">
+                    <i class="fas fa-qrcode" aria-hidden="true"></i> UPI QR Code
                 </button>
             </div>
-            <button onclick="closeModal('payModal')" style="background:none; border:none; color:var(--text-muted); margin-top:20px; padding:12px; cursor:pointer; font-weight:600;">
+            <div id="qrBox" class="hidden" style="margin-top:12px;">
+                <div id="qrcode" style="background:white; padding:12px; border-radius:12px; width:fit-content; margin:0 auto 14px;"></div>
+                <button class="btn-primary" onclick="processPay('UPI')" style="background: var(--accent-green);" aria-label="Mark UPI paid">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i> Payment Done
+                </button>
+            </div>
+            <button onclick="closeModal('payModal')" style="background:none; border:none; color:var(--text-muted); margin-top:14px; padding:8px; cursor:pointer; font-weight:700;" aria-label="Cancel payment">
                 Cancel
             </button>
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-btn active" onclick="nav('pos', this)">
-            <i class="fas fa-cash-register"></i>
+    <div class="bottom-nav" role="navigation" aria-label="Main navigation">
+        <button class="nav-btn active" onclick="nav('pos', this)" aria-label="Billing">
+            <i class="fas fa-cash-register" aria-hidden="true"></i>
             <span>Billing</span>
-        </div>
-        <div class="nav-btn" onclick="nav('menu', this)">
-            <i class="fas fa-utensils"></i>
+        </button>
+        <button class="nav-btn" onclick="nav('menu', this)" aria-label="Menu">
+            <i class="fas fa-utensils" aria-hidden="true"></i>
             <span>Menu</span>
-        </div>
-        <div class="nav-btn" onclick="nav('dash', this)">
-            <i class="fas fa-chart-pie"></i>
+        </button>
+        <button class="nav-btn" onclick="nav('dash', this)" aria-label="Stats">
+            <i class="fas fa-chart-pie" aria-hidden="true"></i>
             <span>Stats</span>
-        </div>
+        </button>
     </div>
 
 <script>
-    const CONFIG = { upi: "paytm.s1nij5e@pty", name: "WOW ROLLS" };
-    let cart = [];
-    let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
-    
-    // Theme Logic
-    let isLightMode = JSON.parse(localStorage.getItem('shwarma_theme_light') || 'false');
+/*
+  Improvements & fixes included:
+  - Mobile friendly layout and touch target sizes.
+  - Defensive DOM checks to avoid runtime errors.
+  - Supabase client creation is done when the SDK is available.
+  - Fixed issues where updates/deletes wouldn't run because id type checks were too strict.
+  - Clear/Reset now removes only app keys instead of clearing all localStorage.
+  - Added ARIA labels and minor accessibility tweaks.
+  - Basic production notes: do not embed service keys in client code (use server or env).
+*/
 
-    let dashPreset = 'today';
-    let dashFrom = null;
-    let dashTo = null;
+/* CONFIG - In production move sensitive keys to server-side */
+const CONFIG = {
+    upi: "paytm.s1nij5e@pty",
+    name: "WOW ROLLS",
+    // WARNING: the key below is a publishable key; for any write/secret operations use a server-side key.
+    SUPABASE_URL: "https://vodxwyvpulrlpqkapiln.supabase.co",
+    SUPABASE_KEY: "sb_publishable_g_NWhtfzz5k-i0mxHdOHBw_GvgbtO1F"
+};
 
-    const SUPABASE_URL = "https://vodxwyvpulrlpqkapiln.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_g_NWhtfzz5k-i0mxHdOHBw_GvgbtO1F";
-    const supabaseClient = (typeof supabase !== 'undefined' && supabase.createClient)
-        ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-        : null;
+/* App state */
+let cart = [];
+let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
+let isLightMode = JSON.parse(localStorage.getItem('shwarma_theme_light') || 'false');
+let dashPreset = 'today';
+let dashFrom = null;
+let dashTo = null;
 
-    let defaultMenu = [
-        { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
-        { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
-        { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
-        { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
-        { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
-    ];
-    let menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu;
-    let sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
+/* Supabase client: only create when SDK is loaded */
+let supabaseClient = null;
+function createSupabaseClientWhenReady() {
+    try {
+        if(window.supabase && typeof window.supabase.createClient === 'function') {
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, { auth: { persistSession: false } });
+            // optional: test connection by a simple RPC or ping (kept minimal here)
+        } else {
+            supabaseClient = null;
+        }
+    } catch (e) {
+        console.warn('Supabase client creation failed:', e);
+        supabaseClient = null;
+    }
+}
 
-    function saveData() {
+/* Default menu */
+let defaultMenu = [
+    { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
+    { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
+    { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
+    { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
+    { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
+];
+
+/* persisted state */
+let menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu.slice();
+let sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
+
+function saveData() {
+    try {
         localStorage.setItem('shwarma_menu', JSON.stringify(menu));
         localStorage.setItem('shwarma_sales', JSON.stringify(sales));
-        renderMenu(); renderMgmt(); updateDash();
+    } catch (e) {
+        console.error('Failed to save data:', e);
     }
-    
-    // Theme Functions
-    function applyTheme() {
-        const body = document.body;
-        const icon = document.getElementById('themeIcon');
-        if(isLightMode) {
-            body.classList.add('light-mode');
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            body.classList.remove('light-mode');
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    }
-    
-    function toggleTheme() {
-        isLightMode = !isLightMode;
-        localStorage.setItem('shwarma_theme_light', JSON.stringify(isLightMode));
-        applyTheme();
-    }
+    renderMenu(); renderMgmt(); updateDash();
+}
 
-    function mapMenuRowToApp(row) {
-        return {
-            id: row.id,
-            name: row.name,
-            price: row.price,
-            cat: row.category,
-            stock: row.in_stock
-        };
+/* Theme */
+function applyTheme() {
+    const body = document.body;
+    const icon = document.getElementById('themeIcon');
+    if(isLightMode) {
+        body.classList.add('light-mode');
+        if(icon) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
+    } else {
+        body.classList.remove('light-mode');
+        if(icon) { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); }
     }
+}
+function toggleTheme() {
+    isLightMode = !isLightMode;
+    localStorage.setItem('shwarma_theme_light', JSON.stringify(isLightMode));
+    applyTheme();
+}
 
-    function mapAppMenuToRow(item) {
-        return {
-            name: item.name,
-            price: item.price,
-            category: item.cat,
-            in_stock: item.stock
-        };
-    }
+/* Mapping helpers */
+function mapMenuRowToApp(row) {
+    return {
+        id: row.id,
+        name: row.name,
+        price: row.price,
+        cat: row.category || row.cat,
+        stock: (typeof row.in_stock !== 'undefined') ? row.in_stock : (typeof row.stock !== 'undefined' ? row.stock : true)
+    };
+}
+function mapAppMenuToRow(item) {
+    return {
+        name: item.name,
+        price: item.price,
+        category: item.cat,
+        in_stock: !!item.stock
+    };
+}
+function formatOrderForSales(order) {
+    const dt = order.placed_at ? new Date(order.placed_at) : (order.created_at ? new Date(order.created_at) : new Date());
+    return {
+        id: order.id,
+        total: order.total,
+        method: order.payment_method || order.method,
+        time: dt.toLocaleTimeString(),
+        date: dt.toLocaleDateString(),
+        ts: dt.getTime(),
+        iso: dt.toISOString()
+    };
+}
 
-    function formatOrderForSales(order) {
-        const dt = order.placed_at ? new Date(order.placed_at) : (order.created_at ? new Date(order.created_at) : new Date());
-        return {
-            id: order.id,
-            total: order.total,
-            method: order.payment_method,
-            time: dt.toLocaleTimeString(),
-            date: dt.toLocaleDateString(),
-            ts: dt.getTime(),
-            iso: dt.toISOString()
-        };
-    }
-
-    async function loadMenuFromSupabase() {
-        if(!supabaseClient) return false;
+/* Supabase loaders (safe) */
+async function loadMenuFromSupabase() {
+    if(!supabaseClient) return false;
+    try {
         const { data, error } = await supabaseClient
             .from('BILLINGO_menu_items')
             .select('id,name,price,category,in_stock,created_at,updated_at')
             .order('created_at', { ascending: true });
+
         if(error) {
-            console.error('Supabase menu load failed:', error);
+            console.warn('Supabase menu load failed:', error);
             return false;
         }
+
         menu = (data || []).map(mapMenuRowToApp);
         saveData();
         return true;
+    } catch (e) {
+        console.warn('Menu load exception:', e);
+        return false;
     }
+}
 
-    async function loadOrdersFromSupabase() {
-        if(!supabaseClient) return false;
+async function loadOrdersFromSupabase() {
+    if(!supabaseClient) return false;
+    try {
         const { data, error } = await supabaseClient
             .from('BILLINGO_orders')
             .select('id,total,payment_method,placed_at,created_at,status')
             .eq('status', 'PAID')
             .order('placed_at', { ascending: false });
+
         if(error) {
-            console.error('Supabase orders load failed:', error);
+            console.warn('Supabase orders load failed:', error);
             return false;
         }
         sales = (data || []).map(formatOrderForSales);
         saveData();
         return true;
+    } catch (e) {
+        console.warn('Orders load exception:', e);
+        return false;
     }
+}
 
-    function setOnlineStatus(next) {
-        isOnline = !!next;
-        localStorage.setItem('shwarma_online', JSON.stringify(isOnline));
-        const badge = document.getElementById('statusBadge');
-        const toggle = document.getElementById('onlineToggle');
-        if(badge) {
-            badge.innerText = isOnline ? 'ONLINE' : 'OFFLINE';
-            badge.classList.toggle('online', isOnline);
-        }
-        if(toggle && toggle.checked !== isOnline) toggle.checked = isOnline;
+/* Online status */
+function setOnlineStatus(next) {
+    isOnline = !!next;
+    localStorage.setItem('shwarma_online', JSON.stringify(isOnline));
+    const badge = document.getElementById('statusBadge');
+    const toggle = document.getElementById('onlineToggle');
+    if(badge) {
+        badge.innerText = isOnline ? 'ONLINE' : 'OFFLINE';
+        badge.classList.toggle('online', isOnline);
     }
+    if(toggle && toggle.checked !== isOnline) toggle.checked = isOnline;
+}
+function toggleOnlineStatus(checked) { setOnlineStatus(checked); }
 
-    function toggleOnlineStatus(checked) {
-        setOnlineStatus(checked);
-    }
+/* Init */
+async function init() {
+    createSupabaseClientWhenReady();
+    applyTheme();
+    setOnlineStatus(isOnline);
+    renderMenu();
+    renderMgmt();
+    initDashControls();
+    updateDash();
 
-    async function init() { 
-        applyTheme();
-        setOnlineStatus(isOnline);
-        renderMenu(); 
-        renderMgmt(); 
-        initDashControls();
-        updateDash();
-
+    // Try to load from Supabase if SDK existed (graceful)
+    if(!supabaseClient) {
+        // SDK may load after DOM ready (deferred). Try to create client later.
+        const tryWait = () => {
+            createSupabaseClientWhenReady();
+            return !!supabaseClient;
+        };
+        // If the SDK loads later, we try a few times.
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            if(tryWait()) {
+                clearInterval(poll);
+                await loadMenuFromSupabase();
+                await loadOrdersFromSupabase();
+                initDashControls(false);
+                updateDash();
+            } else if(attempts > 6) {
+                clearInterval(poll);
+            }
+        }, 700);
+    } else {
         await loadMenuFromSupabase();
         await loadOrdersFromSupabase();
-
         initDashControls(false);
         updateDash();
     }
-    
-    function nav(view, el) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('view-'+view).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
+}
+
+/* NAV */
+function nav(view, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + view);
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(el) el.classList.add('active');
+}
+
+/* Date helpers */
+function pad2(n) { return String(n).padStart(2, '0'); }
+function toDateInputValue(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+function startOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0); }
+function endOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999); }
+
+function parseSaleTs(s) {
+    if(!s) return null;
+    if(typeof s.ts === 'number') return s.ts;
+    if(typeof s.iso === 'string') {
+        const t = new Date(s.iso).getTime();
+        if(!Number.isNaN(t)) return t;
+    }
+    if(typeof s.date === 'string' && typeof s.time === 'string') {
+        const t = new Date(`${s.date} ${s.time}`).getTime();
+        if(!Number.isNaN(t)) return t;
+    }
+    return null;
+}
+
+/* Dash range helpers */
+function getDashRange() {
+    let fromVal = dashFrom;
+    let toVal = dashTo;
+    const fromInput = document.getElementById('dashFrom');
+    const toInput = document.getElementById('dashTo');
+    if(fromInput && fromInput.value) fromVal = fromInput.value;
+    if(toInput && toInput.value) toVal = toInput.value;
+    const now = new Date();
+    if(!fromVal || !toVal) {
+        return { from: startOfDayLocal(now), to: endOfDayLocal(now) };
+    }
+    return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) };
+}
+
+function setDashHint() {
+    const hint = document.getElementById('dashRangeHint');
+    if(!hint) return;
+    const r = getDashRange();
+    hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`;
+}
+
+function setPresetRange(preset, applyToInputs = true) {
+    dashPreset = preset || 'today';
+    const now = new Date();
+    let from = startOfDayLocal(now);
+    let to = endOfDayLocal(now);
+
+    if(dashPreset === 'yesterday') {
+        const y = new Date(now); y.setDate(y.getDate() - 1);
+        from = startOfDayLocal(y); to = endOfDayLocal(y);
+    } else if(dashPreset === 'last7') {
+        const a = new Date(now); a.setDate(a.getDate() - 6);
+        from = startOfDayLocal(a); to = endOfDayLocal(now);
+    } else if(dashPreset === 'month') {
+        from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        to = endOfDayLocal(now);
+    } else if(dashPreset === 'custom') {
+        const r = getDashRange(); from = r.from; to = r.to;
     }
 
-    function pad2(n) { return String(n).padStart(2, '0'); }
-    function toDateInputValue(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
-    function startOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0); }
-    function endOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999); }
-
-    function parseSaleTs(s) {
-        if(s && typeof s.ts === 'number') return s.ts;
-        if(s && typeof s.iso === 'string') {
-            const t = new Date(s.iso).getTime();
-            if(!Number.isNaN(t)) return t;
-        }
-        if(s && typeof s.date === 'string' && typeof s.time === 'string') {
-            const t = new Date(`${s.date} ${s.time}`).getTime();
-            if(!Number.isNaN(t)) return t;
-        }
-        return null;
-    }
-
-    function getDashRange() {
-        let fromVal = dashFrom;
-        let toVal = dashTo;
+    if(applyToInputs) {
         const fromInput = document.getElementById('dashFrom');
         const toInput = document.getElementById('dashTo');
-        if(fromInput && fromInput.value) fromVal = fromInput.value;
-        if(toInput && toInput.value) toVal = toInput.value;
-        const now = new Date();
-        if(!fromVal || !toVal) {
-            return { from: startOfDayLocal(now), to: endOfDayLocal(now) };
-        }
-        return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) };
-    }
-
-    function setDashHint() {
-        const hint = document.getElementById('dashRangeHint');
-        if(!hint) return;
-        const r = getDashRange();
-        hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`;
-    }
-
-    function setPresetRange(preset, applyToInputs = true) {
-        dashPreset = preset || 'today';
-        const now = new Date();
-        let from = startOfDayLocal(now);
-        let to = endOfDayLocal(now);
-
-        if(dashPreset === 'yesterday') {
-            const y = new Date(now); y.setDate(y.getDate() - 1);
-            from = startOfDayLocal(y); to = endOfDayLocal(y);
-        } else if(dashPreset === 'last7') {
-            const a = new Date(now); a.setDate(a.getDate() - 6);
-            from = startOfDayLocal(a); to = endOfDayLocal(now);
-        } else if(dashPreset === 'month') {
-            from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-            to = endOfDayLocal(now);
-        } else if(dashPreset === 'custom') {
-            const r = getDashRange(); from = r.from; to = r.to;
-        }
-
-        if(applyToInputs) {
-            const fromInput = document.getElementById('dashFrom');
-            const toInput = document.getElementById('dashTo');
-            if(fromInput) fromInput.value = toDateInputValue(from);
-            if(toInput) toInput.value = toDateInputValue(to);
-            const presetEl = document.getElementById('dashPreset');
-            if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset;
-        }
-        dashFrom = toDateInputValue(from); dashTo = toDateInputValue(to);
-        setDashHint();
-    }
-
-    function initDashControls(forcePreset = true) {
+        if(fromInput) fromInput.value = toDateInputValue(from);
+        if(toInput) toInput.value = toDateInputValue(to);
         const presetEl = document.getElementById('dashPreset');
-        if(presetEl && forcePreset) dashPreset = presetEl.value || 'today';
-        setPresetRange(dashPreset, true);
+        if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset;
     }
+    dashFrom = toDateInputValue(from); dashTo = toDateInputValue(to);
+    setDashHint();
+}
 
-    function onDashPresetChange(preset) { setPresetRange(preset, true); }
-    function onDashDateChange() {
-        const presetEl = document.getElementById('dashPreset');
-        if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom';
-        dashPreset = 'custom';
-        setDashHint();
-    }
+function initDashControls(forcePreset = true) {
+    const presetEl = document.getElementById('dashPreset');
+    if(presetEl && forcePreset) dashPreset = presetEl.value || 'today';
+    setPresetRange(dashPreset, true);
+}
+function onDashPresetChange(preset) { setPresetRange(preset, true); }
+function onDashDateChange() {
+    const presetEl = document.getElementById('dashPreset');
+    if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom';
+    dashPreset = 'custom';
+    setDashHint();
+}
+function applyDashFilter() { setDashHint(); updateDash(); }
 
-    function applyDashFilter() { setDashHint(); updateDash(); }
-
-    async function fetchItemWiseSales(from, to) {
-        if(!supabaseClient) return null;
+/* Item-wise sales (Supabase) */
+async function fetchItemWiseSales(from, to) {
+    if(!supabaseClient) return null;
+    try {
         const fromIso = from.toISOString();
         const toIso = to.toISOString();
-
         const { data: orders, error: ordersErr } = await supabaseClient
             .from('BILLINGO_orders')
             .select('id,placed_at,created_at,status')
@@ -881,7 +746,6 @@
             .order('placed_at', { ascending: true });
 
         if(ordersErr) return null;
-
         const ids = (orders || []).map(o => o.id).filter(Boolean);
         if(ids.length === 0) return [];
 
@@ -905,352 +769,497 @@
         });
 
         return Array.from(map.values()).sort((a,b) => b.rev - a.rev);
+    } catch (e) {
+        console.warn('fetchItemWiseSales failed:', e);
+        return null;
     }
+}
 
-    function renderItemReport(rows) {
-        const wrap = document.getElementById('itemReport');
-        if(!wrap) return;
-        if(!rows) { wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>'; return; }
-        if(rows.length === 0) { wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>'; return; }
-        const top = rows.slice(0, 12);
-        wrap.innerHTML = top.map(r => `
-            <div class="item-row">
-                <div><strong>${r.name}</strong></div>
-                <div class="item-meta">
-                    <span>Qty: <strong style="color:var(--text-main);">${r.qty}</strong></span> |
-                    <span>₹<strong style="color:var(--primary);">${r.rev}</strong></span>
-                </div>
+/* Rendering helpers */
+function renderItemReport(rows) {
+    const wrap = document.getElementById('itemReport');
+    if(!wrap) return;
+    if(!rows) { wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>'; return; }
+    if(rows.length === 0) { wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>'; return; }
+    const top = rows.slice(0, 12);
+    wrap.innerHTML = top.map(r => `
+        <div class="item-row" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--glass-border);">
+            <div><strong>${escapeHtml(String(r.name))}</strong></div>
+            <div class="item-meta" style="font-size:12px; color:var(--text-muted);">
+                Qty: <strong style="color:var(--text-main)">${r.qty}</strong> • ₹<strong style="color:var(--primary)">${r.rev}</strong>
             </div>
-        `).join('');
-    }
+        </div>
+    `).join('');
+}
 
-    function buildTrendFromData(salesInRange) {
-        const byDay = new Map();
-        salesInRange.forEach(s => {
-            const t = parseSaleTs(s); if(t === null) return;
-            const d = new Date(t);
-            const key = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-            const prev = byDay.get(key) || { key, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), rev: 0 };
-            prev.rev += Number(s.total || 0);
-            byDay.set(key, prev);
-        });
-        return Array.from(byDay.values())
-            .sort((a,b) => a.key.localeCompare(b.key))
-            .map(x => ({
-                key: x.key,
-                rev: x.rev,
-                label: x.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-            }));
-    }
+function buildTrendFromData(salesInRange) {
+    const byDay = new Map();
+    salesInRange.forEach(s => {
+        const t = parseSaleTs(s); if(t === null) return;
+        const d = new Date(t);
+        const key = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        const prev = byDay.get(key) || { key, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), rev: 0 };
+        prev.rev += Number(s.total || 0);
+        byDay.set(key, prev);
+    });
+    return Array.from(byDay.values())
+        .sort((a,b) => a.key.localeCompare(b.key))
+        .map(x => ({
+            key: x.key,
+            rev: x.rev,
+            label: x.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        }));
+}
 
-    async function updateDash() {
-        const range = getDashRange();
-        setDashHint();
-        const hist = document.getElementById('dashHistory');
-        const chart = document.getElementById('weekChart');
-        const fromTs = range.from.getTime();
-        const toTs = range.to.getTime();
-        const inRange = sales.filter(s => {
-            const t = parseSaleTs(s);
-            return t !== null && t >= fromTs && t <= toTs;
-        });
+async function updateDash() {
+    const range = getDashRange();
+    setDashHint();
+    const hist = document.getElementById('dashHistory');
+    const chart = document.getElementById('weekChart');
+    const fromTs = range.from.getTime();
+    const toTs = range.to.getTime();
+    const inRange = sales.filter(s => {
+        const t = parseSaleTs(s);
+        return t !== null && t >= fromTs && t <= toTs;
+    });
 
-        const rangeRev = inRange.reduce((a,b)=>a + (b.total || 0), 0);
-        const rangeOrd = inRange.length;
-        const allRev = sales.reduce((a,b)=>a + (b.total || 0), 0);
-        const aov = rangeOrd ? Math.round(rangeRev / rangeOrd) : 0;
+    const rangeRev = inRange.reduce((a,b)=>a + (b.total || 0), 0);
+    const rangeOrd = inRange.length;
+    const allRev = sales.reduce((a,b)=>a + (b.total || 0), 0);
+    const aov = rangeOrd ? Math.round(rangeRev / rangeOrd) : 0;
 
-        document.getElementById('dashRev').innerText = rangeRev;
-        document.getElementById('dashOrd').innerText = rangeOrd;
-        document.getElementById('dashAov').innerText = aov;
-        document.getElementById('dashAllRev').innerText = allRev;
+    const el = id => document.getElementById(id);
+    if(el('dashRev')) el('dashRev').innerText = rangeRev;
+    if(el('dashOrd')) el('dashOrd').innerText = rangeOrd;
+    if(el('dashAov')) el('dashAov').innerText = aov;
+    if(el('dashAllRev')) el('dashAllRev').innerText = allRev;
 
-        const cashSales = inRange.filter(s => s.method === 'CASH');
-        const upiSales = inRange.filter(s => s.method === 'UPI');
-        const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
-        const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
-        const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
+    const cashSales = inRange.filter(s => (s.method || s.payment_method) === 'CASH');
+    const upiSales = inRange.filter(s => (s.method || s.payment_method) === 'UPI');
+    const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
+    const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
+    const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
 
-        document.getElementById('cashRev').innerText = cashRev;
-        document.getElementById('upiRev').innerText = upiRev;
-        document.getElementById('cashOrd').innerText = cashSales.length;
-        document.getElementById('upiOrd').innerText = upiSales.length;
-        document.getElementById('cashPct').innerText = pct(cashRev, rangeRev) + '%';
-        document.getElementById('upiPct').innerText = pct(upiRev, rangeRev) + '%';
+    if(el('cashRev')) el('cashRev').innerText = cashRev;
+    if(el('upiRev')) el('upiRev').innerText = upiRev;
+    if(el('cashOrd')) el('cashOrd').innerText = cashSales.length;
+    if(el('upiOrd')) el('upiOrd').innerText = upiSales.length;
+    if(el('cashPct')) el('cashPct').innerText = pct(cashRev, rangeRev) + '%';
+    if(el('upiPct')) el('upiPct').innerText = pct(upiRev, rangeRev) + '%';
 
-        const chartDays = buildTrendFromData(inRange);
-        const maxDayRev = Math.max(1, ...chartDays.map(x => x.rev));
-        if(chart) {
-            if(chartDays.length === 0) {
-                chart.style.gridTemplateColumns = '1fr';
-                chart.innerHTML = '<div class="text-sm" style="grid-column:1/-1; padding:8px 0;">No chart data for this range.</div>';
-            } else {
-                chart.style.gridTemplateColumns = `repeat(${chartDays.length}, 1fr)`;
-                chart.innerHTML = chartDays.map(x => {
-                    const h = Math.round((x.rev / maxDayRev) * 100);
-                    return `<div><div class="bar" style="height:${h}%;" title="${x.label}: ₹${x.rev}"></div><div class="bar-label">${x.label}</div></div>`;
-                }).join('');
-            }
-        }
-
-        if(hist) {
-            if(sales.length === 0) {
-                hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
-            } else {
-                const histRows = inRange.slice().reverse().slice(0, 25);
-                if(histRows.length === 0) {
-                    hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
-                } else {
-                    hist.innerHTML = histRows.map(s => `
-                        <div style="padding:15px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:var(--glass-surface); border-radius:10px; margin-bottom:8px;">
-                            <div><div style="font-weight:600; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${s.date || ''} • <i class="fas fa-clock"></i> ${s.time || ''}</span></div>
-                            <div style="background:${s.method==='CASH'?'rgba(34,197,94,0.1)':'rgba(99,102,241,0.1)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${s.method==='CASH'?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${s.method==='CASH'?'rgba(34,197,94,0.2)':'rgba(99,102,241,0.2)'};">${s.method || ''}</div>
-                        </div>`).join('');
-                }
-            }
-        }
-
-        if(supabaseClient) {
-            const rows = await fetchItemWiseSales(range.from, range.to);
-            renderItemReport(rows);
+    const chartDays = buildTrendFromData(inRange);
+    const maxDayRev = Math.max(1, ...chartDays.map(x => x.rev));
+    if(chart) {
+        if(chartDays.length === 0) {
+            chart.style.gridTemplateColumns = '1fr';
+            chart.innerHTML = '<div class="text-sm" style="grid-column:1/-1; padding:8px 0;">No chart data for this range.</div>';
         } else {
-            const wrap = document.getElementById('itemReport');
-            if(wrap) wrap.innerHTML = '<div class="text-sm">Connect Supabase to view item-wise sales report.</div>';
+            chart.style.gridTemplateColumns = `repeat(${chartDays.length}, 1fr)`;
+            chart.innerHTML = chartDays.map(x => {
+                const h = Math.round((x.rev / maxDayRev) * 100);
+                return `<div><div class="bar" style="height:${h}%;" title="${escapeHtml(x.label)}: ₹${x.rev}"></div><div class="bar-label">${escapeHtml(x.label)}</div></div>`;
+            }).join('');
         }
     }
 
-    function downloadDashPdf() {
-        try {
-            const range = getDashRange();
-            const fromStr = range.from.toLocaleDateString();
-            const toStr = range.to.toLocaleDateString();
-
-            const sumRev = Number(document.getElementById('dashRev')?.innerText || 0);
-            const sumOrd = Number(document.getElementById('dashOrd')?.innerText || 0);
-            const sumAov = Number(document.getElementById('dashAov')?.innerText || 0);
-            const cashRev = Number(document.getElementById('cashRev')?.innerText || 0);
-            const upiRev = Number(document.getElementById('upiRev')?.innerText || 0);
-            const cashOrd = Number(document.getElementById('cashOrd')?.innerText || 0);
-            const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
-
-            const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
-            if(!jsPDF) { alert('PDF engine not loaded. Please refresh once and try again.'); return; }
-
-            const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-            let y = 54;
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
-            doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y); y += 22;
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
-            doc.text(`Range: ${fromStr} to ${toStr}`, 40, y); y += 18;
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Revenue: ₹${sumRev}`, 40, y); y += 14;
-            doc.text(`Orders: ${sumOrd}`, 40, y); y += 14;
-            doc.text(`Avg Order Value: ₹${sumAov}`, 40, y); y += 18;
-            doc.setFont('helvetica', 'bold'); doc.text('Payment Breakdown', 40, y); y += 14;
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y); y += 12;
-            doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y); y += 18;
-            doc.setFont('helvetica', 'bold'); doc.text('Top Items', 40, y); y += 14;
-            doc.setFont('helvetica', 'normal');
-
-            const wrap = document.getElementById('itemReport');
-            const rows = wrap ? Array.from(wrap.querySelectorAll('.item-row')) : [];
-            if(rows.length === 0) {
-                doc.text('No item-wise data available for this range.', 40, y); y += 12;
+    if(hist) {
+        if(sales.length === 0) {
+            hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
+        } else {
+            const histRows = inRange.slice().reverse().slice(0, 25);
+            if(histRows.length === 0) {
+                hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
             } else {
-                rows.slice(0, 12).forEach(row => {
-                    const name = row.querySelector('strong')?.innerText || 'Item';
-                    const metaDiv = row.querySelector('.item-meta');
-                    const metaText = metaDiv ? metaDiv.innerText.replace(/\n/g, ' ') : '';
-                    doc.text(`${name} — ${metaText}`, 40, y); y += 12;
-                    if(y > 780) { doc.addPage(); y = 54; }
-                });
+                hist.innerHTML = histRows.map(s => `
+                    <div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;">
+                        <div><div style="font-weight:700; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</span></div>
+                        <div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div>
+                    </div>`).join('');
             }
-            const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
-            doc.save(fname);
+        }
+    }
+
+    if(supabaseClient) {
+        const rows = await fetchItemWiseSales(range.from, range.to);
+        renderItemReport(rows);
+    } else {
+        const wrap = document.getElementById('itemReport');
+        if(wrap) wrap.innerHTML = '<div class="text-sm">Connect Supabase to view item-wise sales report.</div>';
+    }
+}
+
+/* PDF export - defensive */
+function downloadDashPdf() {
+    try {
+        const range = getDashRange();
+        const fromStr = range.from.toLocaleDateString();
+        const toStr = range.to.toLocaleDateString();
+
+        const sumRev = Number(document.getElementById('dashRev')?.innerText || 0);
+        const sumOrd = Number(document.getElementById('dashOrd')?.innerText || 0);
+        const sumAov = Number(document.getElementById('dashAov')?.innerText || 0);
+        const cashRev = Number(document.getElementById('cashRev')?.innerText || 0);
+        const upiRev = Number(document.getElementById('upiRev')?.innerText || 0);
+        const cashOrd = Number(document.getElementById('cashOrd')?.innerText || 0);
+        const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
+
+        const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+        if(!jsPDF) { alert('PDF engine not loaded. Please refresh once and try again.'); return; }
+
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        let y = 54;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+        doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y); y += 22;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+        doc.text(`Range: ${fromStr} to ${toStr}`, 40, y); y += 18;
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Revenue: ₹${sumRev}`, 40, y); y += 14;
+        doc.text(`Orders: ${sumOrd}`, 40, y); y += 14;
+        doc.text(`Avg Order Value: ₹${sumAov}`, 40, y); y += 18;
+        doc.setFont('helvetica', 'bold'); doc.text('Payment Breakdown', 40, y); y += 14;
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y); y += 12;
+        doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y); y += 18;
+        doc.setFont('helvetica', 'bold'); doc.text('Top Items', 40, y); y += 14;
+        doc.setFont('helvetica', 'normal');
+
+        const wrap = document.getElementById('itemReport');
+        const rows = wrap ? Array.from(wrap.querySelectorAll('.item-row')) : [];
+        if(rows.length === 0) {
+            doc.text('No item-wise data available for this range.', 40, y); y += 12;
+        } else {
+            rows.slice(0, 12).forEach(row => {
+                const name = row.querySelector('strong')?.innerText || 'Item';
+                const metaDiv = row.querySelector('.item-meta');
+                const metaText = metaDiv ? metaDiv.innerText.replace(/\n/g, ' ') : '';
+                doc.text(`${name} — ${metaText}`, 40, y); y += 12;
+                if(y > 780) { doc.addPage(); y = 54; }
+            });
+        }
+        const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
+        doc.save(fname);
+    } catch (e) {
+        console.error('PDF download failed:', e);
+        alert('Unable to generate PDF. Check console for details.');
+    }
+}
+
+/* Management list render */
+function renderMgmt() {
+    const list = document.getElementById('mgmtList');
+    if(!list) return;
+    list.innerHTML = '';
+    if(menu.length === 0) {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>';
+        return;
+    }
+    menu.forEach((item, idx) => {
+        const stockColor = item.stock ? 'var(--accent-green)' : '#ef4444';
+        list.innerHTML += `
+            <div class="mgmt-row">
+                <div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} • ${escapeHtml(item.cat)}</div></div>
+                <div style="display:flex; gap:8px;">
+                    <button class="icon-btn" onclick="toggleStock(${idx})" style="background:var(--glass-surface); color:${stockColor}" aria-label="Toggle stock"><i class="fas fa-power-off" aria-hidden="true"></i></button>
+                    <button class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.08); color:#38bdf8" aria-label="Edit price"><i class="fas fa-pen" aria-hidden="true"></i></button>
+                    <button class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.08); color:#ef4444" aria-label="Delete item"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                </div>
+            </div>`;
+    });
+}
+
+/* Create new item */
+async function addNewItem() {
+    const nameInput = document.getElementById('newItemName');
+    const priceInput = document.getElementById('newItemPrice');
+    const catInput = document.getElementById('newItemCat');
+    const n = nameInput?.value?.trim();
+    const p = priceInput?.value;
+    const c = catInput?.value || 'Rolls';
+
+    if(!n || !p) { alert('Please fill all fields!'); return; }
+
+    const newItem = { id: Date.now(), name: n, price: parseInt(p, 10), cat: c, stock: true };
+
+    if(supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('BILLINGO_menu_items')
+                .insert(mapAppMenuToRow(newItem))
+                .select('id,name,price,category,in_stock,created_at,updated_at')
+                .single();
+
+            if(error) {
+                console.warn('Supabase add item failed:', error);
+                menu.push(newItem);
+            } else {
+                // push mapped record (ensures id from DB is used)
+                menu.push(mapMenuRowToApp(data));
+            }
         } catch (e) {
-            console.error('PDF download failed:', e);
-            alert('Unable to generate PDF. Check console for details.');
+            console.warn('Add item error:', e);
+            menu.push(newItem);
         }
+    } else {
+        menu.push(newItem);
     }
 
-    function renderMgmt() {
-        const list = document.getElementById('mgmtList'); 
-        if(!list) return;
-        list.innerHTML = '';
-        if(menu.length === 0) {
-            list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>';
-            return;
-        }
-        menu.forEach((item, idx) => {
-            let stockColor = item.stock ? 'var(--accent-green)' : '#ef4444';
-            list.innerHTML += `
-                <div class="mgmt-row">
-                    <div><div style="font-weight:600; font-size:15px;">${item.name}</div><div class="text-sm">₹${item.price} • ${item.cat}</div></div>
-                    <div style="display:flex; gap:8px;">
-                        <div class="icon-btn" onclick="toggleStock(${idx})" style="background:${stockColor}20; color:${stockColor}"><i class="fas fa-power-off"></i></div>
-                        <div class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.2); color:#38bdf8"><i class="fas fa-pen"></i></div>
-                        <div class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.2); color:#ef4444"><i class="fas fa-trash"></i></div>
-                    </div>
-                </div>`;
-        });
+    saveData();
+    if(nameInput) nameInput.value = '';
+    if(priceInput) priceInput.value = '';
+}
+
+/* Delete item */
+async function delItem(idx) {
+    if(!confirm("Delete this item?")) return;
+    const id = menu[idx]?.id;
+    if(typeof id === 'undefined' || id === null) { menu.splice(idx, 1); saveData(); return; }
+    // remove locally
+    menu.splice(idx, 1);
+    saveData();
+    // attempt server delete (support numeric or string id)
+    if(!supabaseClient) return;
+    try {
+        await supabaseClient.from('BILLINGO_menu_items').delete().eq('id', id);
+    } catch (e) {
+        console.warn('Server delete failed:', e);
     }
-    
-    async function addNewItem() { 
-        let n = document.getElementById('newItemName').value;
-        let p = document.getElementById('newItemPrice').value;
-        let c = document.getElementById('newItemCat').value; 
-        if(n && p) { 
-            const newItem = { id: Date.now(), name: n, price: parseInt(p), cat: c, stock: true };
-            if(supabaseClient) {
-                const { data, error } = await supabaseClient.from('BILLINGO_menu_items').insert(mapAppMenuToRow(newItem)).select('id,name,price,category,in_stock,created_at,updated_at').single();
-                if(error) { console.error('Supabase add item failed:', error); menu.push(newItem); } else { menu.push(mapMenuRowToApp(data)); }
-            } else { menu.push(newItem); }
-            saveData();
-            document.getElementById('newItemName').value = ''; 
-            document.getElementById('newItemPrice').value = ''; 
-        } else { alert('Please fill all fields!'); }
-    }
-    
-    async function delItem(idx) { 
-        if(confirm("Delete this item?")) {
-            const id = menu[idx].id; menu.splice(idx, 1); saveData();
-            if(!supabaseClient) return;
-            if(typeof id !== 'string') return;
-            await supabaseClient.from('BILLINGO_menu_items').delete().eq('id', id);
-        }
-    }
-    
-    async function toggleStock(idx) { 
-        menu[idx].stock = !menu[idx].stock; saveData();
-        if(!supabaseClient) return;
-        const id = menu[idx].id; if(typeof id !== 'string') return;
+}
+
+/* Toggle stock */
+async function toggleStock(idx) {
+    if(typeof menu[idx] === 'undefined') return;
+    menu[idx].stock = !menu[idx].stock;
+    saveData();
+    if(!supabaseClient) return;
+    const id = menu[idx].id;
+    if(typeof id === 'undefined' || id === null) return;
+    try {
         await supabaseClient.from('BILLINGO_menu_items').update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() }).eq('id', id);
+    } catch (e) {
+        console.warn('Server toggleStock failed:', e);
     }
-    
-    async function editPrice(idx) { 
-        let p = prompt("New Price:", menu[idx].price); 
-        if(p && !isNaN(p)) { 
-            menu[idx].price = parseInt(p); saveData();
-            if(!supabaseClient) return;
-            const id = menu[idx].id; if(typeof id !== 'string') return;
+}
+
+/* Edit price */
+async function editPrice(idx) {
+    if(typeof menu[idx] === 'undefined') return;
+    let p = prompt("New Price:", menu[idx].price);
+    if(p === null) return;
+    if(p !== '' && !isNaN(p)) {
+        menu[idx].price = parseInt(p, 10);
+        saveData();
+        if(!supabaseClient) return;
+        const id = menu[idx].id;
+        if(typeof id === 'undefined' || id === null) return;
+        try {
             await supabaseClient.from('BILLINGO_menu_items').update({ price: menu[idx].price, updated_at: new Date().toISOString() }).eq('id', id);
+        } catch (e) {
+            console.warn('Server editPrice failed:', e);
+        }
+    } else {
+        alert('Invalid price');
+    }
+}
+
+/* Render menu */
+function renderMenu(filter = '', catFilter = 'All') {
+    const grid = document.getElementById('menuGrid');
+    if(!grid) return;
+    grid.innerHTML = '';
+    if(menu.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; text-align:center; color:gray; padding:40px;"><i class="fas fa-utensils" style="font-size:40px; margin-bottom:15px; display:block;"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items in menu</div><div>Go to Menu tab to add items!</div></div>';
+        return;
+    }
+    menu.forEach(item => {
+        if((catFilter === 'All' || item.cat === catFilter) && item.name.toLowerCase().includes((filter || '').toLowerCase())) {
+            const outClass = item.stock ? '' : 'out-stock';
+            const badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
+            const inCart = cart.find(c => String(c.id) === String(item.id));
+            const selectedClass = inCart ? 'selected' : '';
+            const qtyBadge = inCart ? `<div class="badge-qty">${inCart.qty}</div>` : '';
+            grid.innerHTML += `
+                <button class="menu-item ${outClass} ${selectedClass}" onclick="addCart('${escapeHtml(String(item.id))}')" aria-label="Add ${escapeHtml(item.name)} to cart">
+                    ${badge}
+                    ${qtyBadge}
+                    <div class="item-name">${escapeHtml(item.name)}</div>
+                    <div class="item-price">${item.price}</div>
+                </button>`;
+        }
+    });
+}
+
+/* Filters */
+function filterMenu(val) { renderMenu(val || '', 'All'); }
+function filterCat(cat, el) {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    if(el) {
+        el.classList.add('active');
+        el.setAttribute('aria-selected', 'true');
+    }
+    renderMenu('', cat);
+}
+
+/* Cart operations */
+function addCart(id) {
+    const item = menu.find(i => String(i.id) === String(id));
+    if(!item) return;
+    if(!item.stock) return;
+    const exist = cart.find(c => String(c.id) === String(id));
+    if(exist) exist.qty++;
+    else cart.push({...item, qty: 1});
+    updateCartUI();
+    renderMenu();
+}
+function updateCartUI() {
+    const total = cart.reduce((a,b)=>a + (b.price * b.qty), 0);
+    const count = cart.reduce((a,b)=>a + b.qty, 0);
+    const bar = document.getElementById('cartBar');
+    const totalBar = document.getElementById('cartTotalBar');
+    const countEl = document.getElementById('cartCount');
+    if(totalBar) totalBar.innerText = total;
+    if(countEl) countEl.innerText = count;
+    if(bar) bar.style.display = cart.length ? 'flex' : 'none';
+
+    const list = document.getElementById('cartList');
+    if(!list) return;
+    list.innerHTML = '';
+    cart.forEach((item, idx) => {
+        list.innerHTML += `
+            <div class="cart-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass-surface); border-radius:12px; border:1px solid var(--glass-border); margin-bottom:8px;">
+                <div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} each</div></div>
+                <div class="qty-control" style="display:flex; align-items:center; gap:8px; background:var(--input-bg); padding:6px; border-radius:10px; border:1px solid var(--glass-border);">
+                    <button class="qty-btn" onclick="modQty(${idx}, -1)" aria-label="Decrease quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">−</button>
+                    <span style="font-weight:700; min-width:20px; text-align:center; color:var(--text-main);">${item.qty}</span>
+                    <button class="qty-btn" onclick="modQty(${idx}, 1)" aria-label="Increase quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">+</button>
+                </div>
+            </div>`;
+    });
+
+    const sheetTotal = document.getElementById('cartTotalSheet');
+    if(sheetTotal) sheetTotal.innerText = total;
+}
+
+function modQty(idx, n) {
+    if(typeof cart[idx] === 'undefined') return;
+    cart[idx].qty += n;
+    if(cart[idx].qty <= 0) cart.splice(idx, 1);
+    updateCartUI();
+    if(cart.length === 0) closeCart();
+    renderMenu();
+}
+function openCart() { const s = document.getElementById('cartSheet'); if(s) { s.style.display = 'flex'; s.setAttribute('aria-hidden','false'); } }
+function closeCart() { const s = document.getElementById('cartSheet'); if(s) { s.style.display = 'none'; s.setAttribute('aria-hidden','true'); } }
+
+/* Payment flow */
+function openPayment() {
+    closeCart();
+    const am = document.getElementById('cartTotalSheet')?.innerText || '0';
+    const payAmountEl = document.getElementById('payAmount');
+    if(payAmountEl) payAmountEl.innerText = am;
+    const payModal = document.getElementById('payModal');
+    if(payModal) {
+        payModal.style.display = 'flex';
+        payModal.setAttribute('aria-hidden','false');
+    }
+    const payBtns = document.getElementById('payBtns');
+    if(payBtns) payBtns.style.display = 'grid';
+    const qrBox = document.getElementById('qrBox');
+    if(qrBox) qrBox.classList.add('hidden');
+}
+
+function showQR() {
+    const amt = document.getElementById('payAmount')?.innerText || '0';
+    const link = `upi://pay?pa=${encodeURIComponent(CONFIG.upi)}&pn=${encodeURIComponent(CONFIG.name)}&am=${encodeURIComponent(amt)}&cu=INR`;
+    const qEl = document.getElementById('qrcode');
+    if(qEl) {
+        qEl.innerHTML = '';
+        try {
+            new QRCode(qEl, { text: link, width: 180, height: 180 });
+        } catch (e) {
+            qEl.innerText = 'QR generation failed';
+            console.warn('QRCode error', e);
         }
     }
+    const payBtns = document.getElementById('payBtns'); if(payBtns) payBtns.style.display = 'none';
+    const qrBox = document.getElementById('qrBox'); if(qrBox) qrBox.classList.remove('hidden');
+}
 
-    function renderMenu(filter='', catFilter='All') {
-        const grid = document.getElementById('menuGrid'); 
-        grid.innerHTML = '';
-        if(menu.length === 0) { 
-            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; text-align:center; color:gray; padding:40px;"><i class="fas fa-utensils" style="font-size:40px; margin-bottom:15px; display:block;"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items in menu</div><div>Go to Menu tab to add items!</div></div>'; 
-            return; 
-        }
-        menu.forEach(item => {
-            if((catFilter==='All' || item.cat===catFilter) && item.name.toLowerCase().includes(filter.toLowerCase())) {
-                let outClass = item.stock ? '' : 'out-stock';
-                let badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
-                
-                // SELECTION CHECK
-                let inCart = cart.find(c => String(c.id) === String(item.id));
-                let selectedClass = inCart ? 'selected' : '';
-                let qtyBadge = inCart ? `<div class="badge-qty">${inCart.qty}</div>` : '';
-
-                grid.innerHTML += `
-                    <div class="menu-item ${outClass} ${selectedClass}" onclick="addCart('${item.id}')">
-                        ${badge}
-                        ${qtyBadge}
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price">${item.price}</div>
-                    </div>`;
-            }
-        });
-    }
-    
-    function filterMenu(val) { renderMenu(val); }
-    function filterCat(cat, el) { document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); renderMenu('', cat); }
-
-    function addCart(id) {
-        let item = menu.find(i => String(i.id) === String(id)); 
-        if(!item.stock) return;
-        let exist = cart.find(c => String(c.id) === String(id)); 
-        if(exist) exist.qty++; 
-        else cart.push({...item, qty:1});
-        updateCartUI();
-        renderMenu(); // Re-render to show selection
-    }
-    
-    function updateCartUI() {
-        let total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
-        document.getElementById('cartTotalBar').innerText = total;
-        document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty,0);
-        document.getElementById('cartBar').style.display = cart.length ? 'flex' : 'none';
-        
-        const list = document.getElementById('cartList'); 
-        list.innerHTML = '';
-        cart.forEach((item, idx) => {
-            list.innerHTML += `
-                <div class="cart-row">
-                    <div><div style="font-weight:600; font-size:15px;">${item.name}</div><div class="text-sm">₹${item.price} each</div></div>
-                    <div class="qty-control">
-                        <div class="qty-btn" onclick="modQty(${idx}, -1)">−</div>
-                        <span style="font-weight:700; min-width:20px; text-align:center; color:var(--text-main);">${item.qty}</span>
-                        <div class="qty-btn" onclick="modQty(${idx}, 1)">+</div>
-                    </div>
-                </div>`;
-        });
-        document.getElementById('cartTotalSheet').innerText = total;
-    }
-    
-    function modQty(idx, n) { 
-        cart[idx].qty += n; 
-        if(cart[idx].qty <= 0) cart.splice(idx, 1); 
-        updateCartUI(); 
-        if(cart.length===0) closeCart(); 
-        renderMenu(); // Re-render to update badges
-    }
-    
-    function openCart() { document.getElementById('cartSheet').style.display = 'flex'; }
-    function closeCart() { document.getElementById('cartSheet').style.display = 'none'; }
-
-    function openPayment() { 
-        closeCart(); 
-        document.getElementById('payAmount').innerText = document.getElementById('cartTotalSheet').innerText; 
-        document.getElementById('payModal').style.display = 'flex'; 
-        document.getElementById('payBtns').style.display='grid'; 
-        document.getElementById('qrBox').classList.add('hidden'); 
-    }
-    
-    function showQR() { 
-        let amt = document.getElementById('payAmount').innerText; 
-        let link = `upi://pay?pa=${CONFIG.upi}&pn=${CONFIG.name}&am=${amt}&cu=INR`; 
-        document.getElementById('qrcode').innerHTML = ""; 
-        new QRCode(document.getElementById("qrcode"), { text: link, width: 180, height: 180 }); 
-        document.getElementById('payBtns').style.display='none'; 
-        document.getElementById('qrBox').classList.remove('hidden'); 
-    }
-    
-    async function processPay(method) {
+async function processPay(method) {
+    try {
         const now = new Date();
-        const total = parseInt(document.getElementById('payAmount').innerText);
-        sales.push({ id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString() });
+        const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
+        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString() };
+        // add to local sales
+        sales.push(orderRecord);
         saveData();
 
+        // Try to persist to Supabase
         if(supabaseClient) {
-            const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
-            if(!orderErr) {
-                const items = cart.map(ci => ({ order_id: order.id, menu_item_id: (typeof ci.id === 'string') ? ci.id : null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
-                await supabaseClient.from('BILLINGO_order_items').insert(items);
-                await loadOrdersFromSupabase();
+            try {
+                const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
+                if(!orderErr && order && order.id) {
+                    // insert items
+                    const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
+                    await supabaseClient.from('BILLINGO_order_items').insert(items);
+                    await loadOrdersFromSupabase(); // refresh sales
+                } else {
+                    if(orderErr) console.warn('Order insert error:', orderErr);
+                }
+            } catch (e) {
+                console.warn('Supabase order save failed:', e);
             }
         }
+
         closeModal('payModal'); cart = []; updateCartUI(); renderMenu();
         alert("✅ Order Saved Successfully!");
+    } catch (e) {
+        console.error('Payment processing failed:', e);
+        alert('Payment processing failed. See console for details.');
     }
-    
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    async function clearData() { if(confirm("⚠️ Reset all data?")) { if(confirm("Are you sure?")) { localStorage.clear(); location.reload(); } } }
+}
 
-    init();
+function closeModal(id) {
+    const el = document.getElementById(id);
+    if(el) { el.style.display = 'none'; el.setAttribute('aria-hidden','true'); }
+}
+
+/* Reset only app keys (safer) */
+async function clearData() {
+    if(!confirm("⚠️ Reset all app data?")) return;
+    if(!confirm("Are you sure? This will remove local menu & sales data.")) return;
+    try {
+        localStorage.removeItem('shwarma_menu');
+        localStorage.removeItem('shwarma_sales');
+        localStorage.removeItem('shwarma_theme_light');
+        localStorage.removeItem('shwarma_online');
+        // optionally keep other unrelated keys
+    } catch (e) {
+        console.warn('clearData failed:', e);
+    }
+    location.reload();
+}
+
+/* Utilities */
+function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+}
+
+/* Minimal XSS-safe wrapper for setters that used innerText earlier */
+function safeSetText(id, txt) {
+    const el = document.getElementById(id);
+    if(el) el.textContent = txt;
+}
+
+/* Simple startup */
+init();
+
+/* Expose for debugging in console (optional) */
+window._POS = {
+    getMenu: () => menu,
+    getCart: () => cart,
+    getSales: () => sales,
+    createSupabaseClientWhenReady
+};
 </script>
 </body>
 </html>
