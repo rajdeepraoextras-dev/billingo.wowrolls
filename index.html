@@ -16,197 +16,179 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
 
     <style>
-        :root {
-            --bg-body: #050505;
+        :root{
+            --bg-body:#050505;
             --bg-gradient: radial-gradient(circle at 50% 0%, #1a1f35 0%, #050505 100%);
             --primary: #ff6b35;
             --primary-gradient: linear-gradient(135deg, #ff6b35 0%, #ff8f6b 100%);
-            --accent-green: #10b981;
-            --accent-blue: #3b82f6;
+            --accent-green:#10b981;
+            --accent-blue:#3b82f6;
             --glass-surface: rgba(255,255,255,0.03);
             --glass-header: rgba(20,20,25,0.6);
             --glass-border: rgba(255,255,255,0.08);
             --glass-blur: blur(20px);
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
+            --text-main:#ffffff;
+            --text-muted:#94a3b8;
             --input-bg: rgba(0,0,0,0.3);
-            --shadow-float: 0 20px 40px rgba(0,0,0,0.6);
             --radius-xl: 24px;
             --radius-lg: 16px;
             --radius-md: 12px;
+            --shadow-float: 0 20px 40px rgba(0,0,0,0.6);
             --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        body.light-mode {
-            --bg-body: #f3f4f6;
+        body.light-mode{
+            --bg-body:#f3f4f6;
             --bg-gradient: linear-gradient(180deg, #eef2ff 0%, #f3f4f6 100%);
-            --glass-surface: #ffffff;
+            --glass-surface:#fff;
             --glass-header: rgba(255,255,255,0.8);
             --glass-border: rgba(0,0,0,0.06);
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --input-bg: #f9fafb;
+            --text-main:#1f2937;
+            --text-muted:#6b7280;
+            --input-bg:#f9fafb;
             --shadow-float: 0 20px 40px rgba(0,0,0,0.1);
         }
 
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; font-family: 'Outfit', sans-serif; }
-        html, body { height: 100%; margin: 0; }
-        body {
-            background: var(--bg-body);
-            background-image: var(--bg-gradient);
-            color: var(--text-main);
-            min-height: 100vh; /* fallback */
-            height: 100dvh; /* better on mobile browsers that support it */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: background 0.3s, color 0.3s;
+        *{box-sizing:border-box; outline:none; -webkit-tap-highlight-color:transparent; user-select:none; font-family:'Outfit',sans-serif;}
+        html,body{height:100%; margin:0;}
+        body{
+            background:var(--bg-body);
+            background-image:var(--bg-gradient);
+            color:var(--text-main);
+            min-height:100vh;
+            height:100dvh;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+            transition: background .3s, color .3s;
             -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
             touch-action: manipulation;
         }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar{ width:6px; height:6px; }
+        ::-webkit-scrollbar-track{ background:transparent; }
+        ::-webkit-scrollbar-thumb{ background:rgba(150,150,150,0.2); border-radius:10px; }
 
-        .main-container { flex: 1; position: relative; overflow: hidden; padding-bottom: 110px; }
+        .main-container{ flex:1; position:relative; overflow:hidden; padding-bottom:120px; }
 
-        .view {
-            position: absolute;
-            top: 0; left: 50%;
-            transform: translateX(-50%);
-            width: min(1100px, 100%);
-            height: 100%;
-            overflow-y: auto;
-            padding: 18px;
-            display: none;
-            flex-direction: column;
-            padding-bottom: 140px;
-            animation: fadeIn 0.35s ease;
+        .view{
+            position:absolute; top:0; left:50%; transform:translateX(-50%);
+            width:min(1100px,100%); height:100%; overflow-y:auto; padding:18px;
+            display:none; flex-direction:column; padding-bottom:160px; animation:fadeIn .35s ease;
         }
-        .view.active { display: flex; }
+        .view.active{ display:flex; }
+        @keyframes fadeIn{ from{opacity:0; transform:translateX(-50%) scale(.98);} to{opacity:1; transform:translateX(-50%) scale(1);} }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) scale(0.98); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
-
-        .brand-header {
-            display: flex; align-items: center; justify-content: space-between;
-            background: var(--glass-header);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        .brand-header{
+            display:flex; align-items:center; justify-content:space-between;
+            background:var(--glass-header); backdrop-filter:var(--glass-blur);
+            border:1px solid var(--glass-border); border-radius:var(--radius-xl); padding:12px 16px; margin-bottom:16px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.05);
         }
-        .brand-left { display:flex; gap:12px; align-items:center; }
-        .brand-icon { font-size: 28px; filter: drop-shadow(0 0 12px rgba(255,107,53,0.25)); }
-        .brand-name { font-size: 18px; font-weight:800; letter-spacing:0.6px; color:var(--text-main); }
+        .brand-left{ display:flex; gap:12px; align-items:center;}
+        .brand-icon{ font-size:28px; filter:drop-shadow(0 0 12px rgba(255,107,53,0.25)); }
+        .brand-name{ font-size:18px; font-weight:800; letter-spacing:.6px; color:var(--text-main); }
 
-        .header-actions { display:flex; gap:10px; align-items:center; }
+        .header-actions{ display:flex; gap:10px; align-items:center; }
+        .theme-btn{ width:44px; height:44px; border-radius:50%; background:var(--glass-surface); border:1px solid var(--glass-border); color:var(--text-main); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .theme-btn:active{ transform:scale(.96); }
+        .status-badge{ padding:6px 12px; border-radius:18px; font-weight:700; font-size:12px; color:var(--text-main); background:transparent; border:1px solid var(--glass-border); }
+        .status-badge.online{ background: rgba(16,185,129,0.12); color:#10b981; border-color: rgba(16,185,129,0.18); }
 
-        .theme-btn {
-            width:44px; height:44px; border-radius:50%; background:var(--glass-surface); border:1px solid var(--glass-border);
-            color:var(--text-main); display:flex; align-items:center; justify-content:center; cursor:pointer;
+        .toggle-switch{ position:relative; width:46px; height:28px; }
+        .toggle-switch input{ opacity:0; width:0; height:0; }
+        .toggle-slider{ position:absolute; inset:0; border-radius:30px; background:var(--input-bg); border:1px solid var(--glass-border); }
+        .toggle-slider:before{ content:""; position:absolute; height:20px; width:20px; left:4px; bottom:3px; background:var(--text-muted); border-radius:50%; transition:.25s; }
+        input:checked + .toggle-slider{ background: rgba(16,185,129,0.14); border-color:#10b981; }
+        input:checked + .toggle-slider:before{ transform:translateX(18px); background:#10b981; box-shadow:0 0 8px #10b981; }
+
+        .search-container{ position:sticky; top:0; z-index:12; padding-bottom:8px; }
+        .search-input{ width:100%; background:var(--glass-surface); border:1px solid var(--glass-border); padding:14px 18px 14px 46px; border-radius:14px; color:var(--text-main); font-size:15px; backdrop-filter:blur(8px); box-shadow:0 4px 12px rgba(0,0,0,0.04); }
+        .search-container::after{ content:'\f002'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; left:18px; top:16px; color:var(--text-muted); font-size:14px; pointer-events:none; }
+
+        .category-scroll{ display:flex; gap:10px; overflow-x:auto; padding:12px 4px; }
+        .cat-chip{ padding:8px 18px; background:var(--glass-surface); border-radius:999px; border:1px solid var(--glass-border); font-weight:600; color:var(--text-muted); cursor:pointer; white-space:nowrap; font-size:13px; }
+        .cat-chip.active{ background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 6px 18px rgba(255,107,53,0.28); transform:translateY(-2px); }
+
+        .menu-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap:12px; padding-bottom:24px; }
+        .menu-item{ background:var(--glass-surface); border:1px solid var(--glass-border); border-radius:18px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; min-height:140px; position:relative; overflow:hidden; transition:all .18s var(--ease-bounce); cursor:pointer; }
+        .menu-item:active{ transform:scale(.985); }
+        .menu-item.selected{ border:2px solid var(--accent-green); background: rgba(16,185,129,0.08); }
+        body.light-mode .menu-item.selected{ background: rgba(16,185,129,0.06); border-color:var(--accent-green); }
+        .item-name{ font-weight:700; font-size:14px; margin-bottom:8px; color:var(--text-main); }
+        .item-price{ color:var(--primary); font-weight:800; font-size:16px; }
+        .out-stock{ opacity:.5; filter:grayscale(1); pointer-events:none; }
+        .badge-out{ position:absolute; top:10px; right:10px; background:#ef4444; color:white; font-size:11px; padding:5px 9px; border-radius:8px; font-weight:700; }
+        .badge-qty{ position:absolute; top:10px; right:10px; background:var(--accent-green); color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; box-shadow:0 6px 18px rgba(16,185,129,0.32); }
+
+        .mgmt-row{ background:var(--glass-surface); border:1px solid var(--glass-border); padding:12px; border-radius:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+        .icon-btn{ width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s; font-size:16px; }
+        .icon-btn:active{ transform:scale(.96); }
+
+        .input-group{ background:var(--glass-surface); padding:16px; border-radius:18px; border:1px solid var(--glass-border); margin-bottom:18px; display:grid; gap:12px; }
+        .input-dark{ background:var(--input-bg); border:1px solid var(--glass-border); color:var(--text-main); padding:12px 14px; border-radius:12px; font-size:14px; width:100%; }
+        .input-dark:focus{ border-color:var(--primary); }
+
+        .btn-primary{ width:100%; background:var(--primary-gradient); color:white; padding:14px; border-radius:14px; font-weight:800; font-size:15px; border:none; cursor:pointer; display:inline-flex; gap:8px; align-items:center; justify-content:center; }
+        .btn-primary:active{ transform:scale(.99); }
+
+        /* Dashboard specific (fixed layout issues) */
+        .dash-filters{
+            background:var(--glass-surface); border:1px solid var(--glass-border); padding:12px; border-radius:14px; margin-bottom:14px; display:flex; flex-direction:column; gap:10px;
         }
-        .theme-btn:active { transform: scale(0.96); }
+        .dash-filter-row{ display:flex; gap:10px; align-items:center; width:100%; }
+        .dash-filter-row .input-dark{ flex:1; min-width:0; }
+        .dash-btn{ padding:10px 14px; min-width:48px; border-radius:12px; background:var(--primary); color:white; border:none; cursor:pointer; }
+        .dash-btn:active{ transform:scale(.98); }
 
-        .status-badge { padding:6px 12px; border-radius:18px; font-weight:700; font-size:12px; color:var(--text-main); background:transparent; border:1px solid var(--glass-border); }
-        .status-badge.online { background: rgba(16,185,129,0.12); color: #10b981; border-color: rgba(16,185,129,0.18); }
+        .stats-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:12px; margin-bottom:12px; }
+        .stat-card{ background:var(--glass-surface); padding:12px; border-radius:12px; border:1px solid var(--glass-border); }
+        .stat-label{ font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:6px; }
+        .stat-value{ font-size:20px; font-weight:800; color:var(--text-main); }
+        .stat-sub{ font-size:11px; color:var(--text-muted); margin-top:6px; opacity:.8; }
 
-        .toggle-switch { position: relative; width: 46px; height: 28px; }
-        .toggle-switch input { opacity:0; width:0; height:0; }
-        .toggle-slider { position:absolute; inset:0; border-radius:30px; background:var(--input-bg); border:1px solid var(--glass-border); }
-        .toggle-slider:before { content:""; position:absolute; height:20px; width:20px; left:4px; bottom:3px; background:var(--text-muted); border-radius:50%; transition:0.25s; }
-        input:checked + .toggle-slider { background: rgba(16,185,129,0.14); border-color: #10b981; }
-        input:checked + .toggle-slider:before { transform: translateX(18px); background:#10b981; box-shadow:0 0 8px #10b981; }
+        .mini-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px; }
+        .mini-card{ background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border); }
+        .mini-title{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); font-weight:700; margin-bottom:8px; }
 
-        .search-container { position: sticky; top: 0; z-index: 12; padding-bottom: 8px; }
-        .search-input {
-            width:100%; background:var(--glass-surface); border:1px solid var(--glass-border);
-            padding:14px 18px 14px 46px; border-radius:14px; color:var(--text-main); font-size:15px;
-            backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        .chart-wrap{ background:var(--glass-surface); border:1px solid var(--glass-border); border-radius:12px; padding:12px; margin-bottom:12px; }
+        .bar-chart{ display:grid; grid-template-columns: repeat(7,1fr); gap:8px; align-items:end; height:120px; margin-top:10px; }
+        .bar{ width:100%; border-radius:8px; background: linear-gradient(to top, var(--primary) 0%, #fb923c 100%); opacity:.85; }
+        .bar-label{ font-size:11px; text-align:center; color:var(--text-muted); margin-top:8px; }
+
+        .bottom-nav{
+            position:fixed; bottom:14px; left:50%; transform:translateX(-50%); width:92%; max-width:420px; height:70px;
+            background: rgba(15,23,42,0.88); backdrop-filter: blur(10px); border-radius:96px; border:1px solid rgba(255,255,255,0.08);
+            display:flex; justify-content:space-evenly; align-items:center; z-index:80; box-shadow:var(--shadow-float); padding:6px;
         }
-        .search-container::after {
-            content: '\f002'; font-family: 'Font Awesome 6 Free'; font-weight:900;
-            position:absolute; left:18px; top:16px; color:var(--text-muted); font-size:14px; pointer-events:none;
-        }
+        body.light-mode .bottom-nav{ background: rgba(255,255,255,0.92); border:1px solid rgba(0,0,0,0.06); }
+        .nav-btn{ display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); gap:4px; transition:.2s; width:64px; font-size:12px; border-radius:12px; background:transparent; border:none; cursor:pointer; padding:6px; }
+        .nav-btn.active{ color:var(--primary); transform:translateY(-4px); background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,107,53,0.03)); }
 
-        .category-scroll { display:flex; gap:10px; overflow-x:auto; padding:12px 4px; }
-        .cat-chip { padding:8px 18px; background:var(--glass-surface); border-radius:999px; border:1px solid var(--glass-border); font-weight:600; color:var(--text-muted); cursor:pointer; white-space:nowrap; font-size:13px; }
-        .cat-chip.active { background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 6px 18px rgba(255,107,53,0.28); transform: translateY(-2px); }
-
-        .menu-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap:12px; padding-bottom:24px; }
-        .menu-item {
-            background:var(--glass-surface); border:1px solid var(--glass-border);
-            border-radius:18px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;
-            min-height:140px; position:relative; overflow:hidden; transition: all 0.18s var(--ease-bounce); cursor:pointer;
-        }
-        .menu-item:active { transform: scale(0.985); }
-        .menu-item.selected { border:2px solid var(--accent-green); background: rgba(16,185,129,0.08); }
-        body.light-mode .menu-item.selected { background: rgba(16,185,129,0.06); border-color: var(--accent-green); }
-
-        .item-name { font-weight:700; font-size:14px; margin-bottom:8px; color:var(--text-main); }
-        .item-price { color:var(--primary); font-weight:800; font-size:16px; }
-
-        .out-stock { opacity:0.5; filter:grayscale(1); pointer-events:none; }
-        .badge-out { position:absolute; top:10px; right:10px; background:#ef4444; color:white; font-size:11px; padding:5px 9px; border-radius:8px; font-weight:700; }
-        .badge-qty { position:absolute; top:10px; right:10px; background:var(--accent-green); color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; box-shadow:0 6px 18px rgba(16,185,129,0.32); }
-
-        .mgmt-row { background:var(--glass-surface); border:1px solid var(--glass-border); padding:12px; border-radius:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-        .icon-btn { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.15s; font-size:16px; }
-        .icon-btn:active { transform:scale(0.96); }
-
-        .input-group { background:var(--glass-surface); padding:16px; border-radius:18px; border:1px solid var(--glass-border); margin-bottom:18px; display:grid; gap:12px; }
-        .input-dark { background:var(--input-bg); border:1px solid var(--glass-border); color:var(--text-main); padding:12px 14px; border-radius:12px; font-size:14px; width:100%; }
-        .input-dark:focus { border-color:var(--primary); }
-
-        .btn-primary { width:100%; background:var(--primary-gradient); color:white; padding:14px; border-radius:14px; font-weight:800; font-size:15px; border:none; cursor:pointer; display:inline-flex; gap:8px; align-items:center; justify-content:center; }
-        .btn-primary:active { transform:scale(0.99); }
-
-        .stats-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:14px; }
-        .stat-card { background:var(--glass-surface); padding:14px; border-radius:16px; border:1px solid var(--glass-border); }
-        .stat-label { font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:8px; }
-        .stat-value { font-size:20px; font-weight:800; color:var(--text-main); }
-        .stat-sub { font-size:11px; color:var(--text-muted); margin-top:6px; opacity:0.8; }
-
-        .chart-wrap { background:var(--glass-surface); border:1px solid var(--glass-border); border-radius:16px; padding:14px; margin-bottom:12px; }
-        .bar-chart { display:grid; grid-template-columns: repeat(7,1fr); gap:8px; align-items:end; height:120px; margin-top:10px; }
-        .bar { width:100%; border-radius:8px; background: linear-gradient(to top, var(--primary) 0%, #fb923c 100%); opacity:0.85; }
-        .bar-label { font-size:11px; text-align:center; color:var(--text-muted); margin-top:8px; }
-
-        .bottom-nav {
-            position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
-            width:92%; max-width:420px; height:70px; background: rgba(15,23,42,0.88); backdrop-filter: blur(10px);
-            border-radius:96px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-evenly; align-items:center; z-index:80; box-shadow:var(--shadow-float);
-        }
-        body.light-mode .bottom-nav { background: rgba(255,255,255,0.92); border:1px solid rgba(0,0,0,0.06); }
-        .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); gap:4px; transition:0.2s; width:64px; font-size:12px; }
-        .nav-btn.active { color:var(--primary); transform:translateY(-4px); }
-
-        .cart-bar {
-            position: fixed; bottom: 98px; left:50%; transform: translateX(-50%) translateY(8px); width:92%; max-width:520px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; border-radius:14px; padding:12px 18px; display:none; justify-content:space-between; align-items:center; box-shadow: 0 14px 40px rgba(16,185,129,0.32); z-index:70; cursor:pointer;
+        .cart-bar{
+            position:fixed; bottom:98px; left:50%; transform:translateX(-50%) translateY(8px); width:92%; max-width:520px;
+            background:linear-gradient(135deg,#10b981 0%,#059669 100%); color:white; border-radius:14px; padding:12px 18px; display:none; justify-content:space-between; align-items:center; box-shadow:0 14px 40px rgba(16,185,129,0.32); z-index:70; cursor:pointer;
         }
 
-        .sheet-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index:90; display:none; justify-content:center; align-items:flex-end; padding:12px; }
-        .sheet-content { background:var(--bg-body); width:100%; max-width:640px; max-height:85vh; border-radius:20px 20px 8px 8px; padding:20px; display:flex; flex-direction:column; box-shadow: 0 -20px 60px rgba(0,0,0,0.3); border-top:1px solid var(--glass-border); }
+        .sheet-overlay{ position:fixed; inset:0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index:90; display:none; justify-content:center; align-items:flex-end; padding:12px; }
+        .sheet-content{ background:var(--bg-body); width:100%; max-width:640px; max-height:85vh; border-radius:20px 20px 8px 8px; padding:20px; display:flex; flex-direction:column; box-shadow:0 -20px 60px rgba(0,0,0,0.3); border-top:1px solid var(--glass-border); }
 
-        .modal-center { position:fixed; inset:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index:110; display:none; justify-content:center; align-items:center; padding:16px; }
-        .modal-box { background:var(--bg-body); width:100%; max-width:420px; padding:28px; border-radius:18px; text-align:center; border:1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal-center{ position:fixed; inset:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index:110; display:none; justify-content:center; align-items:center; padding:16px; }
+        .modal-box{ background:var(--bg-body); width:100%; max-width:420px; padding:28px; border-radius:18px; text-align:center; border:1px solid var(--glass-border); box-shadow:0 20px 60px rgba(0,0,0,0.5); }
 
-        .hidden { display:none !important; }
-        .text-sm { font-size:12px; color:var(--text-muted); }
-        .form-row { display:flex; gap:10px; }
+        .hidden{ display:none !important; }
+        .text-sm{ font-size:12px; color:var(--text-muted); }
+        .form-row{ display:flex; gap:10px; }
 
-        /* Responsive tweaks */
-        @media (max-width:520px) {
-            .brand-name { font-size:16px; }
-            .menu-item { min-height:120px; padding:12px; border-radius:14px; }
-            .menu-grid { grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
-            .bottom-nav { height:76px; }
-            .cart-bar { bottom: 106px; }
-            .brand-header { padding:10px 12px; }
-            .search-input { padding-left:44px; }
+        @media (max-width:520px){
+            .brand-name{ font-size:16px; }
+            .menu-item{ min-height:120px; padding:12px; border-radius:14px; }
+            .menu-grid{ grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
+            .bottom-nav{ height:76px; }
+            .cart-bar{ bottom:106px; }
+            .brand-header{ padding:10px 12px; }
+            .search-input{ padding-left:44px; }
+            .dash-filter-row{ flex-direction:column; align-items:stretch; }
         }
     </style>
 </head>
@@ -247,7 +229,6 @@
 
         <div id="view-menu" class="view" aria-hidden="true">
             <h2><i class="fas fa-utensils" aria-hidden="true"></i> Manage Menu</h2>
-
             <div class="input-group" aria-label="Add new menu item">
                 <input type="text" id="newItemName" class="input-dark" placeholder="Item Name" aria-label="Item name">
                 <div class="form-row">
@@ -262,7 +243,6 @@
                     <i class="fas fa-plus" aria-hidden="true"></i> Add Item
                 </button>
             </div>
-
             <div id="mgmtList" style="padding-bottom:50px;"></div>
         </div>
 
@@ -278,12 +258,8 @@
                         <option value="month">This Month</option>
                         <option value="custom">Custom</option>
                     </select>
-                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter">
-                        <i class="fas fa-filter" aria-hidden="true"></i>
-                    </button>
-                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF">
-                        <i class="fas fa-file-pdf" aria-hidden="true"></i>
-                    </button>
+                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter" title="Apply"> <i class="fas fa-filter" aria-hidden="true"></i></button>
+                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF" title="Export PDF"> <i class="fas fa-file-pdf" aria-hidden="true"></i></button>
                 </div>
 
                 <div class="dash-filter-row">
@@ -299,16 +275,19 @@
                     <div class="stat-value">₹<span id="dashRev">0</span></div>
                     <div class="stat-sub">All payments</div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Today Orders</div>
                     <div class="stat-value"><span id="dashOrd">0</span></div>
                     <div class="stat-sub">Total orders today</div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-percent" aria-hidden="true"></i> Avg Order Value</div>
                     <div class="stat-value">₹<span id="dashAov">0</span></div>
                     <div class="stat-sub">Today average</div>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-layer-group" aria-hidden="true"></i> All-time Revenue</div>
                     <div class="stat-value">₹<span id="dashAllRev">0</span></div>
@@ -317,19 +296,15 @@
             </div>
 
             <h3 id="dashPayTitle">Payment Breakdown</h3>
-            <div class="mini-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
-                <div class="mini-card" style="background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border);">
-                    <div class="mini-title" style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); font-weight:700;">
-                        <span><i class="fas fa-money-bill-wave"></i> Cash</span><span id="cashPct">0%</span>
-                    </div>
+            <div class="mini-grid">
+                <div class="mini-card">
+                    <div class="mini-title"><span><i class="fas fa-money-bill-wave" aria-hidden="true"></i> Cash</span><span id="cashPct">0%</span></div>
                     <div style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color:var(--text-main);">₹<span id="cashRev">0</span></strong></div>
                     <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="cashOrd">0</span></strong></div>
                 </div>
 
-                <div class="mini-card" style="background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border);">
-                    <div class="mini-title" style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); font-weight:700;">
-                        <span><i class="fas fa-qrcode"></i> UPI</span><span id="upiPct">0%</span>
-                    </div>
+                <div class="mini-card">
+                    <div class="mini-title"><span><i class="fas fa-qrcode" aria-hidden="true"></i> UPI</span><span id="upiPct">0%</span></div>
                     <div style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color:var(--text-main);">₹<span id="upiRev">0</span></strong></div>
                     <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="upiOrd">0</span></strong></div>
                 </div>
@@ -354,6 +329,9 @@
             </button>
         </div>
     </div>
+
+    <!-- Modular bottom nav (rendered by JS) -->
+    <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Main navigation"></div>
 
     <div id="cartBar" class="cart-bar" onclick="openCart()" role="button" aria-label="Open cart">
         <div style="display:flex; flex-direction:column;">
@@ -405,43 +383,15 @@
         </div>
     </div>
 
-    <div class="bottom-nav" role="navigation" aria-label="Main navigation">
-        <button class="nav-btn active" onclick="nav('pos', this)" aria-label="Billing">
-            <i class="fas fa-cash-register" aria-hidden="true"></i>
-            <span>Billing</span>
-        </button>
-        <button class="nav-btn" onclick="nav('menu', this)" aria-label="Menu">
-            <i class="fas fa-utensils" aria-hidden="true"></i>
-            <span>Menu</span>
-        </button>
-        <button class="nav-btn" onclick="nav('dash', this)" aria-label="Stats">
-            <i class="fas fa-chart-pie" aria-hidden="true"></i>
-            <span>Stats</span>
-        </button>
-    </div>
-
 <script>
-/*
-  Improvements & fixes included:
-  - Mobile friendly layout and touch target sizes.
-  - Defensive DOM checks to avoid runtime errors.
-  - Supabase client creation is done when the SDK is available.
-  - Fixed issues where updates/deletes wouldn't run because id type checks were too strict.
-  - Clear/Reset now removes only app keys instead of clearing all localStorage.
-  - Added ARIA labels and minor accessibility tweaks.
-  - Basic production notes: do not embed service keys in client code (use server or env).
-*/
-
-/* CONFIG - In production move sensitive keys to server-side */
+/* App config and state */
 const CONFIG = {
     upi: "paytm.s1nij5e@pty",
     name: "WOW ROLLS",
-    // WARNING: the key below is a publishable key; for any write/secret operations use a server-side key.
     SUPABASE_URL: "https://vodxwyvpulrlpqkapiln.supabase.co",
-    SUPABASE_KEY: "sb_publishable_g_NWhtfzz5k-i0mxHdOHBw_GvgbtO1F"
+    SUPABASE_KEY: "sb_publishable_g_NWhtfzz5k-i0mxHdOHBw_GvgbtO1F" // publishable only; do not use for secrets
 };
 
-/* App state */
 let cart = [];
 let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
 let isLightMode = JSON.parse(localStorage.getItem('shwarma_theme_light') || 'false');
@@ -449,23 +399,43 @@ let dashPreset = 'today';
 let dashFrom = null;
 let dashTo = null;
 
-/* Supabase client: only create when SDK is loaded */
 let supabaseClient = null;
-function createSupabaseClientWhenReady() {
-    try {
-        if(window.supabase && typeof window.supabase.createClient === 'function') {
+function createSupabaseClientWhenReady(){
+    try{
+        if(window.supabase && typeof window.supabase.createClient === 'function'){
             supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, { auth: { persistSession: false } });
-            // optional: test connection by a simple RPC or ping (kept minimal here)
-        } else {
-            supabaseClient = null;
-        }
-    } catch (e) {
-        console.warn('Supabase client creation failed:', e);
-        supabaseClient = null;
-    }
+        } else supabaseClient = null;
+    }catch(e){ console.warn('supabase create error', e); supabaseClient = null; }
 }
 
-/* Default menu */
+/* Navigation items modular */
+const NAV_ITEMS = [
+    { id: 'pos', icon: 'fa-cash-register', label: 'Billing' },
+    { id: 'menu', icon: 'fa-utensils', label: 'Menu' },
+    { id: 'dash', icon: 'fa-chart-pie', label: 'Stats' }
+];
+
+function renderBottomNav(activeId = 'pos'){
+    const container = document.getElementById('bottomNav');
+    if(!container) return;
+    container.innerHTML = NAV_ITEMS.map(item => `
+        <button class="nav-btn" data-id="${escapeHtml(item.id)}" title="${escapeHtml(item.label)}" aria-label="${escapeHtml(item.label)}">
+            <i class="fas ${escapeHtml(item.icon)}" aria-hidden="true"></i>
+            <span>${escapeHtml(item.label)}</span>
+        </button>
+    `).join('');
+    // attach listeners and set active
+    container.querySelectorAll('.nav-btn').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        btn.addEventListener('click', (e) => {
+            nav(id, btn);
+        });
+        if(id === activeId) btn.classList.add('active'); else btn.classList.remove('active');
+    });
+}
+
+/* Existing code (trimmed and kept same semantics as previous working file) */
+/* Default menu and persisted state */
 let defaultMenu = [
     { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
     { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
@@ -473,359 +443,94 @@ let defaultMenu = [
     { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
     { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
 ];
-
-/* persisted state */
 let menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu.slice();
 let sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
 
-function saveData() {
-    try {
-        localStorage.setItem('shwarma_menu', JSON.stringify(menu));
-        localStorage.setItem('shwarma_sales', JSON.stringify(sales));
-    } catch (e) {
-        console.error('Failed to save data:', e);
-    }
-    renderMenu(); renderMgmt(); updateDash();
-}
+function saveData(){ try{ localStorage.setItem('shwarma_menu', JSON.stringify(menu)); localStorage.setItem('shwarma_sales', JSON.stringify(sales)); }catch(e){ console.error('saveData error', e); } renderMenu(); renderMgmt(); updateDash(); }
 
 /* Theme */
-function applyTheme() {
-    const body = document.body;
-    const icon = document.getElementById('themeIcon');
-    if(isLightMode) {
-        body.classList.add('light-mode');
-        if(icon) { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
-    } else {
-        body.classList.remove('light-mode');
-        if(icon) { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); }
-    }
-}
-function toggleTheme() {
-    isLightMode = !isLightMode;
-    localStorage.setItem('shwarma_theme_light', JSON.stringify(isLightMode));
-    applyTheme();
-}
+function applyTheme(){ const body = document.body; const icon = document.getElementById('themeIcon'); if(isLightMode){ body.classList.add('light-mode'); if(icon){ icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } } else { body.classList.remove('light-mode'); if(icon){ icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); } } }
+function toggleTheme(){ isLightMode = !isLightMode; localStorage.setItem('shwarma_theme_light', JSON.stringify(isLightMode)); applyTheme(); }
 
-/* Mapping helpers */
-function mapMenuRowToApp(row) {
-    return {
-        id: row.id,
-        name: row.name,
-        price: row.price,
-        cat: row.category || row.cat,
-        stock: (typeof row.in_stock !== 'undefined') ? row.in_stock : (typeof row.stock !== 'undefined' ? row.stock : true)
-    };
-}
-function mapAppMenuToRow(item) {
-    return {
-        name: item.name,
-        price: item.price,
-        category: item.cat,
-        in_stock: !!item.stock
-    };
-}
-function formatOrderForSales(order) {
-    const dt = order.placed_at ? new Date(order.placed_at) : (order.created_at ? new Date(order.created_at) : new Date());
-    return {
-        id: order.id,
-        total: order.total,
-        method: order.payment_method || order.method,
-        time: dt.toLocaleTimeString(),
-        date: dt.toLocaleDateString(),
-        ts: dt.getTime(),
-        iso: dt.toISOString()
-    };
-}
+/* Helpers */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function toDateInputValue(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function startOfDayLocal(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(),0,0,0,0); }
+function endOfDayLocal(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(),23,59,59,999); }
+function parseSaleTs(s){ if(!s) return null; if(typeof s.ts === 'number') return s.ts; if(typeof s.iso === 'string'){ const t = new Date(s.iso).getTime(); if(!Number.isNaN(t)) return t; } if(typeof s.date === 'string' && typeof s.time === 'string'){ const t = new Date(`${s.date} ${s.time}`).getTime(); if(!Number.isNaN(t)) return t; } return null; }
 
-/* Supabase loaders (safe) */
-async function loadMenuFromSupabase() {
-    if(!supabaseClient) return false;
-    try {
-        const { data, error } = await supabaseClient
-            .from('BILLINGO_menu_items')
-            .select('id,name,price,category,in_stock,created_at,updated_at')
-            .order('created_at', { ascending: true });
+/* Supabase helpers (defensive) */
+function mapMenuRowToApp(row){ return { id: row.id, name: row.name, price: row.price, cat: row.category || row.cat, stock: (typeof row.in_stock !== 'undefined') ? row.in_stock : (typeof row.stock !== 'undefined' ? row.stock : true) }; }
+function mapAppMenuToRow(item){ return { name: item.name, price: item.price, category: item.cat, in_stock: !!item.stock }; }
+function formatOrderForSales(order){ const dt = order.placed_at ? new Date(order.placed_at) : (order.created_at ? new Date(order.created_at) : new Date()); return { id: order.id, total: order.total, method: order.payment_method || order.method, time: dt.toLocaleTimeString(), date: dt.toLocaleDateString(), ts: dt.getTime(), iso: dt.toISOString() }; }
 
-        if(error) {
-            console.warn('Supabase menu load failed:', error);
-            return false;
-        }
-
-        menu = (data || []).map(mapMenuRowToApp);
-        saveData();
-        return true;
-    } catch (e) {
-        console.warn('Menu load exception:', e);
-        return false;
-    }
-}
-
-async function loadOrdersFromSupabase() {
-    if(!supabaseClient) return false;
-    try {
-        const { data, error } = await supabaseClient
-            .from('BILLINGO_orders')
-            .select('id,total,payment_method,placed_at,created_at,status')
-            .eq('status', 'PAID')
-            .order('placed_at', { ascending: false });
-
-        if(error) {
-            console.warn('Supabase orders load failed:', error);
-            return false;
-        }
-        sales = (data || []).map(formatOrderForSales);
-        saveData();
-        return true;
-    } catch (e) {
-        console.warn('Orders load exception:', e);
-        return false;
-    }
-}
+async function loadMenuFromSupabase(){ if(!supabaseClient) return false; try{ const { data, error } = await supabaseClient.from('BILLINGO_menu_items').select('id,name,price,category,in_stock,created_at,updated_at').order('created_at',{ascending:true}); if(error){ console.warn('Supabase menu load failed:', error); return false; } menu = (data||[]).map(mapMenuRowToApp); saveData(); return true; }catch(e){ console.warn('Menu load exception:', e); return false; } }
+async function loadOrdersFromSupabase(){ if(!supabaseClient) return false; try{ const { data, error } = await supabaseClient.from('BILLINGO_orders').select('id,total,payment_method,placed_at,created_at,status').eq('status','PAID').order('placed_at',{ascending:false}); if(error){ console.warn('Supabase orders load failed:', error); return false; } sales = (data||[]).map(formatOrderForSales); saveData(); return true; }catch(e){ console.warn('Orders load exception:', e); return false; } }
 
 /* Online status */
-function setOnlineStatus(next) {
-    isOnline = !!next;
-    localStorage.setItem('shwarma_online', JSON.stringify(isOnline));
-    const badge = document.getElementById('statusBadge');
-    const toggle = document.getElementById('onlineToggle');
-    if(badge) {
-        badge.innerText = isOnline ? 'ONLINE' : 'OFFLINE';
-        badge.classList.toggle('online', isOnline);
-    }
-    if(toggle && toggle.checked !== isOnline) toggle.checked = isOnline;
-}
-function toggleOnlineStatus(checked) { setOnlineStatus(checked); }
+function setOnlineStatus(next){ isOnline = !!next; localStorage.setItem('shwarma_online', JSON.stringify(isOnline)); const badge = document.getElementById('statusBadge'); const toggle = document.getElementById('onlineToggle'); if(badge){ badge.innerText = isOnline ? 'ONLINE' : 'OFFLINE'; badge.classList.toggle('online', isOnline); } if(toggle && toggle.checked !== isOnline) toggle.checked = isOnline; }
+function toggleOnlineStatus(checked){ setOnlineStatus(checked); }
 
-/* Init */
-async function init() {
-    createSupabaseClientWhenReady();
-    applyTheme();
-    setOnlineStatus(isOnline);
-    renderMenu();
-    renderMgmt();
-    initDashControls();
-    updateDash();
+/* UI: menu rendering & management */
+function renderMenu(filter = '', catFilter = 'All'){ const grid = document.getElementById('menuGrid'); if(!grid) return; grid.innerHTML = ''; if(menu.length === 0){ grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; text-align:center; color:gray; padding:40px;"><i class="fas fa-utensils" style="font-size:40px; margin-bottom:15px; display:block;"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items in menu</div><div>Go to Menu tab to add items!</div></div>'; return; } menu.forEach(item => { if((catFilter === 'All' || item.cat === catFilter) && item.name.toLowerCase().includes((filter || '').toLowerCase())){ const outClass = item.stock ? '' : 'out-stock'; const badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>'; const inCart = cart.find(c => String(c.id) === String(item.id)); const selectedClass = inCart ? 'selected' : ''; const qtyBadge = inCart ? `<div class="badge-qty">${inCart.qty}</div>` : ''; grid.innerHTML += `<button class="menu-item ${outClass} ${selectedClass}" onclick="addCart('${escapeHtml(String(item.id))}')" aria-label="Add ${escapeHtml(item.name)} to cart">${badge}${qtyBadge}<div class="item-name">${escapeHtml(item.name)}</div><div class="item-price">${item.price}</div></button>`; } }); }
 
-    // Try to load from Supabase if SDK existed (graceful)
-    if(!supabaseClient) {
-        // SDK may load after DOM ready (deferred). Try to create client later.
-        const tryWait = () => {
-            createSupabaseClientWhenReady();
-            return !!supabaseClient;
-        };
-        // If the SDK loads later, we try a few times.
-        let attempts = 0;
-        const poll = setInterval(async () => {
-            attempts++;
-            if(tryWait()) {
-                clearInterval(poll);
-                await loadMenuFromSupabase();
-                await loadOrdersFromSupabase();
-                initDashControls(false);
-                updateDash();
-            } else if(attempts > 6) {
-                clearInterval(poll);
-            }
-        }, 700);
-    } else {
-        await loadMenuFromSupabase();
-        await loadOrdersFromSupabase();
-        initDashControls(false);
-        updateDash();
-    }
-}
+function filterMenu(val){ renderMenu(val || '', 'All'); }
+function filterCat(cat, el){ document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active')); if(el){ el.classList.add('active'); el.setAttribute('aria-selected','true'); } renderMenu('', cat); }
 
-/* NAV */
-function nav(view, el) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    const target = document.getElementById('view-' + view);
-    if(target) target.classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    if(el) el.classList.add('active');
-}
+function renderMgmt(){ const list = document.getElementById('mgmtList'); if(!list) return; list.innerHTML = ''; if(menu.length === 0){ list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>'; return; } menu.forEach((item, idx) => { const stockColor = item.stock ? 'var(--accent-green)' : '#ef4444'; list.innerHTML += `<div class="mgmt-row"><div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} • ${escapeHtml(item.cat)}</div></div><div style="display:flex; gap:8px;"><button class="icon-btn" onclick="toggleStock(${idx})" style="background:var(--glass-surface); color:${stockColor}" aria-label="Toggle stock"><i class="fas fa-power-off" aria-hidden="true"></i></button><button class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.08); color:#38bdf8" aria-label="Edit price"><i class="fas fa-pen" aria-hidden="true"></i></button><button class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.08); color:#ef4444" aria-label="Delete item"><i class="fas fa-trash" aria-hidden="true"></i></button></div></div>`; }); }
 
-/* Date helpers */
-function pad2(n) { return String(n).padStart(2, '0'); }
-function toDateInputValue(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
-function startOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0); }
-function endOfDayLocal(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999); }
+/* Add / edit / delete */
+async function addNewItem(){ const nameInput = document.getElementById('newItemName'); const priceInput = document.getElementById('newItemPrice'); const catInput = document.getElementById('newItemCat'); const n = nameInput?.value?.trim(); const p = priceInput?.value; const c = catInput?.value || 'Rolls'; if(!n || !p){ alert('Please fill all fields!'); return; } const newItem = { id: Date.now(), name: n, price: parseInt(p,10), cat: c, stock: true }; if(supabaseClient){ try{ const { data, error } = await supabaseClient.from('BILLINGO_menu_items').insert(mapAppMenuToRow(newItem)).select('id,name,price,category,in_stock,created_at,updated_at').single(); if(error){ console.warn('Supabase add item failed:', error); menu.push(newItem); } else menu.push(mapMenuRowToApp(data)); }catch(e){ console.warn('Add item error:', e); menu.push(newItem); } } else menu.push(newItem); saveData(); if(nameInput) nameInput.value=''; if(priceInput) priceInput.value=''; }
 
-function parseSaleTs(s) {
-    if(!s) return null;
-    if(typeof s.ts === 'number') return s.ts;
-    if(typeof s.iso === 'string') {
-        const t = new Date(s.iso).getTime();
-        if(!Number.isNaN(t)) return t;
-    }
-    if(typeof s.date === 'string' && typeof s.time === 'string') {
-        const t = new Date(`${s.date} ${s.time}`).getTime();
-        if(!Number.isNaN(t)) return t;
-    }
-    return null;
-}
+async function delItem(idx){ if(!confirm("Delete this item?")) return; const id = menu[idx]?.id; menu.splice(idx,1); saveData(); if(!supabaseClient || typeof id === 'undefined' || id === null) return; try{ await supabaseClient.from('BILLINGO_menu_items').delete().eq('id', id); }catch(e){ console.warn('Server delete failed', e); } }
 
-/* Dash range helpers */
-function getDashRange() {
-    let fromVal = dashFrom;
-    let toVal = dashTo;
-    const fromInput = document.getElementById('dashFrom');
-    const toInput = document.getElementById('dashTo');
-    if(fromInput && fromInput.value) fromVal = fromInput.value;
-    if(toInput && toInput.value) toVal = toInput.value;
-    const now = new Date();
-    if(!fromVal || !toVal) {
-        return { from: startOfDayLocal(now), to: endOfDayLocal(now) };
-    }
-    return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) };
-}
+async function toggleStock(idx){ if(typeof menu[idx] === 'undefined') return; menu[idx].stock = !menu[idx].stock; saveData(); if(!supabaseClient) return; const id = menu[idx].id; if(typeof id === 'undefined' || id === null) return; try{ await supabaseClient.from('BILLINGO_menu_items').update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() }).eq('id', id); }catch(e){ console.warn('Server toggleStock failed', e); } }
 
-function setDashHint() {
-    const hint = document.getElementById('dashRangeHint');
-    if(!hint) return;
-    const r = getDashRange();
-    hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`;
-}
+async function editPrice(idx){ if(typeof menu[idx] === 'undefined') return; let p = prompt("New Price:", menu[idx].price); if(p === null) return; if(p !== '' && !isNaN(p)){ menu[idx].price = parseInt(p,10); saveData(); if(!supabaseClient) return; const id = menu[idx].id; if(typeof id === 'undefined' || id === null) return; try{ await supabaseClient.from('BILLINGO_menu_items').update({ price: menu[idx].price, updated_at: new Date().toISOString() }).eq('id', id); }catch(e){ console.warn('Server editPrice failed', e); } } else alert('Invalid price'); }
 
-function setPresetRange(preset, applyToInputs = true) {
-    dashPreset = preset || 'today';
-    const now = new Date();
-    let from = startOfDayLocal(now);
-    let to = endOfDayLocal(now);
+/* Cart */
+function addCart(id){ const item = menu.find(i => String(i.id) === String(id)); if(!item) return; if(!item.stock) return; const exist = cart.find(c => String(c.id) === String(id)); if(exist) exist.qty++; else cart.push({...item, qty:1}); updateCartUI(); renderMenu(); }
+function updateCartUI(){ const total = cart.reduce((a,b)=>a + (b.price*b.qty), 0); const count = cart.reduce((a,b)=>a + b.qty, 0); const bar = document.getElementById('cartBar'); const totalBar = document.getElementById('cartTotalBar'); const countEl = document.getElementById('cartCount'); if(totalBar) totalBar.innerText = total; if(countEl) countEl.innerText = count; if(bar) bar.style.display = cart.length ? 'flex' : 'none'; const list = document.getElementById('cartList'); if(!list) return; list.innerHTML = ''; cart.forEach((item, idx) => { list.innerHTML += `<div class="cart-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass-surface); border-radius:12px; border:1px solid var(--glass-border); margin-bottom:8px;"><div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} each</div></div><div class="qty-control" style="display:flex; align-items:center; gap:8px; background:var(--input-bg); padding:6px; border-radius:10px; border:1px solid var(--glass-border);"><button class="qty-btn" onclick="modQty(${idx}, -1)" aria-label="Decrease quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">−</button><span style="font-weight:700; min-width:20px; text-align:center; color:var(--text-main);">${item.qty}</span><button class="qty-btn" onclick="modQty(${idx}, 1)" aria-label="Increase quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">+</button></div></div>`; }); const sheetTotal = document.getElementById('cartTotalSheet'); if(sheetTotal) sheetTotal.innerText = total; }
+function modQty(idx, n){ if(typeof cart[idx] === 'undefined') return; cart[idx].qty += n; if(cart[idx].qty <= 0) cart.splice(idx,1); updateCartUI(); if(cart.length === 0) closeCart(); renderMenu(); }
+function openCart(){ const s = document.getElementById('cartSheet'); if(s){ s.style.display = 'flex'; s.setAttribute('aria-hidden','false'); } }
+function closeCart(){ const s = document.getElementById('cartSheet'); if(s){ s.style.display = 'none'; s.setAttribute('aria-hidden','true'); } }
 
-    if(dashPreset === 'yesterday') {
-        const y = new Date(now); y.setDate(y.getDate() - 1);
-        from = startOfDayLocal(y); to = endOfDayLocal(y);
-    } else if(dashPreset === 'last7') {
-        const a = new Date(now); a.setDate(a.getDate() - 6);
-        from = startOfDayLocal(a); to = endOfDayLocal(now);
-    } else if(dashPreset === 'month') {
-        from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-        to = endOfDayLocal(now);
-    } else if(dashPreset === 'custom') {
-        const r = getDashRange(); from = r.from; to = r.to;
-    }
+/* Payment flow */
+function openPayment(){ closeCart(); const am = document.getElementById('cartTotalSheet')?.innerText || '0'; const payAmountEl = document.getElementById('payAmount'); if(payAmountEl) payAmountEl.innerText = am; const payModal = document.getElementById('payModal'); if(payModal){ payModal.style.display = 'flex'; payModal.setAttribute('aria-hidden','false'); } const payBtns = document.getElementById('payBtns'); if(payBtns) payBtns.style.display = 'grid'; const qrBox = document.getElementById('qrBox'); if(qrBox) qrBox.classList.add('hidden'); }
+function showQR(){ const amt = document.getElementById('payAmount')?.innerText || '0'; const link = `upi://pay?pa=${encodeURIComponent(CONFIG.upi)}&pn=${encodeURIComponent(CONFIG.name)}&am=${encodeURIComponent(amt)}&cu=INR`; const qEl = document.getElementById('qrcode'); if(qEl){ qEl.innerHTML = ''; try{ new QRCode(qEl, { text: link, width: 180, height: 180 }); }catch(e){ qEl.innerText = 'QR generation failed'; console.warn('QRCode error', e); } } const payBtns = document.getElementById('payBtns'); if(payBtns) payBtns.style.display = 'none'; const qrBox = document.getElementById('qrBox'); if(qrBox) qrBox.classList.remove('hidden'); }
 
-    if(applyToInputs) {
-        const fromInput = document.getElementById('dashFrom');
-        const toInput = document.getElementById('dashTo');
-        if(fromInput) fromInput.value = toDateInputValue(from);
-        if(toInput) toInput.value = toDateInputValue(to);
-        const presetEl = document.getElementById('dashPreset');
-        if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset;
-    }
-    dashFrom = toDateInputValue(from); dashTo = toDateInputValue(to);
-    setDashHint();
-}
+async function processPay(method){ try{ const now = new Date(); const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0; const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString() }; sales.push(orderRecord); saveData(); if(supabaseClient){ try{ const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single(); if(!orderErr && order && order.id){ const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty })); await supabaseClient.from('BILLINGO_order_items').insert(items); await loadOrdersFromSupabase(); } else if(orderErr){ console.warn('Order insert error:', orderErr); } }catch(e){ console.warn('Supabase order save failed:', e); } } closeModal('payModal'); cart = []; updateCartUI(); renderMenu(); alert("✅ Order Saved Successfully!"); }catch(e){ console.error('Payment processing failed:', e); alert('Payment processing failed. See console for details.'); } }
 
-function initDashControls(forcePreset = true) {
-    const presetEl = document.getElementById('dashPreset');
-    if(presetEl && forcePreset) dashPreset = presetEl.value || 'today';
-    setPresetRange(dashPreset, true);
-}
-function onDashPresetChange(preset) { setPresetRange(preset, true); }
-function onDashDateChange() {
-    const presetEl = document.getElementById('dashPreset');
-    if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom';
-    dashPreset = 'custom';
-    setDashHint();
-}
-function applyDashFilter() { setDashHint(); updateDash(); }
+function closeModal(id){ const el = document.getElementById(id); if(el){ el.style.display = 'none'; el.setAttribute('aria-hidden','true'); } }
 
-/* Item-wise sales (Supabase) */
-async function fetchItemWiseSales(from, to) {
-    if(!supabaseClient) return null;
-    try {
-        const fromIso = from.toISOString();
-        const toIso = to.toISOString();
-        const { data: orders, error: ordersErr } = await supabaseClient
-            .from('BILLINGO_orders')
-            .select('id,placed_at,created_at,status')
-            .eq('status', 'PAID')
-            .gte('placed_at', fromIso)
-            .lte('placed_at', toIso)
-            .order('placed_at', { ascending: true });
+/* Dashboard helpers */
+function getDashRange(){ let fromVal = dashFrom; let toVal = dashTo; const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput && fromInput.value) fromVal = fromInput.value; if(toInput && toInput.value) toVal = toInput.value; const now = new Date(); if(!fromVal || !toVal) return { from: startOfDayLocal(now), to: endOfDayLocal(now) }; return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) }; }
+function setDashHint(){ const hint = document.getElementById('dashRangeHint'); if(!hint) return; const r = getDashRange(); hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`; }
+function setPresetRange(preset, applyToInputs = true){ dashPreset = preset || 'today'; const now = new Date(); let from = startOfDayLocal(now); let to = endOfDayLocal(now); if(dashPreset === 'yesterday'){ const y = new Date(now); y.setDate(y.getDate() - 1); from = startOfDayLocal(y); to = endOfDayLocal(y); } else if(dashPreset === 'last7'){ const a = new Date(now); a.setDate(a.getDate() - 6); from = startOfDayLocal(a); to = endOfDayLocal(now); } else if(dashPreset === 'month'){ from = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0); to = endOfDayLocal(now); } else if(dashPreset === 'custom'){ const r = getDashRange(); from = r.from; to = r.to; } if(applyToInputs){ const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput) fromInput.value = toDateInputValue(from); if(toInput) toInput.value = toDateInputValue(to); const presetEl = document.getElementById('dashPreset'); if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset; } dashFrom = toDateInputValue(from); dashTo = toDateInputValue(to); setDashHint(); }
+function initDashControls(forcePreset = true){ const presetEl = document.getElementById('dashPreset'); if(presetEl && forcePreset) dashPreset = presetEl.value || 'today'; setPresetRange(dashPreset, true); }
+function onDashPresetChange(preset){ setPresetRange(preset, true); }
+function onDashDateChange(){ const presetEl = document.getElementById('dashPreset'); if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom'; dashPreset = 'custom'; setDashHint(); }
+function applyDashFilter(){ setDashHint(); updateDash(); }
 
-        if(ordersErr) return null;
-        const ids = (orders || []).map(o => o.id).filter(Boolean);
-        if(ids.length === 0) return [];
+async function fetchItemWiseSales(from, to){ if(!supabaseClient) return null; try{ const fromIso = from.toISOString(); const toIso = to.toISOString(); const { data: orders, error: ordersErr } = await supabaseClient.from('BILLINGO_orders').select('id,placed_at,created_at,status').eq('status','PAID').gte('placed_at', fromIso).lte('placed_at', toIso).order('placed_at',{ascending:true}); if(ordersErr) return null; const ids = (orders||[]).map(o => o.id).filter(Boolean); if(ids.length === 0) return []; const { data: items, error: itemsErr } = await supabaseClient.from('BILLINGO_order_items').select('item_name,unit_price,qty,order_id').in('order_id', ids); if(itemsErr) return null; const map = new Map(); (items||[]).forEach(it => { const name = it.item_name || 'Unknown'; const qty = Number(it.qty || 0); const unit = Number(it.unit_price || 0); const rev = qty * unit; const prev = map.get(name) || { name, qty:0, rev:0 }; prev.qty += qty; prev.rev += rev; map.set(name, prev); }); return Array.from(map.values()).sort((a,b) => b.rev - a.rev); }catch(e){ console.warn('fetchItemWiseSales failed:', e); return null; } }
 
-        const { data: items, error: itemsErr } = await supabaseClient
-            .from('BILLINGO_order_items')
-            .select('item_name,unit_price,qty,order_id')
-            .in('order_id', ids);
+function renderItemReport(rows){ const wrap = document.getElementById('itemReport'); if(!wrap) return; if(!rows){ wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>'; return; } if(rows.length === 0){ wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>'; return; } const top = rows.slice(0,12); wrap.innerHTML = top.map(r => `<div class="item-row" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--glass-border);"><div><strong>${escapeHtml(String(r.name))}</strong></div><div class="item-meta" style="font-size:12px; color:var(--text-muted);">Qty: <strong style="color:var(--text-main)">${r.qty}</strong> • ₹<strong style="color:var(--primary)">${r.rev}</strong></div></div>`).join(''); }
 
-        if(itemsErr) return null;
+function buildTrendFromData(salesInRange){ const byDay = new Map(); salesInRange.forEach(s => { const t = parseSaleTs(s); if(t === null) return; const d = new Date(t); const key = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; const prev = byDay.get(key) || { key, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), rev: 0 }; prev.rev += Number(s.total || 0); byDay.set(key, prev); }); return Array.from(byDay.values()).sort((a,b) => a.key.localeCompare(b.key)).map(x => ({ key: x.key, rev: x.rev, label: x.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) })); }
 
-        const map = new Map();
-        (items || []).forEach(it => {
-            const name = it.item_name || 'Unknown';
-            const qty = Number(it.qty || 0);
-            const unit = Number(it.unit_price || 0);
-            const rev = qty * unit;
-            const prev = map.get(name) || { name, qty: 0, rev: 0 };
-            prev.qty += qty;
-            prev.rev += rev;
-            map.set(name, prev);
-        });
-
-        return Array.from(map.values()).sort((a,b) => b.rev - a.rev);
-    } catch (e) {
-        console.warn('fetchItemWiseSales failed:', e);
-        return null;
-    }
-}
-
-/* Rendering helpers */
-function renderItemReport(rows) {
-    const wrap = document.getElementById('itemReport');
-    if(!wrap) return;
-    if(!rows) { wrap.innerHTML = '<div class="text-sm">Unable to load item-wise report.</div>'; return; }
-    if(rows.length === 0) { wrap.innerHTML = '<div class="text-sm">No item sales in this range.</div>'; return; }
-    const top = rows.slice(0, 12);
-    wrap.innerHTML = top.map(r => `
-        <div class="item-row" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--glass-border);">
-            <div><strong>${escapeHtml(String(r.name))}</strong></div>
-            <div class="item-meta" style="font-size:12px; color:var(--text-muted);">
-                Qty: <strong style="color:var(--text-main)">${r.qty}</strong> • ₹<strong style="color:var(--primary)">${r.rev}</strong>
-            </div>
-        </div>
-    `).join('');
-}
-
-function buildTrendFromData(salesInRange) {
-    const byDay = new Map();
-    salesInRange.forEach(s => {
-        const t = parseSaleTs(s); if(t === null) return;
-        const d = new Date(t);
-        const key = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-        const prev = byDay.get(key) || { key, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), rev: 0 };
-        prev.rev += Number(s.total || 0);
-        byDay.set(key, prev);
-    });
-    return Array.from(byDay.values())
-        .sort((a,b) => a.key.localeCompare(b.key))
-        .map(x => ({
-            key: x.key,
-            rev: x.rev,
-            label: x.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-        }));
-}
-
-async function updateDash() {
+async function updateDash(){
     const range = getDashRange();
     setDashHint();
     const hist = document.getElementById('dashHistory');
     const chart = document.getElementById('weekChart');
     const fromTs = range.from.getTime();
     const toTs = range.to.getTime();
-    const inRange = sales.filter(s => {
-        const t = parseSaleTs(s);
-        return t !== null && t >= fromTs && t <= toTs;
-    });
+    const inRange = sales.filter(s => { const t = parseSaleTs(s); return t !== null && t >= fromTs && t <= toTs; });
 
-    const rangeRev = inRange.reduce((a,b)=>a + (b.total || 0), 0);
+    const rangeRev = inRange.reduce((a,b)=>a+(b.total||0),0);
     const rangeOrd = inRange.length;
-    const allRev = sales.reduce((a,b)=>a + (b.total || 0), 0);
+    const allRev = sales.reduce((a,b)=>a+(b.total||0),0);
     const aov = rangeOrd ? Math.round(rangeRev / rangeOrd) : 0;
 
     const el = id => document.getElementById(id);
@@ -836,9 +541,9 @@ async function updateDash() {
 
     const cashSales = inRange.filter(s => (s.method || s.payment_method) === 'CASH');
     const upiSales = inRange.filter(s => (s.method || s.payment_method) === 'UPI');
-    const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
-    const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
-    const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
+    const cashRev = cashSales.reduce((a,b)=>a+(b.total||0),0);
+    const upiRev = upiSales.reduce((a,b)=>a+(b.total||0),0);
+    const pct = (n,d) => d ? Math.round((n/d)*100) : 0;
 
     if(el('cashRev')) el('cashRev').innerText = cashRev;
     if(el('upiRev')) el('upiRev').innerText = upiRev;
@@ -849,37 +554,30 @@ async function updateDash() {
 
     const chartDays = buildTrendFromData(inRange);
     const maxDayRev = Math.max(1, ...chartDays.map(x => x.rev));
-    if(chart) {
-        if(chartDays.length === 0) {
+    if(chart){
+        if(chartDays.length === 0){
             chart.style.gridTemplateColumns = '1fr';
             chart.innerHTML = '<div class="text-sm" style="grid-column:1/-1; padding:8px 0;">No chart data for this range.</div>';
         } else {
             chart.style.gridTemplateColumns = `repeat(${chartDays.length}, 1fr)`;
-            chart.innerHTML = chartDays.map(x => {
-                const h = Math.round((x.rev / maxDayRev) * 100);
-                return `<div><div class="bar" style="height:${h}%;" title="${escapeHtml(x.label)}: ₹${x.rev}"></div><div class="bar-label">${escapeHtml(x.label)}</div></div>`;
-            }).join('');
+            chart.innerHTML = chartDays.map(x => { const h = Math.round((x.rev / maxDayRev) * 100); return `<div><div class="bar" style="height:${h}%;" title="${escapeHtml(x.label)}: ₹${x.rev}"></div><div class="bar-label">${escapeHtml(x.label)}</div></div>`; }).join('');
         }
     }
 
-    if(hist) {
-        if(sales.length === 0) {
+    if(hist){
+        if(sales.length === 0){
             hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
         } else {
-            const histRows = inRange.slice().reverse().slice(0, 25);
-            if(histRows.length === 0) {
+            const histRows = inRange.slice().reverse().slice(0,25);
+            if(histRows.length === 0){
                 hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
             } else {
-                hist.innerHTML = histRows.map(s => `
-                    <div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;">
-                        <div><div style="font-weight:700; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</span></div>
-                        <div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div>
-                    </div>`).join('');
+                hist.innerHTML = histRows.map(s => `<div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;"><div><div style="font-weight:700; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</span></div><div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div></div>`).join('');
             }
         }
     }
 
-    if(supabaseClient) {
+    if(supabaseClient){
         const rows = await fetchItemWiseSales(range.from, range.to);
         renderItemReport(rows);
     } else {
@@ -888,13 +586,12 @@ async function updateDash() {
     }
 }
 
-/* PDF export - defensive */
-function downloadDashPdf() {
-    try {
+/* PDF export */
+function downloadDashPdf(){
+    try{
         const range = getDashRange();
         const fromStr = range.from.toLocaleDateString();
         const toStr = range.to.toLocaleDateString();
-
         const sumRev = Number(document.getElementById('dashRev')?.innerText || 0);
         const sumOrd = Number(document.getElementById('dashOrd')?.innerText || 0);
         const sumAov = Number(document.getElementById('dashAov')?.innerText || 0);
@@ -904,362 +601,111 @@ function downloadDashPdf() {
         const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
 
         const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
-        if(!jsPDF) { alert('PDF engine not loaded. Please refresh once and try again.'); return; }
+        if(!jsPDF){ alert('PDF engine not loaded. Please refresh once and try again.'); return; }
 
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
         let y = 54;
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+        doc.setFont('helvetica','bold'); doc.setFontSize(18);
         doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y); y += 22;
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+        doc.setFont('helvetica','normal'); doc.setFontSize(11);
         doc.text(`Range: ${fromStr} to ${toStr}`, 40, y); y += 18;
-        doc.setFont('helvetica', 'bold');
+        doc.setFont('helvetica','bold');
         doc.text(`Revenue: ₹${sumRev}`, 40, y); y += 14;
         doc.text(`Orders: ${sumOrd}`, 40, y); y += 14;
         doc.text(`Avg Order Value: ₹${sumAov}`, 40, y); y += 18;
-        doc.setFont('helvetica', 'bold'); doc.text('Payment Breakdown', 40, y); y += 14;
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica','bold'); doc.text('Payment Breakdown', 40, y); y += 14;
+        doc.setFont('helvetica','normal');
         doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y); y += 12;
         doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y); y += 18;
-        doc.setFont('helvetica', 'bold'); doc.text('Top Items', 40, y); y += 14;
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica','bold'); doc.text('Top Items', 40, y); y += 14;
+        doc.setFont('helvetica','normal');
 
         const wrap = document.getElementById('itemReport');
         const rows = wrap ? Array.from(wrap.querySelectorAll('.item-row')) : [];
-        if(rows.length === 0) {
+        if(rows.length === 0){
             doc.text('No item-wise data available for this range.', 40, y); y += 12;
         } else {
-            rows.slice(0, 12).forEach(row => {
+            rows.slice(0,12).forEach(row => {
                 const name = row.querySelector('strong')?.innerText || 'Item';
                 const metaDiv = row.querySelector('.item-meta');
                 const metaText = metaDiv ? metaDiv.innerText.replace(/\n/g, ' ') : '';
                 doc.text(`${name} — ${metaText}`, 40, y); y += 12;
-                if(y > 780) { doc.addPage(); y = 54; }
+                if(y > 780){ doc.addPage(); y = 54; }
             });
         }
         const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
         doc.save(fname);
-    } catch (e) {
+    }catch(e){
         console.error('PDF download failed:', e);
         alert('Unable to generate PDF. Check console for details.');
     }
 }
 
-/* Management list render */
-function renderMgmt() {
-    const list = document.getElementById('mgmtList');
-    if(!list) return;
-    list.innerHTML = '';
-    if(menu.length === 0) {
-        list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>';
-        return;
-    }
-    menu.forEach((item, idx) => {
-        const stockColor = item.stock ? 'var(--accent-green)' : '#ef4444';
-        list.innerHTML += `
-            <div class="mgmt-row">
-                <div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} • ${escapeHtml(item.cat)}</div></div>
-                <div style="display:flex; gap:8px;">
-                    <button class="icon-btn" onclick="toggleStock(${idx})" style="background:var(--glass-surface); color:${stockColor}" aria-label="Toggle stock"><i class="fas fa-power-off" aria-hidden="true"></i></button>
-                    <button class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.08); color:#38bdf8" aria-label="Edit price"><i class="fas fa-pen" aria-hidden="true"></i></button>
-                    <button class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.08); color:#ef4444" aria-label="Delete item"><i class="fas fa-trash" aria-hidden="true"></i></button>
-                </div>
-            </div>`;
-    });
-}
-
-/* Create new item */
-async function addNewItem() {
-    const nameInput = document.getElementById('newItemName');
-    const priceInput = document.getElementById('newItemPrice');
-    const catInput = document.getElementById('newItemCat');
-    const n = nameInput?.value?.trim();
-    const p = priceInput?.value;
-    const c = catInput?.value || 'Rolls';
-
-    if(!n || !p) { alert('Please fill all fields!'); return; }
-
-    const newItem = { id: Date.now(), name: n, price: parseInt(p, 10), cat: c, stock: true };
-
-    if(supabaseClient) {
-        try {
-            const { data, error } = await supabaseClient
-                .from('BILLINGO_menu_items')
-                .insert(mapAppMenuToRow(newItem))
-                .select('id,name,price,category,in_stock,created_at,updated_at')
-                .single();
-
-            if(error) {
-                console.warn('Supabase add item failed:', error);
-                menu.push(newItem);
-            } else {
-                // push mapped record (ensures id from DB is used)
-                menu.push(mapMenuRowToApp(data));
-            }
-        } catch (e) {
-            console.warn('Add item error:', e);
-            menu.push(newItem);
-        }
-    } else {
-        menu.push(newItem);
-    }
-
-    saveData();
-    if(nameInput) nameInput.value = '';
-    if(priceInput) priceInput.value = '';
-}
-
-/* Delete item */
-async function delItem(idx) {
-    if(!confirm("Delete this item?")) return;
-    const id = menu[idx]?.id;
-    if(typeof id === 'undefined' || id === null) { menu.splice(idx, 1); saveData(); return; }
-    // remove locally
-    menu.splice(idx, 1);
-    saveData();
-    // attempt server delete (support numeric or string id)
-    if(!supabaseClient) return;
-    try {
-        await supabaseClient.from('BILLINGO_menu_items').delete().eq('id', id);
-    } catch (e) {
-        console.warn('Server delete failed:', e);
-    }
-}
-
-/* Toggle stock */
-async function toggleStock(idx) {
-    if(typeof menu[idx] === 'undefined') return;
-    menu[idx].stock = !menu[idx].stock;
-    saveData();
-    if(!supabaseClient) return;
-    const id = menu[idx].id;
-    if(typeof id === 'undefined' || id === null) return;
-    try {
-        await supabaseClient.from('BILLINGO_menu_items').update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() }).eq('id', id);
-    } catch (e) {
-        console.warn('Server toggleStock failed:', e);
-    }
-}
-
-/* Edit price */
-async function editPrice(idx) {
-    if(typeof menu[idx] === 'undefined') return;
-    let p = prompt("New Price:", menu[idx].price);
-    if(p === null) return;
-    if(p !== '' && !isNaN(p)) {
-        menu[idx].price = parseInt(p, 10);
-        saveData();
-        if(!supabaseClient) return;
-        const id = menu[idx].id;
-        if(typeof id === 'undefined' || id === null) return;
-        try {
-            await supabaseClient.from('BILLINGO_menu_items').update({ price: menu[idx].price, updated_at: new Date().toISOString() }).eq('id', id);
-        } catch (e) {
-            console.warn('Server editPrice failed:', e);
-        }
-    } else {
-        alert('Invalid price');
-    }
-}
-
-/* Render menu */
-function renderMenu(filter = '', catFilter = 'All') {
-    const grid = document.getElementById('menuGrid');
-    if(!grid) return;
-    grid.innerHTML = '';
-    if(menu.length === 0) {
-        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; text-align:center; color:gray; padding:40px;"><i class="fas fa-utensils" style="font-size:40px; margin-bottom:15px; display:block;"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items in menu</div><div>Go to Menu tab to add items!</div></div>';
-        return;
-    }
-    menu.forEach(item => {
-        if((catFilter === 'All' || item.cat === catFilter) && item.name.toLowerCase().includes((filter || '').toLowerCase())) {
-            const outClass = item.stock ? '' : 'out-stock';
-            const badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>';
-            const inCart = cart.find(c => String(c.id) === String(item.id));
-            const selectedClass = inCart ? 'selected' : '';
-            const qtyBadge = inCart ? `<div class="badge-qty">${inCart.qty}</div>` : '';
-            grid.innerHTML += `
-                <button class="menu-item ${outClass} ${selectedClass}" onclick="addCart('${escapeHtml(String(item.id))}')" aria-label="Add ${escapeHtml(item.name)} to cart">
-                    ${badge}
-                    ${qtyBadge}
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                    <div class="item-price">${item.price}</div>
-                </button>`;
-        }
-    });
-}
-
-/* Filters */
-function filterMenu(val) { renderMenu(val || '', 'All'); }
-function filterCat(cat, el) {
-    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
-    if(el) {
-        el.classList.add('active');
-        el.setAttribute('aria-selected', 'true');
-    }
-    renderMenu('', cat);
-}
-
-/* Cart operations */
-function addCart(id) {
-    const item = menu.find(i => String(i.id) === String(id));
-    if(!item) return;
-    if(!item.stock) return;
-    const exist = cart.find(c => String(c.id) === String(id));
-    if(exist) exist.qty++;
-    else cart.push({...item, qty: 1});
-    updateCartUI();
-    renderMenu();
-}
-function updateCartUI() {
-    const total = cart.reduce((a,b)=>a + (b.price * b.qty), 0);
-    const count = cart.reduce((a,b)=>a + b.qty, 0);
-    const bar = document.getElementById('cartBar');
-    const totalBar = document.getElementById('cartTotalBar');
-    const countEl = document.getElementById('cartCount');
-    if(totalBar) totalBar.innerText = total;
-    if(countEl) countEl.innerText = count;
-    if(bar) bar.style.display = cart.length ? 'flex' : 'none';
-
-    const list = document.getElementById('cartList');
-    if(!list) return;
-    list.innerHTML = '';
-    cart.forEach((item, idx) => {
-        list.innerHTML += `
-            <div class="cart-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass-surface); border-radius:12px; border:1px solid var(--glass-border); margin-bottom:8px;">
-                <div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} each</div></div>
-                <div class="qty-control" style="display:flex; align-items:center; gap:8px; background:var(--input-bg); padding:6px; border-radius:10px; border:1px solid var(--glass-border);">
-                    <button class="qty-btn" onclick="modQty(${idx}, -1)" aria-label="Decrease quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">−</button>
-                    <span style="font-weight:700; min-width:20px; text-align:center; color:var(--text-main);">${item.qty}</span>
-                    <button class="qty-btn" onclick="modQty(${idx}, 1)" aria-label="Increase quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">+</button>
-                </div>
-            </div>`;
-    });
-
-    const sheetTotal = document.getElementById('cartTotalSheet');
-    if(sheetTotal) sheetTotal.innerText = total;
-}
-
-function modQty(idx, n) {
-    if(typeof cart[idx] === 'undefined') return;
-    cart[idx].qty += n;
-    if(cart[idx].qty <= 0) cart.splice(idx, 1);
-    updateCartUI();
-    if(cart.length === 0) closeCart();
-    renderMenu();
-}
-function openCart() { const s = document.getElementById('cartSheet'); if(s) { s.style.display = 'flex'; s.setAttribute('aria-hidden','false'); } }
-function closeCart() { const s = document.getElementById('cartSheet'); if(s) { s.style.display = 'none'; s.setAttribute('aria-hidden','true'); } }
-
-/* Payment flow */
-function openPayment() {
-    closeCart();
-    const am = document.getElementById('cartTotalSheet')?.innerText || '0';
-    const payAmountEl = document.getElementById('payAmount');
-    if(payAmountEl) payAmountEl.innerText = am;
-    const payModal = document.getElementById('payModal');
-    if(payModal) {
-        payModal.style.display = 'flex';
-        payModal.setAttribute('aria-hidden','false');
-    }
-    const payBtns = document.getElementById('payBtns');
-    if(payBtns) payBtns.style.display = 'grid';
-    const qrBox = document.getElementById('qrBox');
-    if(qrBox) qrBox.classList.add('hidden');
-}
-
-function showQR() {
-    const amt = document.getElementById('payAmount')?.innerText || '0';
-    const link = `upi://pay?pa=${encodeURIComponent(CONFIG.upi)}&pn=${encodeURIComponent(CONFIG.name)}&am=${encodeURIComponent(amt)}&cu=INR`;
-    const qEl = document.getElementById('qrcode');
-    if(qEl) {
-        qEl.innerHTML = '';
-        try {
-            new QRCode(qEl, { text: link, width: 180, height: 180 });
-        } catch (e) {
-            qEl.innerText = 'QR generation failed';
-            console.warn('QRCode error', e);
-        }
-    }
-    const payBtns = document.getElementById('payBtns'); if(payBtns) payBtns.style.display = 'none';
-    const qrBox = document.getElementById('qrBox'); if(qrBox) qrBox.classList.remove('hidden');
-}
-
-async function processPay(method) {
-    try {
-        const now = new Date();
-        const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
-        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString() };
-        // add to local sales
-        sales.push(orderRecord);
-        saveData();
-
-        // Try to persist to Supabase
-        if(supabaseClient) {
-            try {
-                const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
-                if(!orderErr && order && order.id) {
-                    // insert items
-                    const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
-                    await supabaseClient.from('BILLINGO_order_items').insert(items);
-                    await loadOrdersFromSupabase(); // refresh sales
-                } else {
-                    if(orderErr) console.warn('Order insert error:', orderErr);
-                }
-            } catch (e) {
-                console.warn('Supabase order save failed:', e);
-            }
-        }
-
-        closeModal('payModal'); cart = []; updateCartUI(); renderMenu();
-        alert("✅ Order Saved Successfully!");
-    } catch (e) {
-        console.error('Payment processing failed:', e);
-        alert('Payment processing failed. See console for details.');
-    }
-}
-
-function closeModal(id) {
-    const el = document.getElementById(id);
-    if(el) { el.style.display = 'none'; el.setAttribute('aria-hidden','true'); }
-}
-
-/* Reset only app keys (safer) */
-async function clearData() {
+/* Reset only app keys */
+async function clearData(){
     if(!confirm("⚠️ Reset all app data?")) return;
     if(!confirm("Are you sure? This will remove local menu & sales data.")) return;
-    try {
+    try{
         localStorage.removeItem('shwarma_menu');
         localStorage.removeItem('shwarma_sales');
         localStorage.removeItem('shwarma_theme_light');
         localStorage.removeItem('shwarma_online');
-        // optionally keep other unrelated keys
-    } catch (e) {
-        console.warn('clearData failed:', e);
-    }
+    }catch(e){ console.warn('clearData failed:', e); }
     location.reload();
 }
 
-/* Utilities */
-function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+/* Navigation helper (works with modular bottom nav) */
+function nav(view, el){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + view);
+    if(target) target.classList.add('active');
+    // toggle active class on nav buttons (either provided element or find by data-id)
+    const container = document.getElementById('bottomNav');
+    if(container){
+        container.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        let btn = el && el.classList && el.classList.contains('nav-btn') ? el : container.querySelector(`[data-id="${view}"]`);
+        if(btn) btn.classList.add('active');
+    }
 }
 
-/* Minimal XSS-safe wrapper for setters that used innerText earlier */
-function safeSetText(id, txt) {
-    const el = document.getElementById(id);
-    if(el) el.textContent = txt;
+/* Init */
+async function init(){
+    createSupabaseClientWhenReady();
+    applyTheme();
+    setOnlineStatus(isOnline);
+    renderBottomNav('pos'); // render modular nav
+    renderMenu();
+    renderMgmt();
+    initDashControls();
+    updateDash();
+
+    // keep trying to create supabase client if SDK loads after DOM ready
+    if(!supabaseClient){
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            createSupabaseClientWhenReady();
+            if(supabaseClient){
+                clearInterval(poll);
+                await loadMenuFromSupabase();
+                await loadOrdersFromSupabase();
+                initDashControls(false);
+                updateDash();
+            } else if(attempts > 6) clearInterval(poll);
+        }, 700);
+    } else {
+        await loadMenuFromSupabase();
+        await loadOrdersFromSupabase();
+        initDashControls(false);
+        updateDash();
+    }
 }
 
-/* Simple startup */
+/* Expose for debugging */
+window._POS = { getMenu: () => menu, getCart: () => cart, getSales: () => sales, createSupabaseClientWhenReady };
+
+/* Start app */
 init();
-
-/* Expose for debugging in console (optional) */
-window._POS = {
-    getMenu: () => menu,
-    getCart: () => cart,
-    getSales: () => sales,
-    createSupabaseClientWhenReady
-};
 </script>
 </body>
 </html>
