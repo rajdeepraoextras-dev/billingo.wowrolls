@@ -142,10 +142,9 @@
         .dash-btn:active{ transform:scale(.98); }
 
         .stats-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:12px; margin-bottom:12px; }
-        .stat-card{ background:var(--glass-surface); padding:12px; border-radius:12px; border:1px solid var(--glass-border); }
-        .stat-label{ font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:6px; }
+        .stat-card{ background:var(--glass-surface); padding:12px; border-radius:12px; border:1px solid var(--glass-border); display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+        .stat-label{ font-size:13px; color:var(--text-muted); font-weight:700; }
         .stat-value{ font-size:20px; font-weight:800; color:var(--text-main); }
-        .stat-sub{ font-size:11px; color:var(--text-muted); margin-top:6px; opacity:.8; }
 
         .mini-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px; }
         .mini-card{ background:var(--glass-surface); border-radius:12px; padding:12px; border:1px solid var(--glass-border); }
@@ -246,20 +245,11 @@
 
             <div class="dash-filters">
                 <div class="dash-filter-row">
-                    <select id="dashPreset" class="input-dark" onchange="onDashPresetChange(this.value)" aria-label="Preset range">
-                        <option value="today" selected>Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="last7">Last 7 Days</option>
-                        <option value="month">This Month</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter" title="Apply"> <i class="fas fa-filter" aria-hidden="true"></i></button>
-                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF" title="Export PDF"> <i class="fas fa-file-pdf" aria-hidden="true"></i></button>
-                </div>
-
-                <div class="dash-filter-row">
+                    <!-- removed preset dropdown per request; kept date range and actions -->
                     <input id="dashFrom" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="From date">
                     <input id="dashTo" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="To date">
+                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter" title="Apply"> <i class="fas fa-filter" aria-hidden="true"></i></button>
+                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF" title="Export PDF"> <i class="fas fa-file-pdf" aria-hidden="true"></i></button>
                 </div>
                 <div class="text-sm" id="dashRangeHint" style="text-align:center; margin-top:6px;"></div>
             </div>
@@ -268,25 +258,21 @@
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-rupee-sign" aria-hidden="true"></i> Today Revenue</div>
                     <div class="stat-value">₹<span id="dashRev">0</span></div>
-                    <div class="stat-sub">All payments</div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Today Orders</div>
                     <div class="stat-value"><span id="dashOrd">0</span></div>
-                    <div class="stat-sub">Total orders today</div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-percent" aria-hidden="true"></i> Avg Order Value</div>
                     <div class="stat-value">₹<span id="dashAov">0</span></div>
-                    <div class="stat-sub">Today average</div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-label"><i class="fas fa-layer-group" aria-hidden="true"></i> All-time Revenue</div>
                     <div class="stat-value">₹<span id="dashAllRev">0</span></div>
-                    <div class="stat-sub">Since first sale</div>
                 </div>
             </div>
 
@@ -304,8 +290,6 @@
                     <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="upiOrd">0</span></strong></div>
                 </div>
             </div>
-
-            <!-- Revenue trend and item-wise sales removed as requested -->
 
             <h3>Recent Orders</h3>
             <div id="dashHistory"></div>
@@ -393,7 +377,6 @@ const CONFIG = {
 let cart = [];
 let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
 let isLightMode = JSON.parse(localStorage.getItem('shwarma_theme_light') || 'false');
-let dashPreset = 'today';
 let dashFrom = null;
 let dashTo = null;
 
@@ -520,7 +503,9 @@ async function processPay(method){
     try{
         const now = new Date();
         const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
-        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString() };
+        // include items with the order record so recent orders can show items (even when offline)
+        const itemsForOrder = cart.map(ci => ({ name: ci.name, qty: ci.qty, price: ci.price }));
+        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString(), items: itemsForOrder };
         sales.push(orderRecord);
         saveData();
 
@@ -560,10 +545,17 @@ function closeModal(id){ const el = document.getElementById(id); if(el){ el.styl
 /* Dashboard helpers (trend & item-wise removed) */
 function getDashRange(){ let fromVal = dashFrom; let toVal = dashTo; const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput && fromInput.value) fromVal = fromInput.value; if(toInput && toInput.value) toVal = toInput.value; const now = new Date(); if(!fromVal || !toVal) return { from: startOfDayLocal(now), to: endOfDayLocal(now) }; return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) }; }
 function setDashHint(){ const hint = document.getElementById('dashRangeHint'); if(!hint) return; const r = getDashRange(); hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`; }
-function setPresetRange(preset, applyToInputs = true){ dashPreset = preset || 'today'; const now = new Date(); let from = startOfDayLocal(now); let to = endOfDayLocal(now); if(dashPreset === 'yesterday'){ const y = new Date(now); y.setDate(y.getDate() - 1); from = startOfDayLocal(y); to = endOfDayLocal(y); } else if(dashPreset === 'last7'){ const a = new Date(now); a.setDate(a.getDate() - 6); from = startOfDayLocal(a); to = endOfDayLocal(now); } else if(dashPreset === 'month'){ from = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0); to = endOfDayLocal(now); } else if(dashPreset === 'custom'){ const r = getDashRange(); from = r.from; to = r.to; } if(applyToInputs){ const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput) fromInput.value = toDateInputValue(from); if(toInput) toInput.value = toDateInputValue(to); const presetEl = document.getElementById('dashPreset'); if(presetEl && presetEl.value !== dashPreset) presetEl.value = dashPreset; } dashFrom = toDateInputValue(from); dashTo = toDateInputValue(to); setDashHint(); }
-function initDashControls(forcePreset = true){ const presetEl = document.getElementById('dashPreset'); if(presetEl && forcePreset) dashPreset = presetEl.value || 'today'; setPresetRange(dashPreset, true); }
-function onDashPresetChange(preset){ setPresetRange(preset, true); }
-function onDashDateChange(){ const presetEl = document.getElementById('dashPreset'); if(presetEl && presetEl.value !== 'custom') presetEl.value = 'custom'; dashPreset = 'custom'; setDashHint(); }
+function initDashControls(){ // set default range to today
+    const now = new Date();
+    const fromInput = document.getElementById('dashFrom');
+    const toInput = document.getElementById('dashTo');
+    if(fromInput) fromInput.value = toDateInputValue(startOfDayLocal(now));
+    if(toInput) toInput.value = toDateInputValue(endOfDayLocal(now));
+    dashFrom = fromInput?.value || toDateInputValue(startOfDayLocal(now));
+    dashTo = toInput?.value || toDateInputValue(endOfDayLocal(now));
+    setDashHint();
+}
+function onDashDateChange(){ dashFrom = document.getElementById('dashFrom')?.value || dashFrom; dashTo = document.getElementById('dashTo')?.value || dashTo; setDashHint(); }
 function applyDashFilter(){ setDashHint(); updateDash(); }
 
 async function updateDash(){
@@ -598,6 +590,26 @@ async function updateDash(){
     if(el('cashPct')) el('cashPct').innerText = pct(cashRev, rangeRev) + '%';
     if(el('upiPct')) el('upiPct').innerText = pct(upiRev, rangeRev) + '%';
 
+    // If supabase available, fetch items for displayed orders to enrich entries
+    let orderItemsMap = new Map();
+    if(supabaseClient){
+        try{
+            const ids = inRange.map(o => o.id).filter(Boolean);
+            if(ids.length){
+                const { data: itemsData, error: itemsErr } = await supabaseClient.from('BILLINGO_order_items').select('order_id,item_name,unit_price,qty').in('order_id', ids);
+                if(!itemsErr && itemsData){
+                    itemsData.forEach(it => {
+                        const arr = orderItemsMap.get(it.order_id) || [];
+                        arr.push({ name: it.item_name, qty: Number(it.qty || 0), price: Number(it.unit_price || 0) });
+                        orderItemsMap.set(it.order_id, arr);
+                    });
+                }
+            }
+        }catch(e){
+            console.warn('Failed to load order items for history:', e);
+        }
+    }
+
     if(hist){
         if(sales.length === 0){
             hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
@@ -606,13 +618,25 @@ async function updateDash(){
             if(histRows.length === 0){
                 hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
             } else {
-                hist.innerHTML = histRows.map(s => `<div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;"><div><div style="font-weight:700; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</span></div><div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div></div>`).join('');
+                hist.innerHTML = histRows.map(s => {
+                    // Determine items: prefer local s.items, else look up from orderItemsMap using s.id
+                    let items = s.items || orderItemsMap.get(s.id) || [];
+                    // build items HTML
+                    const itemsHtml = items.length ? `<div style="margin-top:8px; font-size:13px; color:var(--text-muted);">${items.map(it => `<div>${escapeHtml(it.name)} × ${escapeHtml(String(it.qty))}${(typeof it.price !== 'undefined') ? ` • ₹${escapeHtml(String(it.price))}` : ''}</div>`).join('')}</div>` : '';
+                    return `<div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; flex-direction:column; gap:8px; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div><div style="font-weight:700; color:var(--text-main);">₹${s.total}</div><span class="text-sm"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</span></div>
+                                    <div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div>
+                                </div>
+                                ${itemsHtml}
+                            </div>`;
+                }).join('');
             }
         }
     }
 }
 
-/* PDF export: removed top items section (item-wise sales removed) */
+/* PDF export: no item-wise section */
 function downloadDashPdf(){
     try{
         const range = getDashRange();
@@ -698,14 +722,14 @@ async function init(){
                 clearInterval(poll);
                 await loadMenuFromSupabase();
                 await loadOrdersFromSupabase();
-                initDashControls(false);
+                initDashControls();
                 updateDash();
             } else if(attempts > 6) clearInterval(poll);
         }, 700);
     } else {
         await loadMenuFromSupabase();
         await loadOrdersFromSupabase();
-        initDashControls(false);
+        initDashControls();
         updateDash();
     }
 }
