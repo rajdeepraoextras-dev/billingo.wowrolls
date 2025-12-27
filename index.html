@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,17 +133,6 @@
         .btn-primary{ width:100%; background:var(--primary-gradient); color:white; padding:14px; border-radius:14px; font-weight:800; font-size:15px; border:none; cursor:pointer; display:inline-flex; gap:8px; align-items:center; justify-content:center; }
         .btn-primary:active{ transform:scale(.99); }
 
-        /* NEW: Order Type Chips */
-        .order-type-group{ background:var(--glass-surface); padding:16px; border-radius:18px; border:1px solid var(--glass-border); margin-bottom:18px; }
-        .order-type-title{ font-weight:700; font-size:13px; color:var(--text-muted); margin-bottom:12px; }
-        .order-type-chips{ display:flex; gap:10px; }
-        .order-type-chip{ flex:1; padding:12px 16px; border-radius:12px; border:2px solid var(--glass-border); background:var(--glass-surface); color:var(--text-muted); font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .2s ease; }
-        .order-type-chip.active{ background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 8px 24px rgba(255,107,53,0.3); transform:translateY(-2px); }
-        .order-type-chip.dine-in{ border-color:var(--accent-green); }
-        .order-type-chip.dine-in.active{ background:var(--accent-green); border-color:var(--accent-green); }
-        .order-type-chip.online{ border-color:var(--accent-blue); }
-        .order-type-chip.online.active{ background:var(--accent-blue); border-color:var(--accent-blue); }
-
         /* Dashboard specific */
         .dash-filters{
             background:var(--glass-surface); border:1px solid var(--glass-border); padding:12px; border-radius:14px; margin-bottom:14px; display:flex; flex-direction:column; gap:10px;
@@ -165,14 +155,6 @@
         .order-action-btn { background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text-main); padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; }
         .order-action-btn.delete { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.12); color: #ef4444; }
         .order-action-btn.edit { background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.12); color: #38bdf8; }
-
-        /* Order Type Badge in History */
-        .order-type-badge{ 
-            padding:6px 12px; border-radius:12px; font-size:12px; font-weight:700; 
-            display:inline-flex; align-items:center; gap:4px; 
-        }
-        .order-type-badge.dine-in{ background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.2); }
-        .order-type-badge.online{ background:rgba(59,130,246,0.12); color:#3b82f6; border:1px solid rgba(59,130,246,0.2); }
 
         .bottom-nav{
             position:fixed; bottom:14px; left:50%; transform:translateX(-50%); width:92%; max-width:420px; height:70px;
@@ -197,489 +179,657 @@
         .hidden{ display:none !important; }
         .text-sm{ font-size:12px; color:var(--text-muted); }
         .form-row{ display:flex; gap:10px; }
+
+        @media (max-width:520px){
+            .brand-name{ font-size:16px; }
+            .menu-item{ min-height:120px; padding:12px; border-radius:14px; }
+            .menu-grid{ grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
+            .bottom-nav{ height:76px; }
+            .cart-bar{ bottom:106px; }
+            .brand-header{ padding:10px 12px; }
+            .search-input{ padding-left:44px; }
+            .dash-filter-row{ flex-direction:column; align-items:stretch; }
+            .order-action-btn{ padding:6px; font-size:11px; }
+        }
     </style>
 </head>
-<body>
+<body class="">
     <div class="main-container">
-        <!-- POS View -->
-        <div id="posView" class="view active">
-            <div class="brand-header">
+        <div id="view-pos" class="view active" aria-live="polite">
+            <div class="brand-header" role="banner">
                 <div class="brand-left">
-                    <i class="fa-solid fa-utensils brand-icon" style="color:var(--primary)"></i>
-                    <div class="brand-name">WOW ROLLS POS</div>
+                    <span class="brand-icon" aria-hidden="true">🌯</span>
+                    <span class="brand-name">WOW ROLLS</span>
                 </div>
-                <div class="header-actions">
-                    <div class="status-badge online">ONLINE</div>
-                    <label class="theme-btn">
-                        <input type="checkbox" id="themeToggle" class="toggle-switch">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- NEW: Order Type Selection -->
-            <div class="order-type-group" id="orderTypeGroup">
-                <div class="order-type-title">Order Type</div>
-                <div class="order-type-chips">
-                    <button type="button" id="btnDineIn" class="order-type-chip dine-in active">
-                        <i class="fa-solid fa-chair"></i> Dine-in
+                <div class="header-actions" role="region" aria-label="Actions">
+                    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+                        <i class="fas fa-moon" id="themeIcon" aria-hidden="true"></i>
                     </button>
-                    <button type="button" id="btnOnline" class="order-type-chip online">
-                        <i class="fa-solid fa-motorcycle"></i> Online
-                    </button>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span id="statusBadge" class="status-badge" aria-live="polite">OFFLINE</span>
+                        <label class="toggle-switch" aria-label="Online status toggle">
+                            <input id="onlineToggle" type="checkbox" onchange="toggleOnlineStatus(this.checked)" aria-label="Set online status">
+                            <span class="toggle-slider" aria-hidden="true"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
             <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search menu items...">
-            </div>
-
-            <div class="category-scroll" id="categoryScroll"></div>
-            <div class="menu-grid" id="menuGrid"></div>
-        </div>
-
-        <!-- Dashboard View -->
-        <div id="dashView" class="view">
-            <div class="brand-header">
-                <div class="brand-left">
-                    <i class="fa-solid fa-chart-line brand-icon" style="color:var(--primary)"></i>
-                    <div class="brand-name">Dashboard</div>
+                <input type="text" id="menuSearch" class="search-input" placeholder="Search menu..." onkeyup="filterMenu(this.value)" aria-label="Search menu">
+                <div class="category-scroll" role="tablist" aria-label="Categories">
+                    <button class="cat-chip active" onclick="filterCat('All', this)" role="tab" aria-selected="true">All</button>
+                    <button class="cat-chip" onclick="filterCat('Rolls', this)" role="tab">Rolls</button>
+                    <button class="cat-chip" onclick="filterCat('Sides', this)" role="tab">Sides</button>
+                    <button class="cat-chip" onclick="filterCat('Drinks', this)" role="tab">Drinks</button>
                 </div>
             </div>
+
+            <div class="menu-grid" id="menuGrid" role="grid" aria-label="Menu items"></div>
+        </div>
+
+        <div id="view-menu" class="view" aria-hidden="true">
+            <h2><i class="fas fa-utensils" aria-hidden="true"></i> Manage Menu</h2>
+            <div class="input-group" aria-label="Add new menu item">
+                <input type="text" id="newItemName" class="input-dark" placeholder="Item Name" aria-label="Item name">
+                <div class="form-row">
+                    <input type="number" id="newItemPrice" class="input-dark" placeholder="Price" aria-label="Item price">
+                    <select id="newItemCat" class="input-dark" aria-label="Category">
+                        <option value="Rolls">Rolls</option>
+                        <option value="Sides">Sides</option>
+                        <option value="Drinks">Drinks</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="addNewItem()" aria-label="Add item">
+                    <i class="fas fa-plus" aria-hidden="true"></i> Add Item
+                </button>
+            </div>
+            <div id="mgmtList" style="padding-bottom:50px;"></div>
+        </div>
+
+        <div id="view-dash" class="view" aria-hidden="true">
+            <h2><i class="fas fa-chart-line" aria-hidden="true"></i> <span id="dashTitle">Sales Dashboard</span></h2>
 
             <div class="dash-filters">
                 <div class="dash-filter-row">
-                    <input type="date" id="dashFrom" class="input-dark">
-                    <input type="date" id="dashTo" class="input-dark">
-                    <button class="dash-btn" onclick="applyDashFilter()">
-                        <i class="fa-solid fa-search"></i>
-                    </button>
+                    <!-- removed preset dropdown per request; kept date range and actions -->
+                    <input id="dashFrom" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="From date">
+                    <input id="dashTo" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="To date">
+                    <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter" title="Apply"> <i class="fas fa-filter" aria-hidden="true"></i></button>
+                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF" title="Export PDF"> <i class="fas fa-file-pdf" aria-hidden="true"></i></button>
                 </div>
-                <div id="dashRangeHint" class="text-sm"></div>
+                <div class="text-sm" id="dashRangeHint" style="text-align:center; margin-top:6px;"></div>
             </div>
 
-            <div class="stats-grid">
+            <div class="stats-grid" aria-live="polite">
                 <div class="stat-card">
-                    <div class="stat-label">Revenue</div>
-                    <div class="stat-value" id="dashRev">₹0</div>
+                    <div class="stat-label"><i class="fas fa-rupee-sign" aria-hidden="true"></i> Today Revenue</div>
+                    <div class="stat-value">₹<span id="dashRev">0</span></div>
                 </div>
+
                 <div class="stat-card">
-                    <div class="stat-label">Orders</div>
-                    <div class="stat-value" id="dashOrd">0</div>
+                    <div class="stat-label"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Today Orders</div>
+                    <div class="stat-value"><span id="dashOrd">0</span></div>
                 </div>
+
                 <div class="stat-card">
-                    <div class="stat-label">AOV</div>
-                    <div class="stat-value" id="dashAov">₹0</div>
+                    <div class="stat-label"><i class="fas fa-percent" aria-hidden="true"></i> Avg Order Value</div>
+                    <div class="stat-value">₹<span id="dashAov">0</span></div>
                 </div>
+
                 <div class="stat-card">
-                    <div class="stat-label">Total Revenue</div>
-                    <div class="stat-value" id="dashAllRev">₹0</div>
+                    <div class="stat-label"><i class="fas fa-layer-group" aria-hidden="true"></i> All-time Revenue</div>
+                    <div class="stat-value">₹<span id="dashAllRev">0</span></div>
                 </div>
             </div>
 
+            <h3 id="dashPayTitle">Payment Breakdown</h3>
             <div class="mini-grid">
                 <div class="mini-card">
-                    <div class="mini-title">
-                        <span>Cash</span>
-                        <span id="cashPct">0%</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; gap:12px;">
-                        <div>₹<span id="cashRev">0</span></div>
-                        <div><span id="cashOrd">0</span> orders</div>
-                    </div>
+                    <div class="mini-title"><span><i class="fas fa-money-bill-wave" aria-hidden="true"></i> Cash</span><span id="cashPct">0%</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color:var(--text-main);">₹<span id="cashRev">0</span></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="cashOrd">0</span></strong></div>
                 </div>
+
                 <div class="mini-card">
-                    <div class="mini-title">
-                        <span>UPI</span>
-                        <span id="upiPct">0%</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; gap:12px;">
-                        <div>₹<span id="upiRev">0</span></div>
-                        <div><span id="upiOrd">0</span> orders</div>
-                    </div>
+                    <div class="mini-title"><span><i class="fas fa-qrcode" aria-hidden="true"></i> UPI</span><span id="upiPct">0%</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Revenue</span><strong style="color:var(--text-main);">₹<span id="upiRev">0</span></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; opacity:0.7;"><span>Orders</span><strong style="color:var(--text-main);"><span id="upiOrd">0</span></strong></div>
                 </div>
             </div>
 
+            <h3>Recent Orders</h3>
             <div id="dashHistory"></div>
+            <br>
+            <button class="btn-primary" onclick="clearData()" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); font-size:14px; padding:12px;" aria-label="Reset all data">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i> Reset All Data
+            </button>
         </div>
     </div>
 
-    <!-- Cart Bar -->
-    <div class="cart-bar" id="cartBar" onclick="openPayModal()">
-        <div id="cartSummary">
-            <span id="cartItems">0 items</span>
-            <span>₹<span id="cartTotal">0</span></span>
+    <!-- Modular bottom nav (rendered by JS) -->
+    <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Main navigation"></div>
+
+    <div id="cartBar" class="cart-bar" onclick="openCart()" role="button" aria-label="Open cart">
+        <div style="display:flex; flex-direction:column;">
+            <span style="font-size:13px; opacity:0.95;"><i class="fas fa-shopping-cart" aria-hidden="true"></i> <span id="cartCount">0</span> Items</span>
+            <span style="font-weight:800; font-size:18px;">₹<span id="cartTotalBar">0</span></span>
         </div>
-        <i class="fa-solid fa-arrow-up"></i>
+        <div style="font-weight:700; font-size:15px;">View Cart <i class="fas fa-arrow-right" aria-hidden="true"></i></div>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <button class="nav-btn active" onclick="switchView('posView')">
-            <i class="fa-solid fa-utensils" style="font-size:20px"></i>
-            POS
-        </button>
-        <button class="nav-btn" onclick="switchView('dashView')">
-            <i class="fa-solid fa-chart-line" style="font-size:20px"></i>
-            Dashboard
-        </button>
-    </div>
-
-    <!-- Payment Modal -->
-    <div class="modal-center" id="payModal">
-        <div class="modal-box">
-            <h3>Payment</h3>
-            <div style="font-size:24px; font-weight:800; color:var(--primary); margin:20px 0;">₹<span id="payAmount">0</span></div>
-            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
-                <button class="btn-primary" onclick="processPay('CASH')">
-                    <i class="fa-solid fa-money-bill-wave"></i> Cash
-                </button>
-                <button class="btn-primary" onclick="processPay('UPI')">
-                    <i class="fa-solid fa-mobile-retro"></i> UPI
+    <div id="cartSheet" class="sheet-overlay" onclick="if(event.target === this) closeCart()" aria-hidden="true" role="dialog" aria-label="Current order">
+        <div class="sheet-content">
+            <div class="sheet-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h2><i class="fas fa-receipt" aria-hidden="true"></i> Current Order</h2>
+                <button class="close-btn" onclick="closeCart()" aria-label="Close cart" style="width:36px; height:36px; border-radius:50%; background:var(--glass-border); display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
-            <div id="currentOrderType" style="text-align:center; font-weight:600; color:var(--text-muted);"></div>
+            <div id="cartList" style="flex:1; overflow-y:auto; margin-bottom:12px;"></div>
+            <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:800; margin-bottom:12px; padding:14px; background:rgba(255,107,53,0.08); border-radius:12px; border:1px solid rgba(255,107,53,0.18);">
+                <span>Total</span><span style="color:var(--primary);">₹<span id="cartTotalSheet">0</span></span>
+            </div>
+            <button class="btn-primary" onclick="openPayment()" aria-label="Proceed to pay">
+                <i class="fas fa-credit-card" aria-hidden="true"></i> Proceed to Pay
+            </button>
         </div>
     </div>
 
-    <!-- Order Saved Modal -->
-    <div class="modal-center" id="orderSavedModal" style="display:none;">
+    <div id="payModal" class="modal-center" aria-hidden="true" role="dialog" aria-label="Select payment">
         <div class="modal-box">
-            <i class="fa-solid fa-check-circle" style="font-size:48px; color:var(--accent-green); margin-bottom:12px;"></i>
-            <h3>Order Saved!</h3>
-            <p style="color:var(--text-muted);">Order placed successfully</p>
-            <button class="btn-primary" onclick="closeModal('orderSavedModal')">Continue</button>
+            <h2><i class="fas fa-wallet" aria-hidden="true"></i> Select Payment</h2>
+            <div style="font-size:42px; font-weight:800; color:var(--primary); margin:18px 0; text-shadow: 0 0 24px rgba(255,107,53,0.28);">₹<span id="payAmount">0</span></div>
+            <div id="payBtns" style="display:grid; gap:12px;">
+                <button class="btn-primary" style="background: linear-gradient(135deg, #334155 0%, #1e293b 100%); box-shadow:none; border:1px solid rgba(255,255,255,0.06);" onclick="processPay('CASH')" aria-label="Cash payment">
+                    <i class="fas fa-money-bill-wave" aria-hidden="true"></i> Cash Payment
+                </button>
+                <button class="btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" onclick="showQR()" aria-label="Show UPI QR code">
+                    <i class="fas fa-qrcode" aria-hidden="true"></i> UPI QR Code
+                </button>
+            </div>
+            <div id="qrBox" class="hidden" style="margin-top:12px;">
+                <div id="qrcode" style="background:white; padding:12px; border-radius:12px; width:fit-content; margin:0 auto 14px;"></div>
+                <button class="btn-primary" onclick="processPay('UPI')" style="background: var(--accent-green);" aria-label="Mark UPI paid">
+                    <i class="fas fa-check-circle" aria-hidden="true"></i> Payment Done
+                </button>
+            </div>
+            <button onclick="closeModal('payModal')" style="background:none; border:none; color:var(--text-muted); margin-top:14px; padding:8px; cursor:pointer; font-weight:700;" aria-label="Cancel payment">
+                Cancel
+            </button>
         </div>
     </div>
 
-    <script>
-        // Global state
-        let cart = [];
-        let sales = [];
-        let currentOrderType = 'DINE_IN';
-        let supabaseClient = null;
-        let dashFrom = '', dashTo = '';
-        let menuData = [
-            {id:1, name:'Chicken Roll', price:150, category:'Rolls', stock:50},
-            {id:2, name:'Veg Roll', price:120, category:'Rolls', stock:30},
-            {id:3, name:'Paneer Roll', price:140, category:'Rolls', stock:25},
-            {id:4, name:'Cold Drink', price:50, category:'Drinks', stock:100},
-            {id:5, name:'Chips', price:30, category:'Snacks', stock:40}
-        ];
+    <!-- New: order saved dialog -->
+    <div id="orderSavedModal" class="modal-center" aria-hidden="true" role="dialog" aria-label="Order saved">
+        <div class="modal-box">
+            <h2><i class="fas fa-check-circle" style="color:var(--accent-green);" aria-hidden="true"></i></h2>
+            <div style="font-size:20px; font-weight:800; margin:12px 0;">Order saved !</div>
+            <div style="margin-top:8px; color:var(--text-muted);">The order was recorded successfully.</div>
+            <div style="display:flex; gap:8px; margin-top:18px; justify-content:center;">
+                <button class="btn-primary" onclick="closeOrderSaved()" aria-label="OK">OK</button>
+            </div>
+        </div>
+    </div>
 
-        // Init Supabase
-        async function initSupabase() {
-            const supabaseUrl = 'YOUR_SUPABASE_URL';
-            const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
-            if (supabaseUrl && supabaseKey) {
-                supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-                await loadOrdersFromSupabase();
-            }
-        }
+<script>
+/* App config and state */
+const CONFIG = {
+    upi: "paytm.s1nij5e@pty",
+    name: "WOW ROLLS",
+    SUPABASE_URL: "https://vodxwyvpulrlpqkapiln.supabase.co",
+    SUPABASE_KEY: "sb_publishable_g_NWhtfzz5k-i0mxHdOHBw_GvgbtO1F" // publishable only; do not use for secrets
+};
 
-        // NEW: Order Type Controls
-        function initOrderTypeControls() {
-            const dineBtn = document.getElementById('btnDineIn');
-            const onlineBtn = document.getElementById('btnOnline');
-            const typeDisplay = document.getElementById('currentOrderType');
+let cart = [];
+let isOnline = JSON.parse(localStorage.getItem('shwarma_online') || 'false');
+let isLightMode = JSON.parse(localStorage.getItem('shwarma_theme_light') || 'false');
+let dashFrom = null;
+let dashTo = null;
 
-            const setType = (type, btn) => {
-                currentOrderType = type;
-                dineBtn.classList.toggle('active', type === 'DINE_IN');
-                onlineBtn.classList.toggle('active', type === 'ONLINE');
-                typeDisplay.innerHTML = type === 'DINE_IN' ? 
-                    '<i class="fa-solid fa-chair"></i> Dine-in Order' : 
-                    '<i class="fa-solid fa-motorcycle"></i> Online Delivery';
-            };
+let supabaseClient = null;
+function createSupabaseClientWhenReady(){
+    try{
+        if(window.supabase && typeof window.supabase.createClient === 'function'){
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, { auth: { persistSession: false } });
+        } else supabaseClient = null;
+    }catch(e){ console.warn('supabase create error', e); supabaseClient = null; }
+}
 
-            if (dineBtn) dineBtn.addEventListener('click', () => setType('DINE_IN', dineBtn));
-            if (onlineBtn) onlineBtn.addEventListener('click', () => setType('ONLINE', onlineBtn));
-        }
+/* Navigation items modular */
+const NAV_ITEMS = [
+    { id: 'pos', icon: 'fa-cash-register', label: 'Billing' },
+    { id: 'menu', icon: 'fa-utensils', label: 'Menu' },
+    { id: 'dash', icon: 'fa-chart-pie', label: 'Stats' }
+];
 
-        // Menu rendering
-        function renderMenu(filter = '') {
-            const grid = document.getElementById('menuGrid');
-            const filtered = menuData.filter(item => 
-                item.name.toLowerCase().includes(filter.toLowerCase())
-            );
-            grid.innerHTML = filtered.map(item => `
-                <div class="menu-item ${item.stock === 0 ? 'out-stock' : ''}" 
-                     onclick="${item.stock === 0 ? '' : `addToCart(${item.id})`}">
-                    ${item.stock === 0 ? '<div class="badge-out">OUT</div>' : ''}
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-price">₹${item.price}</div>
-                </div>
-            `).join('');
-        }
-
-        function addToCart(id) {
-            const item = menuData.find(m => m.id === id);
-            if (!item) return;
-
-            const cartItem = cart.find(c => c.id === id);
-            if (cartItem) {
-                cartItem.qty++;
-            } else {
-                cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
-            }
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const count = cart.reduce((sum, item) => sum + item.qty, 0);
-            
-            document.getElementById('cartItems').textContent = `${count} items`;
-            document.getElementById('cartTotal').textContent = total;
-            document.getElementById('payAmount').textContent = total;
-
-            const bar = document.getElementById('cartBar');
-            bar.style.display = total > 0 ? 'flex' : 'none';
-        }
-
-        function openPayModal() {
-            document.getElementById('payModal').style.display = 'flex';
-        }
-
-        // Process payment with order_type
-        async function processPay(method) {
-            try {
-                const now = new Date();
-                const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
-                const itemsForOrder = cart.map(ci => ({ name: ci.name, qty: ci.qty, price: ci.price }));
-
-                const orderRecord = { 
-                    id: Date.now(), 
-                    total, 
-                    method, 
-                    time: now.toLocaleTimeString(), 
-                    date: now.toLocaleDateString(), 
-                    ts: now.getTime(), 
-                    iso: now.toISOString(), 
-                    items: itemsForOrder,
-                    order_type: currentOrderType  // SAVED TO LOCAL & SUPABASE
-                };
-                sales.push(orderRecord);
-                saveData();
-
-                // Save to Supabase with order_type
-                if (supabaseClient) {
-                    try {
-                        const { data: order, error: orderErr } = await supabaseClient
-                            .from('BILLINGO_orders')
-                            .insert({
-                                total,
-                                payment_method: method,
-                                status: 'PAID',
-                                source: 'POS',
-                                placed_at: now.toISOString(),
-                                order_type: currentOrderType  // SAVED TO SUPABASE ✅
-                            })
-                            .select('id')
-                            .single();
-
-                        if (!orderErr && order && order.id) {
-                            const items = cart.map(ci => ({
-                                order_id: order.id,
-                                menu_item_id: ci.id || null,
-                                item_name: ci.name,
-                                unit_price: ci.price,
-                                qty: ci.qty
-                            }));
-                            await supabaseClient.from('BILLINGO_order_items').insert(items);
-                            orderRecord.id = order.id;
-                            saveData();
-                            await loadOrdersFromSupabase();
-                        }
-                    } catch (e) {
-                        console.warn('Supabase save failed:', e);
-                    }
-                }
-
-                closeModal('payModal');
-                cart = [];
-                updateCartUI();
-                renderMenu();
-                showOrderSaved();
-
-            } catch (e) {
-                console.error('Payment failed:', e);
-                alert('Payment failed');
-            }
-        }
-
-        async function loadOrdersFromSupabase() {
-            if (!supabaseClient) return;
-            try {
-                const { data: orders } = await supabaseClient
-                    .from('BILLINGO_orders')
-                    .select('id, total, payment_method, placed_at, order_type')
-                    .order('placed_at', { ascending: false })
-                    .limit(50);
-                
-                if (orders) {
-                    sales = orders.map(o => ({
-                        id: o.id,
-                        total: o.total,
-                        method: o.payment_method,
-                        iso: o.placed_at,
-                        order_type: o.order_type || 'DINE_IN',
-                        ts: new Date(o.placed_at).getTime()
-                    }));
-                }
-            } catch (e) {
-                console.warn('Supabase load failed:', e);
-            }
-        }
-
-        function showOrderSaved() {
-            document.getElementById('orderSavedModal').style.display = 'flex';
-            setTimeout(() => closeModal('orderSavedModal'), 2000);
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        function switchView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            event.target.closest('.nav-btn').classList.add('active');
-            
-            if (viewId === 'dashView') updateDash();
-        }
-
-        // Local storage
-        function saveData() {
-            localStorage.setItem('pos_sales', JSON.stringify(sales));
-            localStorage.setItem('pos_cart', JSON.stringify(cart));
-        }
-
-        function loadData() {
-            const savedSales = localStorage.getItem('pos_sales');
-            if (savedSales) sales = JSON.parse(savedSales);
-            const savedCart = localStorage.getItem('pos_cart');
-            if (savedCart) cart = JSON.parse(savedCart);
-            updateCartUI();
-        }
-
-        // Dashboard
-        function updateDash() {
-            const range = getDashRange();
-            const inRange = sales.filter(s => {
-                const t = new Date(s.iso).getTime();
-                return t >= range.from.getTime() && t <= range.to.getTime();
-            });
-
-            const rangeRev = inRange.reduce((a, b) => a + b.total, 0);
-            const rangeOrd = inRange.length;
-            const aov = rangeOrd ? Math.round(rangeRev / rangeOrd) : 0;
-            const allRev = sales.reduce((a, b) => a + b.total, 0);
-
-            document.getElementById('dashRev').textContent = rangeRev;
-            document.getElementById('dashOrd').textContent = rangeOrd;
-            document.getElementById('dashAov').textContent = aov;
-            document.getElementById('dashAllRev').textContent = allRev;
-
-            const cashSales = inRange.filter(s => s.method === 'CASH');
-            const upiSales = inRange.filter(s => s.method === 'UPI');
-            document.getElementById('cashRev').textContent = cashSales.reduce((a, b) => a + b.total, 0);
-            document.getElementById('upiRev').textContent = upiSales.reduce((a, b) => a + b.total, 0);
-            document.getElementById('cashOrd').textContent = cashSales.length;
-            document.getElementById('upiOrd').textContent = upiSales.length;
-
-            const cashRev = cashSales.reduce((a, b) => a + b.total, 0);
-            document.getElementById('cashPct').textContent = rangeRev ? Math.round((cashRev / rangeRev) * 100) + '%' : '0%';
-            document.getElementById('upiPct').textContent = rangeRev ? Math.round(((rangeRev - cashRev) / rangeRev) * 100) + '%' : '0%';
-
-            const history = document.getElementById('dashHistory');
-            history.innerHTML = inRange.map(order => {
-                const typeClass = order.order_type === 'ONLINE' ? 'online' : 'dine-in';
-                return `
-                    <div class="mgmt-row">
-                        <div>
-                            <div style="font-weight:700;">₹${order.total}</div>
-                            <div class="text-sm">${new Date(order.iso).toLocaleDateString()} ${new Date(order.iso).toLocaleTimeString()}</div>
-                        </div>
-                        <div style="display:flex; gap:12px; align-items:center;">
-                            <span class="order-type-badge ${typeClass}">
-                                <i class="fa-solid fa-${order.order_type === 'ONLINE' ? 'motorcycle' : 'chair'}"></i>
-                                ${order.order_type === 'ONLINE' ? 'Online' : 'Dine-in'}
-                            </span>
-                            <div class="order-actions">
-                                <button class="order-action-btn edit">Edit</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function getDashRange() {
-            const now = new Date();
-            const fromInput = document.getElementById('dashFrom');
-            const toInput = document.getElementById('dashTo');
-            if (!fromInput.value || !toInput.value) {
-                return { from: startOfDayLocal(now), to: endOfDayLocal(now) };
-            }
-            return {
-                from: startOfDayLocal(new Date(fromInput.value)),
-                to: endOfDayLocal(new Date(toInput.value))
-            };
-        }
-
-        function startOfDayLocal(date) {
-            const d = new Date(date);
-            d.setHours(0, 0, 0, 0);
-            return d;
-        }
-
-        function endOfDayLocal(date) {
-            const d = new Date(date);
-            d.setHours(23, 59, 59, 999);
-            return d;
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', async () => {
-            loadData();
-            renderMenu();
-            initOrderTypeControls();
-            initSupabase();
-            initDashControls();
-
-            document.getElementById('searchInput').addEventListener('input', (e) => renderMenu(e.target.value));
-            document.getElementById('themeToggle').addEventListener('change', (e) => {
-                document.body.classList.toggle('light-mode', e.target.checked);
-            });
+function renderBottomNav(activeId = 'pos'){
+    const container = document.getElementById('bottomNav');
+    if(!container) return;
+    container.innerHTML = NAV_ITEMS.map(item => `
+        <button class="nav-btn" data-id="${escapeHtml(item.id)}" title="${escapeHtml(item.label)}" aria-label="${escapeHtml(item.label)}">
+            <i class="fas ${escapeHtml(item.icon)}" aria-hidden="true"></i>
+            <span>${escapeHtml(item.label)}</span>
+        </button>
+    `).join('');
+    container.querySelectorAll('.nav-btn').forEach(btn => {
+        const id = btn.getAttribute('data-id');
+        btn.addEventListener('click', (e) => {
+            nav(id, btn);
         });
+        if(id === activeId) btn.classList.add('active'); else btn.classList.remove('active');
+    });
+}
 
-        function initDashControls() {
-            const now = new Date();
-            const fromInput = document.getElementById('dashFrom');
-            const toInput = document.getElementById('dashTo');
-            if (fromInput) fromInput.value = toDateInputValue(startOfDayLocal(now));
-            if (toInput) toInput.value = toDateInputValue(endOfDayLocal(now));
-            setDashHint();
-        }
+/* Default menu and persisted state */
+let defaultMenu = [
+    { id: 1, name: "Small Shawarma", price: 49, cat: "Rolls", stock: true },
+    { id: 2, name: "Medium Shawarma", price: 69, cat: "Rolls", stock: true },
+    { id: 3, name: "Large Shawarma", price: 99, cat: "Rolls", stock: true },
+    { id: 4, name: "Peri Peri Fries", price: 80, cat: "Sides", stock: true },
+    { id: 6, name: "Coke", price: 40, cat: "Drinks", stock: true }
+];
+let menu = JSON.parse(localStorage.getItem('shwarma_menu')) || defaultMenu.slice();
+let sales = JSON.parse(localStorage.getItem('shwarma_sales')) || [];
 
-        function toDateInputValue(date) {
-            return date.toISOString().split('T')[0];
-        }
+function saveData(){ try{ localStorage.setItem('shwarma_menu', JSON.stringify(menu)); localStorage.setItem('shwarma_sales', JSON.stringify(sales)); }catch(e){ console.error('saveData error', e); } renderMenu(); renderMgmt(); updateDash(); }
 
-        function setDashHint() {
-            const hint = document.getElementById('dashRangeHint');
-            if (hint) {
-                const r = getDashRange();
-                hint.textContent = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`;
+/* Theme */
+function applyTheme(){ const body = document.body; const icon = document.getElementById('themeIcon'); if(isLightMode){ body.classList.add('light-mode'); if(icon){ icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } } else { body.classList.remove('light-mode'); if(icon){ icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); } } }
+function toggleTheme(){ isLightMode = !isLightMode; localStorage.setItem('shwarma_theme_light', JSON.stringify(isLightMode)); applyTheme(); }
+
+/* Helpers */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function toDateInputValue(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function startOfDayLocal(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(),0,0,0,0); }
+function endOfDayLocal(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(),23,59,59,999); }
+function parseSaleTs(s){ if(!s) return null; if(typeof s.ts === 'number') return s.ts; if(typeof s.iso === 'string'){ const t = new Date(s.iso).getTime(); if(!Number.isNaN(t)) return t; } if(typeof s.date === 'string' && typeof s.time === 'string'){ const t = new Date(`${s.date} ${s.time}`).getTime(); if(!Number.isNaN(t)) return t; } return null; }
+
+/* Supabase helpers (kept defensive) */
+function mapMenuRowToApp(row){ return { id: row.id, name: row.name, price: row.price, cat: row.category || row.cat, stock: (typeof row.in_stock !== 'undefined') ? row.in_stock : (typeof row.stock !== 'undefined' ? row.stock : true) }; }
+function mapAppMenuToRow(item){ return { name: item.name, price: item.price, category: item.cat, in_stock: !!item.stock }; }
+function formatOrderForSales(order){ const dt = order.placed_at ? new Date(order.placed_at) : (order.created_at ? new Date(order.created_at) : new Date()); return { id: order.id, total: order.total, method: order.payment_method || order.method, time: dt.toLocaleTimeString(), date: dt.toLocaleDateString(), ts: dt.getTime(), iso: dt.toISOString() }; }
+
+async function loadMenuFromSupabase(){ if(!supabaseClient) return false; try{ const { data, error } = await supabaseClient.from('BILLINGO_menu_items').select('id,name,price,category,in_stock,created_at,updated_at').order('created_at',{ascending:true}); if(error){ console.warn('Supabase menu load failed:', error); return false; } menu = (data||[]).map(mapMenuRowToApp); saveData(); return true; }catch(e){ console.warn('Menu load exception:', e); return false; } }
+async function loadOrdersFromSupabase(){ if(!supabaseClient) return false; try{ const { data, error } = await supabaseClient.from('BILLINGO_orders').select('id,total,payment_method,placed_at,created_at,status').eq('status','PAID').order('placed_at',{ascending:false}); if(error){ console.warn('Supabase orders load failed:', error); return false; } sales = (data||[]).map(formatOrderForSales); saveData(); return true; }catch(e){ console.warn('Orders load exception:', e); return false; } }
+
+/* Online status */
+function setOnlineStatus(next){ isOnline = !!next; localStorage.setItem('shwarma_online', JSON.stringify(isOnline)); const badge = document.getElementById('statusBadge'); const toggle = document.getElementById('onlineToggle'); if(badge){ badge.innerText = isOnline ? 'ONLINE' : 'OFFLINE'; badge.classList.toggle('online', isOnline); } if(toggle && toggle.checked !== isOnline) toggle.checked = isOnline; }
+function toggleOnlineStatus(checked){ setOnlineStatus(checked); }
+
+/* UI: menu rendering & management */
+function renderMenu(filter = '', catFilter = 'All'){ const grid = document.getElementById('menuGrid'); if(!grid) return; grid.innerHTML = ''; if(menu.length === 0){ grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; text-align:center; color:gray; padding:40px;"><i class="fas fa-utensils" style="font-size:40px; margin-bottom:15px; display:block;"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items in menu</div><div>Go to Menu tab to add items!</div></div>'; return; } menu.forEach(item => { if((catFilter === 'All' || item.cat === catFilter) && item.name.toLowerCase().includes((filter || '').toLowerCase())){ const outClass = item.stock ? '' : 'out-stock'; const badge = item.stock ? '' : '<div class="badge-out">SOLD OUT</div>'; const inCart = cart.find(c => String(c.id) === String(item.id)); const selectedClass = inCart ? 'selected' : ''; const qtyBadge = inCart ? `<div class="badge-qty">${inCart.qty}</div>` : ''; grid.innerHTML += `<button class="menu-item ${outClass} ${selectedClass}" onclick="addCart('${escapeHtml(String(item.id))}')" aria-label="Add ${escapeHtml(item.name)} to cart">${badge}${qtyBadge}<div class="item-name">${escapeHtml(item.name)}</div><div class="item-price">${item.price}</div></button>`; } }); }
+
+function filterMenu(val){ renderMenu(val || '', 'All'); }
+function filterCat(cat, el){ document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active')); if(el){ el.classList.add('active'); el.setAttribute('aria-selected','true'); } renderMenu('', cat); }
+
+function renderMgmt(){ const list = document.getElementById('mgmtList'); if(!list) return; list.innerHTML = ''; if(menu.length === 0){ list.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No items yet</div><div>Add your first menu item above!</div></div>'; return; } menu.forEach((item, idx) => { const stockColor = item.stock ? 'var(--accent-green)' : '#ef4444'; list.innerHTML += `<div class="mgmt-row"><div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} • ${escapeHtml(item.cat)}</div></div><div style="display:flex; gap:8px;"><button class="icon-btn" onclick="toggleStock(${idx})" style="background:var(--glass-surface); color:${stockColor}" aria-label="Toggle stock"><i class="fas fa-power-off" aria-hidden="true"></i></button><button class="icon-btn" onclick="editPrice(${idx})" style="background:rgba(56,189,248,0.08); color:#38bdf8" aria-label="Edit price"><i class="fas fa-pen" aria-hidden="true"></i></button><button class="icon-btn" onclick="delItem(${idx})" style="background:rgba(255,71,87,0.08); color:#ef4444" aria-label="Delete item"><i class="fas fa-trash" aria-hidden="true"></i></button></div></div>`; }); }
+
+/* Add / edit / delete */
+async function addNewItem(){ const nameInput = document.getElementById('newItemName'); const priceInput = document.getElementById('newItemPrice'); const catInput = document.getElementById('newItemCat'); const n = nameInput?.value?.trim(); const p = priceInput?.value; const c = catInput?.value || 'Rolls'; if(!n || !p){ alert('Please fill all fields!'); return; } const newItem = { id: Date.now(), name: n, price: parseInt(p,10), cat: c, stock: true }; if(supabaseClient){ try{ const { data, error } = await supabaseClient.from('BILLINGO_menu_items').insert(mapAppMenuToRow(newItem)).select('id,name,price,category,in_stock,created_at,updated_at').single(); if(error){ console.warn('Supabase add item failed:', error); menu.push(newItem); } else menu.push(mapMenuRowToApp(data)); }catch(e){ console.warn('Add item error:', e); menu.push(newItem); } } else menu.push(newItem); saveData(); if(nameInput) nameInput.value=''; if(priceInput) priceInput.value=''; }
+
+async function delItem(idx){ if(!confirm("Delete this item?")) return; const id = menu[idx]?.id; menu.splice(idx,1); saveData(); if(!supabaseClient || typeof id === 'undefined' || id === null) return; try{ await supabaseClient.from('BILLINGO_menu_items').delete().eq('id', id); }catch(e){ console.warn('Server delete failed', e); } }
+
+async function toggleStock(idx){ if(typeof menu[idx] === 'undefined') return; menu[idx].stock = !menu[idx].stock; saveData(); if(!supabaseClient) return; const id = menu[idx].id; if(typeof id === 'undefined' || id === null) return; try{ await supabaseClient.from('BILLINGO_menu_items').update({ in_stock: menu[idx].stock, updated_at: new Date().toISOString() }).eq('id', id); }catch(e){ console.warn('Server toggleStock failed', e); } }
+
+async function editPrice(idx){ if(typeof menu[idx] === 'undefined') return; let p = prompt("New Price:", menu[idx].price); if(p === null) return; if(p !== '' && !isNaN(p)){ menu[idx].price = parseInt(p,10); saveData(); if(!supabaseClient) return; const id = menu[idx].id; if(typeof id === 'undefined' || id === null) return; try{ await supabaseClient.from('BILLINGO_menu_items').update({ price: menu[idx].price, updated_at: new Date().toISOString() }).eq('id', id); }catch(e){ console.warn('Server editPrice failed', e); } } else alert('Invalid price'); }
+
+/* Cart */
+function addCart(id){ const item = menu.find(i => String(i.id) === String(id)); if(!item) return; if(!item.stock) return; const exist = cart.find(c => String(c.id) === String(id)); if(exist) exist.qty++; else cart.push({...item, qty:1}); updateCartUI(); renderMenu(); }
+function updateCartUI(){ const total = cart.reduce((a,b)=>a + (b.price*b.qty), 0); const count = cart.reduce((a,b)=>a + b.qty, 0); const bar = document.getElementById('cartBar'); const totalBar = document.getElementById('cartTotalBar'); const countEl = document.getElementById('cartCount'); if(totalBar) totalBar.innerText = total; if(countEl) countEl.innerText = count; if(bar) bar.style.display = cart.length ? 'flex' : 'none'; const list = document.getElementById('cartList'); if(!list) return; list.innerHTML = ''; cart.forEach((item, idx) => { list.innerHTML += `<div class="cart-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass-surface); border-radius:12px; border:1px solid var(--glass-border); margin-bottom:8px;"><div><div style="font-weight:700; font-size:15px;">${escapeHtml(item.name)}</div><div class="text-sm">₹${item.price} each</div></div><div class="qty-control" style="display:flex; align-items:center; gap:8px; background:var(--input-bg); padding:6px; border-radius:10px; border:1px solid var(--glass-border);"><button class="qty-btn" onclick="modQty(${idx}, -1)" aria-label="Decrease quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">−</button><span style="font-weight:700; min-width:20px; text-align:center; color:var(--text-main);">${item.qty}</span><button class="qty-btn" onclick="modQty(${idx}, 1)" aria-label="Increase quantity" style="width:36px; height:34px; border-radius:8px; background:var(--primary); color:white; font-weight:700;">+</button></div></div>`; }); const sheetTotal = document.getElementById('cartTotalSheet'); if(sheetTotal) sheetTotal.innerText = total; }
+function modQty(idx, n){ if(typeof cart[idx] === 'undefined') return; cart[idx].qty += n; if(cart[idx].qty <= 0) cart.splice(idx,1); updateCartUI(); if(cart.length === 0) closeCart(); renderMenu(); }
+function openCart(){ const s = document.getElementById('cartSheet'); if(s){ s.style.display = 'flex'; s.setAttribute('aria-hidden','false'); } }
+function closeCart(){ const s = document.getElementById('cartSheet'); if(s){ s.style.display = 'none'; s.setAttribute('aria-hidden','true'); } }
+
+/* Payment flow */
+function openPayment(){ closeCart(); const am = document.getElementById('cartTotalSheet')?.innerText || '0'; const payAmountEl = document.getElementById('payAmount'); if(payAmountEl) payAmountEl.innerText = am; const payModal = document.getElementById('payModal'); if(payModal){ payModal.style.display = 'flex'; payModal.setAttribute('aria-hidden','false'); } const payBtns = document.getElementById('payBtns'); if(payBtns) payBtns.style.display = 'grid'; const qrBox = document.getElementById('qrBox'); if(qrBox) qrBox.classList.add('hidden'); }
+function showQR(){ const amt = document.getElementById('payAmount')?.innerText || '0'; const link = `upi://pay?pa=${encodeURIComponent(CONFIG.upi)}&pn=${encodeURIComponent(CONFIG.name)}&am=${encodeURIComponent(amt)}&cu=INR`; const qEl = document.getElementById('qrcode'); if(qEl){ qEl.innerHTML = ''; try{ new QRCode(qEl, { text: link, width: 180, height: 180 }); }catch(e){ qEl.innerText = 'QR generation failed'; console.warn('QRCode error', e); } } const payBtns = document.getElementById('payBtns'); if(payBtns) payBtns.style.display = 'none'; const qrBox = document.getElementById('qrBox'); if(qrBox) qrBox.classList.remove('hidden'); }
+
+/* Show order saved dialog */
+function showOrderSaved() {
+    const modal = document.getElementById('orderSavedModal');
+    if(modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+    } else {
+        // fallback
+        alert('Order saved !');
+    }
+}
+function closeOrderSaved() {
+    const modal = document.getElementById('orderSavedModal');
+    if(modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+}
+
+/* Edit and Delete order functions */
+async function deleteOrder(orderId) {
+    if(!confirm('Delete this order? This action cannot be undone.')) return;
+    // Remove locally
+    const idx = sales.findIndex(s => String(s.id) === String(orderId));
+    if(idx !== -1) {
+        sales.splice(idx, 1);
+        saveData();
+    }
+    // Try server delete (best-effort)
+    if(!supabaseClient) return;
+    try {
+        // delete order items first then order
+        await supabaseClient.from('BILLINGO_order_items').delete().eq('order_id', orderId);
+        await supabaseClient.from('BILLINGO_orders').delete().eq('id', orderId);
+        // refresh server-loaded orders if any
+        await loadOrdersFromSupabase();
+        updateDash();
+    } catch (e) {
+        console.warn('Server delete order failed:', e);
+    }
+}
+
+async function editOrder(orderId) {
+    const idx = sales.findIndex(s => String(s.id) === String(orderId));
+    if(idx === -1) { alert('Order not found locally.'); return; }
+    const order = sales[idx];
+    // Prompt for new total and method (simple edit)
+    let newTotal = prompt('Edit total amount (₹):', order.total);
+    if(newTotal === null) return; // cancelled
+    newTotal = parseInt(newTotal, 10);
+    if(Number.isNaN(newTotal)) { alert('Invalid total'); return; }
+    let newMethod = prompt('Payment method (CASH or UPI):', order.method || order.payment_method || 'CASH');
+    if(newMethod === null) return;
+    newMethod = String(newMethod).toUpperCase();
+
+    // Update local
+    order.total = newTotal;
+    order.method = newMethod;
+    // update time to now optionally
+    order.time = new Date().toLocaleTimeString();
+    order.date = new Date().toLocaleDateString();
+    order.ts = Date.now();
+    order.iso = new Date().toISOString();
+    saveData();
+
+    // Update server (best-effort)
+    if(!supabaseClient) {
+        updateDash();
+        alert('Order updated locally.');
+        return;
+    }
+    try {
+        await supabaseClient.from('BILLINGO_orders').update({ total: newTotal, payment_method: newMethod, placed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', orderId);
+        // reload
+        await loadOrdersFromSupabase();
+        updateDash();
+        alert('Order updated.');
+    } catch (e) {
+        console.warn('Server edit order failed:', e);
+        alert('Order updated locally, server update failed (see console).');
+    }
+}
+
+/* Process payment (save order) */
+async function processPay(method){
+    try{
+        const now = new Date();
+        const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
+        // include items with the order record so recent orders can show items (even when offline)
+        const itemsForOrder = cart.map(ci => ({ name: ci.name, qty: ci.qty, price: ci.price }));
+        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString(), items: itemsForOrder };
+        sales.push(orderRecord);
+        saveData();
+
+        // persist to Supabase (best-effort, do not block UX)
+        if(supabaseClient){
+            try{
+                const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
+                if(!orderErr && order && order.id){
+                    const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
+                    await supabaseClient.from('BILLINGO_order_items').insert(items);
+                    // Optionally replace local order id with server id for consistency
+                    // find the local order we just pushed (by matching timestamp)
+                    const localIdx = sales.findIndex(s => s.ts === orderRecord.ts && String(s.total) === String(orderRecord.total));
+                    if(localIdx !== -1) {
+                        sales[localIdx].id = order.id;
+                        saveData();
+                    }
+                    await loadOrdersFromSupabase();
+                } else if(orderErr){
+                    console.warn('Order insert error:', orderErr);
+                }
+            }catch(e){
+                console.warn('Supabase order save failed:', e);
             }
         }
 
-        function applyDashFilter() {
-            updateDash();
+        // Clear cart and UI
+        closeModal('payModal');
+        cart = [];
+        updateCartUI();
+        renderMenu();
+
+        // NEW: show dialog box "Order saved !"
+        showOrderSaved();
+
+    }catch(e){
+        console.error('Payment processing failed:', e);
+        alert('Payment processing failed. See console for details.');
+    }
+}
+
+function closeModal(id){ const el = document.getElementById(id); if(el){ el.style.display = 'none'; el.setAttribute('aria-hidden','true'); } }
+
+/* Dashboard helpers (trend & item-wise removed) */
+function getDashRange(){ let fromVal = dashFrom; let toVal = dashTo; const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput && fromInput.value) fromVal = fromInput.value; if(toInput && toInput.value) toVal = toInput.value; const now = new Date(); if(!fromVal || !toVal) return { from: startOfDayLocal(now), to: endOfDayLocal(now) }; return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) }; }
+function setDashHint(){ const hint = document.getElementById('dashRangeHint'); if(!hint) return; const r = getDashRange(); hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`; }
+function initDashControls(){ // set default range to today
+    const now = new Date();
+    const fromInput = document.getElementById('dashFrom');
+    const toInput = document.getElementById('dashTo');
+    if(fromInput) fromInput.value = toDateInputValue(startOfDayLocal(now));
+    if(toInput) toInput.value = toDateInputValue(endOfDayLocal(now));
+    dashFrom = fromInput?.value || toDateInputValue(startOfDayLocal(now));
+    dashTo = toInput?.value || toDateInputValue(endOfDayLocal(now));
+    setDashHint();
+}
+function onDashDateChange(){ dashFrom = document.getElementById('dashFrom')?.value || dashFrom; dashTo = document.getElementById('dashTo')?.value || dashTo; setDashHint(); }
+function applyDashFilter(){ setDashHint(); updateDash(); }
+
+async function updateDash(){
+    const range = getDashRange();
+    setDashHint();
+    const hist = document.getElementById('dashHistory');
+    const fromTs = range.from.getTime();
+    const toTs = range.to.getTime();
+    const inRange = sales.filter(s => { const t = parseSaleTs(s); return t !== null && t >= fromTs && t <= toTs; });
+
+    const rangeRev = inRange.reduce((a,b)=>a + (b.total || 0), 0);
+    const rangeOrd = inRange.length;
+    const allRev = sales.reduce((a,b)=>a + (b.total || 0), 0);
+    const aov = rangeOrd ? Math.round(rangeRev / rangeOrd) : 0;
+
+    const el = id => document.getElementById(id);
+    if(el('dashRev')) el('dashRev').innerText = rangeRev;
+    if(el('dashOrd')) el('dashOrd').innerText = rangeOrd;
+    if(el('dashAov')) el('dashAov').innerText = aov;
+    if(el('dashAllRev')) el('dashAllRev').innerText = allRev;
+
+    const cashSales = inRange.filter(s => (s.method || s.payment_method) === 'CASH');
+    const upiSales = inRange.filter(s => (s.method || s.payment_method) === 'UPI');
+    const cashRev = cashSales.reduce((a,b)=>a + (b.total || 0), 0);
+    const upiRev = upiSales.reduce((a,b)=>a + (b.total || 0), 0);
+    const pct = (n, d) => d ? Math.round((n/d) * 100) : 0;
+
+    if(el('cashRev')) el('cashRev').innerText = cashRev;
+    if(el('upiRev')) el('upiRev').innerText = upiRev;
+    if(el('cashOrd')) el('cashOrd').innerText = cashSales.length;
+    if(el('upiOrd')) el('upiOrd').innerText = upiSales.length;
+    if(el('cashPct')) el('cashPct').innerText = pct(cashRev, rangeRev) + '%';
+    if(el('upiPct')) el('upiPct').innerText = pct(upiRev, rangeRev) + '%';
+
+    // If supabase available, fetch items for displayed orders to enrich entries
+    let orderItemsMap = new Map();
+    if(supabaseClient){
+        try{
+            const ids = inRange.map(o => o.id).filter(Boolean);
+            if(ids.length){
+                const { data: itemsData, error: itemsErr } = await supabaseClient.from('BILLINGO_order_items').select('order_id,item_name,unit_price,qty').in('order_id', ids);
+                if(!itemsErr && itemsData){
+                    itemsData.forEach(it => {
+                        const arr = orderItemsMap.get(it.order_id) || [];
+                        arr.push({ name: it.item_name, qty: Number(it.qty || 0), price: Number(it.unit_price || 0) });
+                        orderItemsMap.set(it.order_id, arr);
+                    });
+                }
+            }
+        }catch(e){
+            console.warn('Failed to load order items for history:', e);
         }
-    </script>
+    }
+
+    if(hist){
+        if(sales.length === 0){
+            hist.innerHTML = '<div class="empty-state"><i class="fas fa-receipt"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders yet</div><div>Start selling to see stats!</div></div>';
+        } else {
+            const histRows = inRange.slice().reverse().slice(0,25);
+            if(histRows.length === 0){
+                hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
+            } else {
+                hist.innerHTML = histRows.map(s => {
+                    // Determine items: prefer local s.items, else look up from orderItemsMap using s.id
+                    let items = s.items || orderItemsMap.get(s.id) || [];
+                    // build items HTML
+                    const itemsHtml = items.length ? `<div style="margin-top:8px; font-size:13px; color:var(--text-muted);">${items.map(it => `<div>${escapeHtml(it.name)} × ${escapeHtml(String(it.qty))}${(typeof it.price !== 'undefined') ? ` • ₹${escapeHtml(String(it.price))}` : ''}</div>`).join('')}</div>` : '';
+                    // action buttons (edit/delete) — use order id in data attribute
+                    const actionButtons = `<div class="order-actions">
+                        <button class="order-action-btn edit" title="Edit order" onclick="editOrder('${escapeHtml(String(s.id))}')"><i class="fas fa-pen" aria-hidden="true"></i> Edit</button>
+                        <button class="order-action-btn delete" title="Delete order" onclick="deleteOrder('${escapeHtml(String(s.id))}')"><i class="fas fa-trash" aria-hidden="true"></i> Delete</button>
+                    </div>`;
+                    return `<div style="padding:12px; border-bottom:1px solid var(--glass-border); display:flex; flex-direction:column; gap:8px; background:var(--glass-surface); border-radius:8px; margin-bottom:8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                                    <div style="flex:1;">
+                                        <div style="font-weight:700; color:var(--text-main);">₹${s.total}</div>
+                                        <div class="text-sm" style="margin-top:4px;"><i class="fas fa-calendar"></i> ${escapeHtml(s.date || '')} • <i class="fas fa-clock"></i> ${escapeHtml(s.time || '')}</div>
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                                        <div style="background:${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.08)':'rgba(99,102,241,0.08)'}; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; color:${(s.method==='CASH' || s.payment_method==='CASH')?'var(--accent-green)':'var(--accent-blue)'}; border: 1px solid ${(s.method==='CASH' || s.payment_method==='CASH')?'rgba(34,197,94,0.12)':'rgba(99,102,241,0.12)'};">${escapeHtml(s.method || s.payment_method || '')}</div>
+                                        ${actionButtons}
+                                    </div>
+                                </div>
+                                ${itemsHtml}
+                            </div>`;
+                }).join('');
+            }
+        }
+    }
+}
+
+/* PDF export: no item-wise section */
+function downloadDashPdf(){
+    try{
+        const range = getDashRange();
+        const fromStr = range.from.toLocaleDateString();
+        const toStr = range.to.toLocaleDateString();
+        const sumRev = Number(document.getElementById('dashRev')?.innerText || 0);
+        const sumOrd = Number(document.getElementById('dashOrd')?.innerText || 0);
+        const sumAov = Number(document.getElementById('dashAov')?.innerText || 0);
+        const cashRev = Number(document.getElementById('cashRev')?.innerText || 0);
+        const upiRev = Number(document.getElementById('upiRev')?.innerText || 0);
+        const cashOrd = Number(document.getElementById('cashOrd')?.innerText || 0);
+        const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
+
+        const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+        if(!jsPDF){ alert('PDF engine not loaded. Please refresh once and try again.'); return; }
+
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        let y = 54;
+        doc.setFont('helvetica','bold'); doc.setFontSize(18);
+        doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y); y += 22;
+        doc.setFont('helvetica','normal'); doc.setFontSize(11);
+        doc.text(`Range: ${fromStr} to ${toStr}`, 40, y); y += 18;
+        doc.setFont('helvetica','bold');
+        doc.text(`Revenue: ₹${sumRev}`, 40, y); y += 14;
+        doc.text(`Orders: ${sumOrd}`, 40, y); y += 14;
+        doc.text(`Avg Order Value: ₹${sumAov}`, 40, y); y += 18;
+        doc.setFont('helvetica','bold'); doc.text('Payment Breakdown', 40, y); y += 14;
+        doc.setFont('helvetica','normal');
+        doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y); y += 12;
+        doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y); y += 18;
+
+        const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
+        doc.save(fname);
+    }catch(e){
+        console.error('PDF download failed:', e);
+        alert('Unable to generate PDF. Check console for details.');
+    }
+}
+
+/* Reset only app keys */
+async function clearData(){
+    if(!confirm("⚠️ Reset all app data?")) return;
+    if(!confirm("Are you sure? This will remove local menu & sales data.")) return;
+    try{
+        localStorage.removeItem('shwarma_menu');
+        localStorage.removeItem('shwarma_sales');
+        localStorage.removeItem('shwarma_theme_light');
+        localStorage.removeItem('shwarma_online');
+    }catch(e){ console.warn('clearData failed:', e); }
+    location.reload();
+}
+
+/* Navigation helper (works with modular bottom nav) */
+function nav(view, el){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + view);
+    if(target) target.classList.add('active');
+    const container = document.getElementById('bottomNav');
+    if(container){
+        container.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        let btn = el && el.classList && el.classList.contains('nav-btn') ? el : container.querySelector(`[data-id="${view}"]`);
+        if(btn) btn.classList.add('active');
+    }
+}
+
+/* Init */
+async function init(){
+    createSupabaseClientWhenReady();
+    applyTheme();
+    setOnlineStatus(isOnline);
+    renderBottomNav('pos'); // render modular nav
+    renderMenu();
+    renderMgmt();
+    initDashControls();
+    updateDash();
+
+    if(!supabaseClient){
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            createSupabaseClientWhenReady();
+            if(supabaseClient){
+                clearInterval(poll);
+                await loadMenuFromSupabase();
+                await loadOrdersFromSupabase();
+                initDashControls();
+                updateDash();
+            } else if(attempts > 6) clearInterval(poll);
+        }, 700);
+    } else {
+        await loadMenuFromSupabase();
+        await loadOrdersFromSupabase();
+        initDashControls();
+        updateDash();
+    }
+}
+
+/* Expose for debugging */
+window._POS = { getMenu: () => menu, getCart: () => cart, getSales: () => sales, createSupabaseClientWhenReady };
+
+/* Start app */
+init();
+</script>
 </body>
 </html>
+```
 
