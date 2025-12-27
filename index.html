@@ -13,7 +13,8 @@
     <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js" defer></script>
 
     <style>
         :root{
@@ -251,11 +252,10 @@
 
             <div class="dash-filters">
                 <div class="dash-filter-row">
-                    <!-- removed preset dropdown per request; kept date range and actions -->
                     <input id="dashFrom" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="From date">
                     <input id="dashTo" type="date" class="input-dark" onchange="onDashDateChange()" aria-label="To date">
                     <button class="btn-primary dash-btn" onclick="applyDashFilter()" aria-label="Apply filter" title="Apply"> <i class="fas fa-filter" aria-hidden="true"></i></button>
-                    <button class="btn-primary dash-btn" onclick="downloadDashPdf()" style="background:#334155;" aria-label="Download PDF" title="Export PDF"> <i class="fas fa-file-pdf" aria-hidden="true"></i></button>
+                    <button id="exportExcelBtn" class="btn-primary dash-btn" onclick="downloadDashExcel()" style="background:#166534;" aria-label="Export Excel" title="Export Excel"> <i class="fas fa-file-excel" aria-hidden="true"></i></button>
                 </div>
                 <div class="text-sm" id="dashRangeHint" style="text-align:center; margin-top:6px;"></div>
             </div>
@@ -514,12 +514,13 @@ async function deleteOrder(orderId) {
         saveData();
     }
     // Try server delete (best-effort)
-    if(!supabaseClient) return;
+    if(!supabaseClient) {
+        updateDash();
+        return;
+    }
     try {
-        // delete order items first then order
         await supabaseClient.from('BILLINGO_order_items').delete().eq('order_id', orderId);
         await supabaseClient.from('BILLINGO_orders').delete().eq('id', orderId);
-        // refresh server-loaded orders if any
         await loadOrdersFromSupabase();
         updateDash();
     } catch (e) {
@@ -531,26 +532,22 @@ async function editOrder(orderId) {
     const idx = sales.findIndex(s => String(s.id) === String(orderId));
     if(idx === -1) { alert('Order not found locally.'); return; }
     const order = sales[idx];
-    // Prompt for new total and method (simple edit)
     let newTotal = prompt('Edit total amount (₹):', order.total);
-    if(newTotal === null) return; // cancelled
+    if(newTotal === null) return;
     newTotal = parseInt(newTotal, 10);
     if(Number.isNaN(newTotal)) { alert('Invalid total'); return; }
     let newMethod = prompt('Payment method (CASH or UPI):', order.method || order.payment_method || 'CASH');
     if(newMethod === null) return;
     newMethod = String(newMethod).toUpperCase();
 
-    // Update local
     order.total = newTotal;
     order.method = newMethod;
-    // update time to now optionally
     order.time = new Date().toLocaleTimeString();
     order.date = new Date().toLocaleDateString();
     order.ts = Date.now();
     order.iso = new Date().toISOString();
     saveData();
 
-    // Update server (best-effort)
     if(!supabaseClient) {
         updateDash();
         alert('Order updated locally.');
@@ -558,7 +555,6 @@ async function editOrder(orderId) {
     }
     try {
         await supabaseClient.from('BILLINGO_orders').update({ total: newTotal, payment_method: newMethod, placed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', orderId);
-        // reload
         await loadOrdersFromSupabase();
         updateDash();
         alert('Order updated.');
@@ -568,70 +564,10 @@ async function editOrder(orderId) {
     }
 }
 
-/* Process payment (save order) */
-async function processPay(method){
-    try{
-        const now = new Date();
-        const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
-        // include items with the order record so recent orders can show items (even when offline)
-        const itemsForOrder = cart.map(ci => ({ name: ci.name, qty: ci.qty, price: ci.price }));
-        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString(), items: itemsForOrder };
-        sales.push(orderRecord);
-        saveData();
-
-        // persist to Supabase (best-effort, do not block UX)
-        if(supabaseClient){
-            try{
-                const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
-                if(!orderErr && order && order.id){
-                    const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
-                    await supabaseClient.from('BILLINGO_order_items').insert(items);
-                    // Optionally replace local order id with server id for consistency
-                    // find the local order we just pushed (by matching timestamp)
-                    const localIdx = sales.findIndex(s => s.ts === orderRecord.ts && String(s.total) === String(orderRecord.total));
-                    if(localIdx !== -1) {
-                        sales[localIdx].id = order.id;
-                        saveData();
-                    }
-                    await loadOrdersFromSupabase();
-                } else if(orderErr){
-                    console.warn('Order insert error:', orderErr);
-                }
-            }catch(e){
-                console.warn('Supabase order save failed:', e);
-            }
-        }
-
-        // Clear cart and UI
-        closeModal('payModal');
-        cart = [];
-        updateCartUI();
-        renderMenu();
-
-        // NEW: show dialog box "Order saved !"
-        showOrderSaved();
-
-    }catch(e){
-        console.error('Payment processing failed:', e);
-        alert('Payment processing failed. See console for details.');
-    }
-}
-
-function closeModal(id){ const el = document.getElementById(id); if(el){ el.style.display = 'none'; el.setAttribute('aria-hidden','true'); } }
-
-/* Dashboard helpers (trend & item-wise removed) */
+/* Dashboard helpers */
 function getDashRange(){ let fromVal = dashFrom; let toVal = dashTo; const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput && fromInput.value) fromVal = fromInput.value; if(toInput && toInput.value) toVal = toInput.value; const now = new Date(); if(!fromVal || !toVal) return { from: startOfDayLocal(now), to: endOfDayLocal(now) }; return { from: startOfDayLocal(new Date(fromVal + 'T00:00:00')), to: endOfDayLocal(new Date(toVal + 'T00:00:00')) }; }
 function setDashHint(){ const hint = document.getElementById('dashRangeHint'); if(!hint) return; const r = getDashRange(); hint.innerText = `Showing: ${r.from.toLocaleDateString()} → ${r.to.toLocaleDateString()}`; }
-function initDashControls(){ // set default range to today
-    const now = new Date();
-    const fromInput = document.getElementById('dashFrom');
-    const toInput = document.getElementById('dashTo');
-    if(fromInput) fromInput.value = toDateInputValue(startOfDayLocal(now));
-    if(toInput) toInput.value = toDateInputValue(endOfDayLocal(now));
-    dashFrom = fromInput?.value || toDateInputValue(startOfDayLocal(now));
-    dashTo = toInput?.value || toDateInputValue(endOfDayLocal(now));
-    setDashHint();
-}
+function initDashControls(){ const now = new Date(); const fromInput = document.getElementById('dashFrom'); const toInput = document.getElementById('dashTo'); if(fromInput) fromInput.value = toDateInputValue(startOfDayLocal(now)); if(toInput) toInput.value = toDateInputValue(endOfDayLocal(now)); dashFrom = fromInput?.value || toDateInputValue(startOfDayLocal(now)); dashTo = toInput?.value || toDateInputValue(endOfDayLocal(now)); setDashHint(); }
 function onDashDateChange(){ dashFrom = document.getElementById('dashFrom')?.value || dashFrom; dashTo = document.getElementById('dashTo')?.value || dashTo; setDashHint(); }
 function applyDashFilter(){ setDashHint(); updateDash(); }
 
@@ -696,11 +632,8 @@ async function updateDash(){
                 hist.innerHTML = '<div class="empty-state"><i class="fas fa-filter"></i><div style="font-size:16px; font-weight:600; margin-bottom:8px;">No orders in selected range</div><div>Try a different date range.</div></div>';
             } else {
                 hist.innerHTML = histRows.map(s => {
-                    // Determine items: prefer local s.items, else look up from orderItemsMap using s.id
                     let items = s.items || orderItemsMap.get(s.id) || [];
-                    // build items HTML
                     const itemsHtml = items.length ? `<div style="margin-top:8px; font-size:13px; color:var(--text-muted);">${items.map(it => `<div>${escapeHtml(it.name)} × ${escapeHtml(String(it.qty))}${(typeof it.price !== 'undefined') ? ` • ₹${escapeHtml(String(it.price))}` : ''}</div>`).join('')}</div>` : '';
-                    // action buttons (edit/delete) — use order id in data attribute
                     const actionButtons = `<div class="order-actions">
                         <button class="order-action-btn edit" title="Edit order" onclick="editOrder('${escapeHtml(String(s.id))}')"><i class="fas fa-pen" aria-hidden="true"></i> Edit</button>
                         <button class="order-action-btn delete" title="Delete order" onclick="deleteOrder('${escapeHtml(String(s.id))}')"><i class="fas fa-trash" aria-hidden="true"></i> Delete</button>
@@ -724,78 +657,145 @@ async function updateDash(){
     }
 }
 
-/* PDF export: no item-wise section */
-function downloadDashPdf(){
-    try{
+/* Excel export using SheetJS (xlsx) */
+function downloadDashExcel(){
+    try {
+        // wait for XLSX to be available
+        if(typeof XLSX === 'undefined') {
+            alert('Excel library not loaded yet. Please refresh after a moment.');
+            return;
+        }
         const range = getDashRange();
-        const fromStr = range.from.toLocaleDateString();
-        const toStr = range.to.toLocaleDateString();
-        const sumRev = Number(document.getElementById('dashRev')?.innerText || 0);
-        const sumOrd = Number(document.getElementById('dashOrd')?.innerText || 0);
-        const sumAov = Number(document.getElementById('dashAov')?.innerText || 0);
-        const cashRev = Number(document.getElementById('cashRev')?.innerText || 0);
-        const upiRev = Number(document.getElementById('upiRev')?.innerText || 0);
-        const cashOrd = Number(document.getElementById('cashOrd')?.innerText || 0);
-        const upiOrd = Number(document.getElementById('upiOrd')?.innerText || 0);
+        // Summary sheet data
+        const summary = [
+            ['Store', CONFIG.name || 'WOW ROLLS'],
+            ['Range', `${range.from.toLocaleDateString()} - ${range.to.toLocaleDateString()}`],
+            ['Revenue (range)', Number(document.getElementById('dashRev')?.innerText || 0)],
+            ['Orders (range)', Number(document.getElementById('dashOrd')?.innerText || 0)],
+            ['Avg Order (range)', Number(document.getElementById('dashAov')?.innerText || 0)],
+            ['All-time Revenue', Number(document.getElementById('dashAllRev')?.innerText || 0)],
+            [],
+            ['Payment breakdown'],
+            ['Cash Revenue', Number(document.getElementById('cashRev')?.innerText || 0)],
+            ['Cash Orders', Number(document.getElementById('cashOrd')?.innerText || 0)],
+            ['UPI Revenue', Number(document.getElementById('upiRev')?.innerText || 0)],
+            ['UPI Orders', Number(document.getElementById('upiOrd')?.innerText || 0)]
+        ];
 
-        const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
-        if(!jsPDF){ alert('PDF engine not loaded. Please refresh once and try again.'); return; }
+        // Orders sheet rows: one row per item with order info
+        const ordersHeader = ['Order ID','Date','Time','Total','Method','Item Name','Qty','Unit Price'];
+        const rows = [ordersHeader];
 
-        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-        let y = 54;
-        doc.setFont('helvetica','bold'); doc.setFontSize(18);
-        doc.text(`${CONFIG.name || 'Store'} • Sales Summary`, 40, y); y += 22;
-        doc.setFont('helvetica','normal'); doc.setFontSize(11);
-        doc.text(`Range: ${fromStr} to ${toStr}`, 40, y); y += 18;
-        doc.setFont('helvetica','bold');
-        doc.text(`Revenue: ₹${sumRev}`, 40, y); y += 14;
-        doc.text(`Orders: ${sumOrd}`, 40, y); y += 14;
-        doc.text(`Avg Order Value: ₹${sumAov}`, 40, y); y += 18;
-        doc.setFont('helvetica','bold'); doc.text('Payment Breakdown', 40, y); y += 14;
-        doc.setFont('helvetica','normal');
-        doc.text(`Cash: ₹${cashRev} (${cashOrd} orders)`, 40, y); y += 12;
-        doc.text(`UPI: ₹${upiRev} (${upiOrd} orders)`, 40, y); y += 18;
+        // Collect orders in range and their items (local items preferred)
+        const rangeObj = getDashRange();
+        const fromTs = rangeObj.from.getTime();
+        const toTs = rangeObj.to.getTime();
+        const inRange = sales.filter(s => { const t = parseSaleTs(s); return t !== null && t >= fromTs && t <= toTs; });
 
-        const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.pdf`;
-        doc.save(fname);
-    }catch(e){
-        console.error('PDF download failed:', e);
-        alert('Unable to generate PDF. Check console for details.');
+        // If supabase available, try to fetch items for orders to supplement missing local items
+        const orderItemsMap = new Map();
+        const ids = inRange.map(o => o.id).filter(Boolean);
+        const fetchItems = async () => {
+            if(!supabaseClient || !ids.length) return;
+            try {
+                const { data: itemsData, error: itemsErr } = await supabaseClient.from('BILLINGO_order_items').select('order_id,item_name,unit_price,qty').in('order_id', ids);
+                if(!itemsErr && itemsData){
+                    itemsData.forEach(it => {
+                        const arr = orderItemsMap.get(it.order_id) || [];
+                        arr.push({ name: it.item_name, qty: Number(it.qty || 0), price: Number(it.unit_price || 0) });
+                        orderItemsMap.set(it.order_id, arr);
+                    });
+                }
+            } catch (e) {
+                console.warn('Excel export: failed to fetch order items', e);
+            }
+        };
+
+        // Build workbook after optionally fetching server items
+        (async () => {
+            await fetchItems();
+            inRange.forEach(order => {
+                const items = order.items || orderItemsMap.get(order.id) || [];
+                if(items.length === 0) {
+                    // add a single row without item details
+                    rows.push([order.id || '', order.date || '', order.time || '', order.total || 0, order.method || order.payment_method || '', '', '', '']);
+                } else {
+                    items.forEach(it => {
+                        rows.push([order.id || '', order.date || '', order.time || '', order.total || 0, order.method || order.payment_method || '', it.name || '', it.qty || 0, it.price || 0]);
+                    });
+                }
+            });
+
+            // Create workbook and sheets
+            const wb = XLSX.utils.book_new();
+            const wsSummary = XLSX.utils.aoa_to_sheet(summary);
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+            const wsOrders = XLSX.utils.aoa_to_sheet(rows);
+            // Apply simple column widths
+            wsOrders['!cols'] = [{wpx:80},{wpx:90},{wpx:60},{wpx:70},{wpx:70},{wpx:180},{wpx:50},{wpx:70}];
+            XLSX.utils.book_append_sheet(wb, wsOrders, 'Orders');
+
+            const fname = `sales_${toDateInputValue(range.from)}_to_${toDateInputValue(range.to)}.xlsx`;
+            XLSX.writeFile(wb, fname);
+        })();
+
+    } catch (e) {
+        console.error('Excel export failed:', e);
+        alert('Unable to export Excel. See console for details.');
     }
 }
 
-/* Reset only app keys */
-async function clearData(){
-    if(!confirm("⚠️ Reset all app data?")) return;
-    if(!confirm("Are you sure? This will remove local menu & sales data.")) return;
+/* Process payment (save order) */
+async function processPay(method){
     try{
-        localStorage.removeItem('shwarma_menu');
-        localStorage.removeItem('shwarma_sales');
-        localStorage.removeItem('shwarma_theme_light');
-        localStorage.removeItem('shwarma_online');
-    }catch(e){ console.warn('clearData failed:', e); }
-    location.reload();
-}
+        const now = new Date();
+        const total = parseInt(document.getElementById('payAmount')?.innerText || '0', 10) || 0;
+        const itemsForOrder = cart.map(ci => ({ name: ci.name, qty: ci.qty, price: ci.price }));
+        const orderRecord = { id: Date.now(), total, method, time: now.toLocaleTimeString(), date: now.toLocaleDateString(), ts: now.getTime(), iso: now.toISOString(), items: itemsForOrder };
+        sales.push(orderRecord);
+        saveData();
 
-/* Navigation helper (works with modular bottom nav) */
-function nav(view, el){
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    const target = document.getElementById('view-' + view);
-    if(target) target.classList.add('active');
-    const container = document.getElementById('bottomNav');
-    if(container){
-        container.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        let btn = el && el.classList && el.classList.contains('nav-btn') ? el : container.querySelector(`[data-id="${view}"]`);
-        if(btn) btn.classList.add('active');
+        if(supabaseClient){
+            try{
+                const { data: order, error: orderErr } = await supabaseClient.from('BILLINGO_orders').insert({ total, payment_method: method, status: 'PAID', source: 'POS', placed_at: now.toISOString() }).select('id').single();
+                if(!orderErr && order && order.id){
+                    const items = cart.map(ci => ({ order_id: order.id, menu_item_id: ci.id || null, item_name: ci.name, unit_price: ci.price, qty: ci.qty }));
+                    await supabaseClient.from('BILLINGO_order_items').insert(items);
+                    const localIdx = sales.findIndex(s => s.ts === orderRecord.ts && String(s.total) === String(orderRecord.total));
+                    if(localIdx !== -1) {
+                        sales[localIdx].id = order.id;
+                        saveData();
+                    }
+                    await loadOrdersFromSupabase();
+                } else if(orderErr){
+                    console.warn('Order insert error:', orderErr);
+                }
+            }catch(e){
+                console.warn('Supabase order save failed:', e);
+            }
+        }
+
+        closeModal('payModal');
+        cart = [];
+        updateCartUI();
+        renderMenu();
+
+        showOrderSaved();
+    }catch(e){
+        console.error('Payment processing failed:', e);
+        alert('Payment processing failed. See console for details.');
     }
 }
+
+function closeModal(id){ const el = document.getElementById(id); if(el){ el.style.display = 'none'; el.setAttribute('aria-hidden','true'); } }
 
 /* Init */
 async function init(){
     createSupabaseClientWhenReady();
     applyTheme();
     setOnlineStatus(isOnline);
-    renderBottomNav('pos'); // render modular nav
+    renderBottomNav('pos');
     renderMenu();
     renderMgmt();
     initDashControls();
