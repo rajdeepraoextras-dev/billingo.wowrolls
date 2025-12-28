@@ -273,6 +273,52 @@
             .mini-grid{ gap: 14px; }
             .mini-card{ padding: 16px; }
         }
+        /* Extra: iPhone SE/5/6/7/8 and small Androids */
+        @media (max-width:400px) {
+            .main-container { padding-bottom: 110px; }
+            .view { padding: 12px 4px; }
+            .brand-header { padding: 10px 8px; }
+            .brand-name { font-size: 18px; }
+            h2 { font-size: 20px; }
+            h3 { font-size: 15px; }
+            .menu-item { min-height: 110px; padding: 8px; border-radius: 12px; }
+            .menu-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 8px; }
+            .bottom-nav, .cart-bar { width: 98%; max-width: 99vw; }
+            .btn-primary, .dash-btn { font-size: 13px; padding: 10px; border-radius: 10px; }
+            .input-dark, .search-input { font-size: 12px; padding: 10px; border-radius: 10px; }
+        }
+
+        /* Tablets and large phones */
+        @media (max-width: 768px) {
+            .main-container { padding-bottom: 120px; }
+            .view { padding: 20px 8px; }
+            .brand-header { padding: 12px 10px; }
+            .brand-name { font-size: 22px; }
+            h2 { font-size: 24px; }
+            h3 { font-size: 17px; }
+            .menu-item { min-height: 120px; padding: 12px; border-radius: 14px; }
+            .menu-grid { grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 10px; }
+            .bottom-nav, .cart-bar { width: 95%; max-width: 99vw; }
+            .btn-primary, .dash-btn { font-size: 14px; padding: 12px; border-radius: 12px; }
+            .input-dark, .search-input { font-size: 13px; padding: 12px; border-radius: 12px; }
+        }
+
+        /* Make all buttons and touch targets at least 44px tall for accessibility */
+        button, .btn-primary, .icon-btn, .theme-btn, .nav-btn, .order-action-btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Ensure horizontal scroll for grids on small screens */
+        .menu-grid, .stats-grid, .mini-grid {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Prevent text overflow */
+        .item-name, .brand-name, .stat-label, .stat-value {
+            word-break: break-word;
+        }
     </style>
 </head>
 <body class="">
@@ -1136,5 +1182,6 @@ init();
 </body>
 </html>
 ```
+
 
 
